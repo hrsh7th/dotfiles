@@ -35,19 +35,21 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/unite-ssh.git'
+NeoBundle 'git://github.com/Shougo/vim-vcs.git'
 NeoBundle 'git://github.com/vim-scripts/IndentAnything.git'
 NeoBundle 'git://github.com/vim-scripts/Align.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
+NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-unite-history.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/ujihisa/unite-locate.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/tsukkee/unite-help.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -79,7 +81,7 @@ set t_vb=
 " disable backup.
 set nobackup
 
-" enable switch buffer.
+" switch buffer.
 set hidden
 
 " disable swap file.
@@ -145,6 +147,9 @@ set wildmenu
 " cursor move behavior.
 set whichwrap=b,s,h,l,<,>,[,]
 
+" secure.
+set nosecure
+
 " ---------------------------------------------------------
 " Display Settings.
 " ---------------------------------------------------------
@@ -165,6 +170,7 @@ set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V
 
 " no wrap.
 set nowrap
+"set wrap
 
 " show special chars.
 set list
@@ -186,7 +192,7 @@ set shortmess+=I
 set number
 
 " cui colorscheme.
-" colorscheme evening
+"colorscheme evening
 colorscheme mrkn256
 
 " ---------------------------------------------------------
@@ -214,9 +220,13 @@ if has('gui_running')
         set guifont=MigMix_1m_regular:h9:b
         set guifontwide=MigMix_1m_regular:h9:b
     elseif s:is_mac
-        set guifont=Menlo:h9
+        set guifont=Menlo:h12
     elseif s:is_linux
+        set guifont=Menlo:h12
     endif
+
+    " no mouse focus.
+    set nomousefocus
 endif
 
 " ---------------------------------------------------------
@@ -231,21 +241,22 @@ nnoremap <Leader>j <C-w>j
 nnoremap <Leader>k <C-w>k
 nnoremap <Leader>l <C-w>l
 
+" default codingstyle.
+nnoremap <Leader><S-d> :<C-u>CodingStyle d<Cr>
+
 " move tab.
+nmap <Leader>tc    :tabclose<Cr>
 nmap <Leader><S-l> :tabnext<Cr>
 nmap <Leader><S-h> :tabprev<Cr>
 
 " nohlsearch.
-nmap <Leader><Esc> :nohlsearch<Cr>
-
-" default codingstyle.
-nmap <Leader><S-d> :<C-u>CodingStyle Default<Cr>
+nmap <Leader><Esc> :nohlsearch<Cr><Plug>(quickhl-reset)
 
 " move visualbase line.
 nmap j gj
 nmap k gk
 
-" horizontal scroll.
+" big scroll.
 nmap <S-l> 10l10zl
 nmap <S-h> 10h10zh
 nmap <S-k> 5k5<C-y>
@@ -269,10 +280,10 @@ inoremap <expr><Bs> g:my_pair_auto_delete()
 nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -simple -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
 
 " Unite
+nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap <C-l> :<C-u>UniteResume<Cr>
-nnoremap <F3>  :<C-u>Unite -buffer-name=buffer-file_mru buffer file_mru<Cr>
 nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap /     :<C-u>Unite line -start-insert<Cr>
+nnoremap /     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -282,6 +293,10 @@ vmap <C-j> <Plug>(textmanip-move-down)
 vmap <C-k> <Plug>(textmanip-move-up)
 vmap <C-l> <Plug>(textmanip-move-right)
 vmap <C-h> <Plug>(textmanip-move-left)
+
+" Quickhl
+nmap <Space>m <Plug>(quickhl-toggle)
+vmap <Space>m <Plug>(quickhl-toggle)
 
 " ---------------------------------------------------------
 " Command Settings.
@@ -295,6 +310,9 @@ let g:my_coding_styles['t4'] = 'set noexpandtab tabstop=4 shiftwidth=4 softtabst
 let g:my_coding_styles['t2'] = 'set noexpandtab tabstop=2 shiftwidth=2 softtabstop&'
 command! -bar -nargs=1 CodingStyle exec get(g:my_coding_styles, <f-args>, '')
 
+" difforig
+command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | diffthis
+
 " ---------------------------------------------------------
 " Other Settings.
 " ---------------------------------------------------------
@@ -302,12 +320,12 @@ command! -bar -nargs=1 CodingStyle exec get(g:my_coding_styles, <f-args>, '')
 autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetypes.
-autocmd! Filetype javascript exec get(g:my_coding_styles, 'Space2', '')
+autocmd! Filetype javascript exec get(g:my_coding_styles, 's2', '')
 
 " using commandline-window.
 autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
 function! g:my_cmdwinenter_settings()
-    nnoremap <buffer><Esc> :<C-u>quit<Cr>
+    nnoremap <buffer><Esc> :<C-u>quit<CR>
     startinsert!
 endfunction
 
@@ -407,11 +425,10 @@ let g:netrw_cursorline=0
 
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
-let g:my_vimfiler_winwidth=45
+let g:my_vimfiler_winwidth=40
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
-let g:vimfiler_min_filename_width=100
 autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
     nmap     <buffer><Enter> <Plug>(vimfiler_expand_tree)
@@ -419,15 +436,19 @@ function! g:my_vimfiler_settings()
     nmap     <buffer>j       j<Plug>(vimfiler_print_filename)
     nmap     <buffer>k       k<Plug>(vimfiler_print_filename)
     nmap     <buffer>@       <Plug>(vimfiler_toggle_mark_current_line)
-    nnoremap <buffer>b       :Unite -buffer-name=bookmark-directory_mru -default-action=cd -no-start-insert bookmark directory_mru<Cr>
+    nnoremap <buffer>b       :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
     nnoremap <buffer>v       :call vimfiler#mappings#do_action('vsplit')<Cr>
     nnoremap <buffer>s       :call vimfiler#mappings#do_action('split')<Cr>
-    nnoremap <buffer><F10>   :call vimfiler#mappings#do_action('rec')<Cr>
-    set winfixwidth
-    set nobuflisted
+    nnoremap <buffer><F10>   :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
+    nnoremap <buffer><F8>    :call g:my_vimfiler_tab_double()<Cr>
 endfunction
-function! g:my_vimfiler_action_hook(vimfiler)
-  let vimfiler = a:vimfiler
+function! g:my_vimfiler_tab_double()
+    let vimfiler = b:vimfiler
+    tabnew
+    exec ':VimFilerDouble '. vimfiler.current_dir
+endfunction
+function! g:my_vimfiler_hook_action()
+  let vimfiler = b:vimfiler
   if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
     let bufnr = 1
     while bufnr <= winnr('$')
@@ -463,20 +484,14 @@ let g:neocomplcache_keyword_patterns['default']='\h\w*'
 if !exists('g:neocomplcache_omni_patterns')
     let g:neocomplcache_omni_patterns = {}
 endif
-let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
-let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType html setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
-autocmd FileType c setlocal omnifunc=ccomplete#Complete
+" let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
+" let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
 
 " VimShell
 let g:vimshell_split_command="sp"
 let g:vimshell_split_height=30
 let g:vimshell_prompt='$> '
+let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
     nnoremap <buffer>a G$a
