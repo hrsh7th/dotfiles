@@ -41,6 +41,7 @@ NeoBundle 'git://github.com/vim-scripts/Align.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+NeoBundle 'git://github.com/vim-scripts/Highlight-UnMatched-Brackets'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-unite-history.git'
@@ -341,20 +342,20 @@ endfunction
 
 " detect encoding.
 if !has('gui_running')
-  if &term == 'win32' || &term == 'win64'
-    set termencoding=cp932
-    set encoding=japan
-  else
-    if $ENV_ACCESS ==# 'linux'
-      set termencoding=euc-jp
-    elseif $ENV_ACCESS ==# 'colinux'
-      set termencoding=utf-8
+    if &term == 'win32' || &term == 'win64'
+        set termencoding=cp932
+        set encoding=japan
     else
-      set termencoding=&encoding
+        if $ENV_ACCESS ==# 'linux'
+            set termencoding=euc-jp
+        elseif $ENV_ACCESS ==# 'colinux'
+            set termencoding=utf-8
+        else
+            set termencoding=&encoding
+        endif
     endif
-  endif
 elseif s:is_win
-  set termencoding=cp932
+    set termencoding=cp932
 endif
 
 " visible multibyte space.
@@ -362,7 +363,7 @@ highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
 " auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", "<": ">", "（": "）", "「": "」"}
+let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", "<": ">"}
 inoremap <expr>（ g:my_pair_auto_close('（')
 inoremap <expr>「 g:my_pair_auto_close('「')
 inoremap <expr>(  g:my_pair_auto_close('(')
@@ -448,19 +449,19 @@ function! g:my_vimfiler_tab_double()
     exec ':VimFilerDouble '. vimfiler.current_dir
 endfunction
 function! g:my_vimfiler_hook_action()
-  let vimfiler = b:vimfiler
-  if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
-    let bufnr = 1
-    while bufnr <= winnr('$')
-      if getwinvar(bufnr, '&filetype') != 'vimfiler'
-        wincmd w
-        return
-      endif
-      let bufnr += 1
-    endwhile
+    let vimfiler = b:vimfiler
+    if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
+        let bufnr = 1
+        while bufnr <= winnr('$')
+            if getwinvar(bufnr, '&filetype') != 'vimfiler'
+                wincmd w
+                return
+            endif
+            let bufnr += 1
+        endwhile
 
-    botright vnew
-  endif
+        botright vnew
+    endif
 endfunction
 
 " Unite
