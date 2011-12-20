@@ -42,6 +42,7 @@ NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/vim-scripts/Highlight-UnMatched-Brackets'
+NeoBundle 'git://github.com/vim-scripts/mrkn256.vim.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-unite-history.git'
@@ -193,7 +194,6 @@ set shortmess+=I
 set number
 
 " cui colorscheme.
-"colorscheme evening
 colorscheme mrkn256
 
 " ---------------------------------------------------------
