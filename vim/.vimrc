@@ -234,7 +234,7 @@ endif
 " Global KeyMappings.
 " ---------------------------------------------------------
 " quit window.
-nmap <Leader>q :q<Cr>
+nnoremap <Leader>q :q<Cr>
 
 " move window.
 nnoremap <Leader>h <C-w>h
@@ -253,7 +253,7 @@ nmap <Leader><S-h> :tabprev<Cr>
 " nohlsearch.
 nmap <Leader><Esc> :nohlsearch<Cr><Plug>(quickhl-reset)
 
-" move visualbase line.
+" move visual line.
 nmap j gj
 nmap k gk
 
@@ -269,6 +269,9 @@ nmap <F12> ggVG=
 " move insert-mode.
 inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
+
+" insert cr.
+inoremap <C-j> <Cr><Up><End>
 
 " using commandline-window.
 nnoremap : q:
