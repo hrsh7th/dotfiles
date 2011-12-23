@@ -425,7 +425,7 @@ function! g:my_pair_is_between()
         endif
     endif
     return 0
-endif
+endfunction
 
 " ---------------------------------------------------------
 " Plugin Settings.
