@@ -112,7 +112,7 @@ filetype on
 filetype plugin on
 
 " use filetype indent.
-filetype indent on
+filetype indent off
 
 " ---------------------------------------------------------
 " Editting Settings.
@@ -186,7 +186,7 @@ set shortmess+=I
 set number
 
 " cui colorscheme.
-colorscheme desert
+colorscheme mrkn256
 
 " ---------------------------------------------------------
 " GUI Settings.
