@@ -269,6 +269,9 @@ inoremap <C-j> <Cr><Up><End>
 nnoremap : q:
 xnoremap : q:
 
+" enter pair.
+inoremap <expr><Cr> g:my_pair_enter()
+
 " delete pair.
 inoremap <expr><Bs> g:my_pair_delete()
 
@@ -364,19 +367,16 @@ inoremap <expr>[  g:my_pair_close('[')
 inoremap <expr>{  g:my_pair_close('{')
 inoremap <expr>"  g:my_pair_close('"')
 inoremap <expr>'  g:my_pair_close("'")
+inoremap <expr><  g:my_pair_close("<")
 function! g:my_pair_close(char)
-    if getline('.')[col('.') - 1] == a:char
-        return "\<Right>"
-    else
-        if exists("g:pair[a:char]")
-            let patterns = ['\w', '\$', ',']
-            for pattern in patterns
-                if getline('.')[col('.') - 1] =~ pattern
-                    return a:char
-                endif
-            endfor
-            return a:char. g:pair[a:char]. "\<Left>"
-        endif
+    if exists("g:pair[a:char]")
+        let ignore_right_patterns = ['\w', '\$', ',']
+        for pattern in ignore_right_patterns
+            if getline('.')[col('.') - 1] =~ pattern
+                return a:char
+            endif
+        endfor
+        return a:char. g:pair[a:char]. "\<Left>"
     endif
     return a:char
 endfunction
@@ -384,12 +384,10 @@ endfunction
 " skip all pair.
 function! g:my_pair_all_skip()
     let ret = ""
-    let cnt = -1
     while count(g:pair, getline('.')[col('.') + cnt]) > 0
         let ret .= "\<Right>"
-        let cnt += 1
     endwhile
-    return cnt > -1 ? ret : "\<Tab>"
+    return ret != "" ? ret : "\<Tab>"
 endfunction
 
 " skip pair.
