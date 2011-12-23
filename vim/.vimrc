@@ -36,12 +36,10 @@ NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/unite-ssh.git'
 NeoBundle 'git://github.com/Shougo/vim-vcs.git'
-NeoBundle 'git://github.com/vim-scripts/IndentAnything.git'
 NeoBundle 'git://github.com/vim-scripts/Align.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/vim-scripts/Highlight-UnMatched-Brackets'
 NeoBundle 'git://github.com/vim-scripts/mrkn256.vim.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
@@ -122,13 +120,7 @@ filetype indent on
 " autoindent.
 set autoindent
 
-" smartindent.
-set smartindent
-
-" cindent.
-set cindent
-
-" autoindent tabwidth.
+" tabwidth.
 set shiftwidth=4
 
 " softtab.
@@ -194,7 +186,7 @@ set shortmess+=I
 set number
 
 " cui colorscheme.
-colorscheme mrkn256
+colorscheme desert
 
 " ---------------------------------------------------------
 " GUI Settings.
@@ -278,7 +270,7 @@ nnoremap : q:
 xnoremap : q:
 
 " delete pair.
-inoremap <expr><Bs> g:my_pair_auto_delete()
+inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
 nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -simple -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
@@ -367,14 +359,12 @@ match MbSpace /　/
 
 " auto close pair.
 let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", "<": ">"}
-inoremap <expr>（ g:my_pair_auto_close('（')
-inoremap <expr>「 g:my_pair_auto_close('「')
-inoremap <expr>(  g:my_pair_auto_close('(')
-inoremap <expr>[  g:my_pair_auto_close('[')
-inoremap <expr>{  g:my_pair_auto_close('{')
-inoremap <expr>"  g:my_pair_auto_close('"')
-inoremap <expr>'  g:my_pair_auto_close("'")
-function! g:my_pair_auto_close(char)
+inoremap <expr>(  g:my_pair_close('(')
+inoremap <expr>[  g:my_pair_close('[')
+inoremap <expr>{  g:my_pair_close('{')
+inoremap <expr>"  g:my_pair_close('"')
+inoremap <expr>'  g:my_pair_close("'")
+function! g:my_pair_close(char)
     if getline('.')[col('.') - 1] == a:char
         return "\<Right>"
     else
@@ -411,15 +401,31 @@ function! g:my_pair_skip()
     return "\<Tab>"
 endfunction
 
+" enter pair.
+function! g:my_pair_enter()
+    if g:my_pair_is_between()
+        return "\<Cr>\<Up>\<End>\<Cr>\<Tab>"
+    endif
+    return "\<Cr>"
+endfunction
+
 " delete pair.
-function! g:my_pair_auto_delete()
-    if exists("g:pair[getline('.')[col('.') - 2]]")
-        if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
-            return "\<Right>\<Bs>\<Bs>"
-        endif
+function! g:my_pair_delete()
+    if g:my_pair_is_between()
+        return "\<Right>\<Bs>\<Bs>"
     endif
     return "\<Bs>"
 endfunction
+
+" is between.
+function! g:my_pair_is_between()
+    if exists("g:pair[getline('.')[col('.') - 2]]")
+        if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
+            return 1
+        endif
+    endif
+    return 0
+endif
 
 " ---------------------------------------------------------
 " Plugin Settings.
