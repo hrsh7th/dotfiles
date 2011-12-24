@@ -120,6 +120,9 @@ filetype indent off
 " autoindent.
 set autoindent
 
+" copy indnet.
+set copyindent
+
 " tabwidth.
 set shiftwidth=4
 
@@ -211,11 +214,10 @@ if has('gui_running')
     " font.
     if s:is_win
         set guifont=MigMix_1m_regular:h9:b
-        set guifontwide=MigMix_1m_regular:h9:b
     elseif s:is_mac
-        set guifont=Menlo:h12
+        set guifont=Menlo:h9
     elseif s:is_linux
-        set guifont=Menlo:h12
+        set guifont=Menlo:h9
     endif
 
     " no mouse focus.
@@ -449,6 +451,11 @@ function! g:my_vimfiler_settings()
     nnoremap <buffer>s       :call vimfiler#mappings#do_action('split')<Cr>
     nnoremap <buffer><F10>   :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
     nnoremap <buffer><F8>    :call g:my_vimfiler_tab_double()<Cr>
+
+    let vimfiler = b:vimfiler
+    if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
+        set winfixwidth
+    endif
 endfunction
 function! g:my_vimfiler_tab_double()
     let vimfiler = b:vimfiler
