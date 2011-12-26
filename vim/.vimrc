@@ -46,6 +46,7 @@ NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-unite-history.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+NeoBundle 'git://github.com/thinca/vim-ref.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
@@ -280,6 +281,9 @@ inoremap <expr><Bs> g:my_pair_delete()
 " VimFiler
 nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -simple -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
 
+" VimShell
+nnoremap <F5>  :<C-u>VimShell<Cr>
+
 " Unite
 nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap <C-l> :<C-u>UniteResume<Cr>
@@ -510,6 +514,7 @@ let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
     nnoremap <buffer>a G$a
+    inoremap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
     call vimshell#altercmd#define('ll', 'ls -al')
     call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
 endfunction
