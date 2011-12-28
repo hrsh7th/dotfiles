@@ -295,7 +295,7 @@ nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 -no-quit 
 nnoremap /     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : g:my_pair_skip()
 
 " textmanip
 vmap <C-j> <Plug>(textmanip-move-down)
@@ -522,7 +522,7 @@ let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
     nnoremap <buffer>a G$a
-    inoremap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+    inoremap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : pumvisible() ? "\<C-n>" : g:my_pair_skip()
     call vimshell#altercmd#define('ll', 'ls -al')
     call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
 endfunction
