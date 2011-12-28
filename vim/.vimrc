@@ -451,17 +451,18 @@ let g:vimfiler_tree_opened_icon='▾'
 let g:vimfiler_tree_closed_icon='▸'
 autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
-    nmap     <buffer><Tab>   <Plug>(vimfiler_choose_action)
-    nmap     <buffer><Enter> <Plug>(vimfiler_expand_tree)
-    nmap     <buffer>j       j<Plug>(vimfiler_print_filename)
-    nmap     <buffer>k       k<Plug>(vimfiler_print_filename)
-    nmap     <buffer>@       <Plug>(vimfiler_toggle_mark_current_line)
-    nnoremap <buffer>b       :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
-    nnoremap <buffer>v       :call vimfiler#mappings#do_action('vsplit')<Cr>
-    nnoremap <buffer>s       :call vimfiler#mappings#do_action('split')<Cr>
-    nnoremap <buffer><F5>    :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-    nnoremap <buffer><F10>   :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
-    nnoremap <buffer><F8>    :call g:my_vimfiler_tab_double()<Cr>
+    nmap     <buffer><expr><Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+    nmap     <buffer><Tab>         <Plug>(vimfiler_choose_action)
+    nmap     <buffer>j             j<Plug>(vimfiler_print_filename)
+    nmap     <buffer>k             k<Plug>(vimfiler_print_filename)
+    nmap     <buffer>@             <Plug>(vimfiler_toggle_mark_current_line)
+    nnoremap <buffer>b             :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
+    nnoremap <buffer>v             :call vimfiler#mappings#do_action('vsplit')<Cr>
+    nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
+    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
+    nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
+    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
+    nnoremap <buffer><F8>          :call g:my_vimfiler_tab_double()<Cr>
 
     let vimfiler = b:vimfiler
     if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
