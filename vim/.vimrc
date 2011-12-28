@@ -212,9 +212,13 @@ if has('gui_running')
     " visible gui parts.
     set guioptions-=m guioptions-=T guioptions+=b
 
+    " multibyte characters.
+    set ambiwidth=double
+
     " font.
     if s:is_win
-        set guifont=MigMix_1m_regular:h9:b
+        set guifont=Consolas:h10:b
+        set guifontwide=MigMix_1m:h9:b
     elseif s:is_mac
         set guifont=Menlo:h9
     elseif s:is_linux
@@ -287,7 +291,7 @@ nnoremap <F5>  :<C-u>VimShell<Cr>
 " Unite
 nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap <C-l> :<C-u>UniteResume<Cr>
-nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 -no-quit outline<Cr>
 nnoremap /     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
@@ -398,7 +402,6 @@ endfunction
 
 " skip pair.
 function! g:my_pair_skip()
-    let ret = ""
     if count(g:pair, getline('.')[col('.') - 1]) > 0
         return "\<Right>"
     endif
@@ -443,16 +446,20 @@ let g:my_vimfiler_winwidth=40
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
+let g:vimfiler_tree_leaf_icon=' '
+let g:vimfiler_tree_opened_icon='▾'
+let g:vimfiler_tree_closed_icon='▸'
 autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
-    nmap     <buffer><Enter> <Plug>(vimfiler_expand_tree)
     nmap     <buffer><Tab>   <Plug>(vimfiler_choose_action)
+    nmap     <buffer><Enter> <Plug>(vimfiler_expand_tree)
     nmap     <buffer>j       j<Plug>(vimfiler_print_filename)
     nmap     <buffer>k       k<Plug>(vimfiler_print_filename)
     nmap     <buffer>@       <Plug>(vimfiler_toggle_mark_current_line)
     nnoremap <buffer>b       :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
     nnoremap <buffer>v       :call vimfiler#mappings#do_action('vsplit')<Cr>
     nnoremap <buffer>s       :call vimfiler#mappings#do_action('split')<Cr>
+    nnoremap <buffer><F5>    :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
     nnoremap <buffer><F10>   :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
     nnoremap <buffer><F8>    :call g:my_vimfiler_tab_double()<Cr>
 
@@ -509,7 +516,7 @@ endif
 " VimShell
 let g:vimshell_split_command="sp"
 let g:vimshell_split_height=30
-let g:vimshell_prompt='$> '
+let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
