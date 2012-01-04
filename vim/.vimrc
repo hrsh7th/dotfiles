@@ -103,6 +103,9 @@ set virtualedit=all
 " encoding.
 set encoding=utf-8
 
+" equalalways.
+set equalalways
+
 " on syntax.
 syntax on
 
@@ -443,6 +446,7 @@ let g:netrw_cursorline=0
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=40
+let g:my_vimfiler_prev_winnr=''
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
@@ -462,28 +466,37 @@ function! g:my_vimfiler_settings()
     nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
     nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
     nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
-    nnoremap <buffer><F8>          :call g:my_vimfiler_tab_double()<Cr>
+    nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
 
     let vimfiler = b:vimfiler
     if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
         set winfixwidth
+        set nobuflisted
     endif
 endfunction
-function! g:my_vimfiler_tab_double()
-    let vimfiler = b:vimfiler
-    tabnew
-    exec ':VimFilerDouble '. vimfiler.current_dir
+autocmd WinEnter,BufWinEnter * call g:my_vimfiler_window_enter()
+function! g:my_vimfiler_window_enter()
+    if getwinvar(winnr(), '&filetype') == 'vimfiler'
+        wincmd p
+        let g:my_vimfiler_prev_winnr = winnr()
+        wincmd p
+    endif
 endfunction
 function! g:my_vimfiler_hook_action()
     let vimfiler = b:vimfiler
     if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
-        let bufnr = 1
-        while bufnr <= winnr('$')
-            if getwinvar(bufnr, '&filetype') != 'vimfiler'
+        if getwinvar(g:my_vimfiler_prev_winnr, '&filetype') != 'vimfiler'
+            exec g:my_vimfiler_prev_winnr. 'wincmd w'
+            return
+        endif
+
+        let winnr = 1
+        while winnr <= winnr('$')
+            if getwinvar(winnr, '&filetype') != 'vimfiler'
                 wincmd w
                 return
             endif
-            let bufnr += 1
+            let winnr += 1
         endwhile
 
         botright vnew
@@ -502,8 +515,6 @@ endfunction
 
 " Neocomplcache
 let g:neocomplcache_enable_at_startup=1
-let g:neocomplcache_snippets_disable_runtime_snippets=1
-let g:neocomplcache_snippets_dir=expand('$MYVIMRUNTIME/snippet')
 if !exists('g:neocomplcache_keyword_patterns')
     let g:neocomplcache_keyword_patterns = {}
 endif
