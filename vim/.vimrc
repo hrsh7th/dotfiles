@@ -374,13 +374,12 @@ highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
 " auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", "<": ">"}
+let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'"}
 inoremap <expr>(  g:my_pair_close('(')
 inoremap <expr>[  g:my_pair_close('[')
 inoremap <expr>{  g:my_pair_close('{')
 inoremap <expr>"  g:my_pair_close('"')
 inoremap <expr>'  g:my_pair_close("'")
-inoremap <expr><  g:my_pair_close("<")
 function! g:my_pair_close(char)
     if exists("g:pair[a:char]")
         let ignore_right_patterns = ['\w', '\$', ',']
@@ -463,9 +462,8 @@ function! g:my_vimfiler_settings()
     nnoremap <buffer>b             :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
     nnoremap <buffer>v             :call vimfiler#mappings#do_action('vsplit')<Cr>
     nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
-    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
+    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
     nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec')<Cr>
     nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
 
     let vimfiler = b:vimfiler
@@ -477,23 +475,21 @@ endfunction
 autocmd WinEnter,BufWinEnter * call g:my_vimfiler_window_enter()
 function! g:my_vimfiler_window_enter()
     if getwinvar(winnr(), '&filetype') == 'vimfiler'
-        wincmd p
-        let g:my_vimfiler_prev_winnr = winnr()
-        wincmd p
+        let g:my_vimfiler_prev_winnr = winnr('#')
     endif
 endfunction
 function! g:my_vimfiler_hook_action()
     let vimfiler = b:vimfiler
-    if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
-        if getwinvar(g:my_vimfiler_prev_winnr, '&filetype') != 'vimfiler'
+    if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+        if g:my_vimfiler_prev_winnr != ''
             exec g:my_vimfiler_prev_winnr. 'wincmd w'
             return
         endif
 
-        let winnr = 1
+        let winnr = 0
         while winnr <= winnr('$')
             if getwinvar(winnr, '&filetype') != 'vimfiler'
-                wincmd w
+                exec winnr. 'wincmd w'
                 return
             endif
             let winnr += 1
@@ -511,6 +507,8 @@ function! g:my_unite_settings()
     nmap <buffer><Esc> :q<Cr>
     nmap <buffer>@     <Plug>(unite_toggle_mark_current_candidate)
     nmap <buffer>a     <Plug>(unite_insert_enter)
+
+    call unite#custom_default_action('vimshell/history', 'insert')
 endfunction
 
 " Neocomplcache
@@ -530,11 +528,13 @@ let g:vimshell_split_command="sp"
 let g:vimshell_split_height=30
 let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
+let g:vimshell_disable_escape_highlight=1
+let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
     nnoremap <buffer>a G$a
-    inoremap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
     call vimshell#altercmd#define('ll', 'ls -al')
+    call vimshell#altercmd#define('l', 'll')
     call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
 endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
