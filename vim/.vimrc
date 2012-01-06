@@ -294,7 +294,7 @@ nnoremap <F5>  :<C-u>VimShell<Cr>
 " Unite
 nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap <C-l> :<C-u>UniteResume<Cr>
-nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 -no-quit outline<Cr>
+nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
 nnoremap /     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
@@ -445,7 +445,6 @@ let g:netrw_cursorline=0
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=40
-let g:my_vimfiler_prev_winnr=''
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
@@ -467,25 +466,13 @@ function! g:my_vimfiler_settings()
     nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
 
     let vimfiler = b:vimfiler
-    if vimfiler.context.buffer_name == g:my_vimfiler_explorer_name
+    if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
         set winfixwidth
-        set nobuflisted
-    endif
-endfunction
-autocmd WinEnter,BufWinEnter * call g:my_vimfiler_window_enter()
-function! g:my_vimfiler_window_enter()
-    if getwinvar(winnr(), '&filetype') == 'vimfiler'
-        let g:my_vimfiler_prev_winnr = winnr('#')
     endif
 endfunction
 function! g:my_vimfiler_hook_action()
     let vimfiler = b:vimfiler
     if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-        if g:my_vimfiler_prev_winnr != ''
-            exec g:my_vimfiler_prev_winnr. 'wincmd w'
-            return
-        endif
-
         let winnr = 0
         while winnr <= winnr('$')
             if getwinvar(winnr, '&filetype') != 'vimfiler'
