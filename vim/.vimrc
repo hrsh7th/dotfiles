@@ -41,12 +41,14 @@ NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/vim-scripts/mrkn256.vim.git'
+NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-unite-history.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-ref.git'
+NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
@@ -54,10 +56,12 @@ NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/tsukkee/unite-help.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/othree/eregex.vim.git'
 NeoBundle 'git://github.com/soh335/unite-qflist.git'
+NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -306,9 +310,12 @@ vmap <C-k> <Plug>(textmanip-move-up)
 vmap <C-l> <Plug>(textmanip-move-right)
 vmap <C-h> <Plug>(textmanip-move-left)
 
+" QuickRun
+nnoremap <Leader>r :<C-u>QuickRun<Cr>
+
 " Quickhl
-nmap <Space>m <Plug>(quickhl-toggle)
-vmap <Space>m <Plug>(quickhl-toggle)
+nmap <Leader>m <Plug>(quickhl-toggle)
+vmap <Leader>m <Plug>(quickhl-toggle)
 
 " ---------------------------------------------------------
 " Command Settings.
@@ -483,22 +490,25 @@ function! g:my_vimfiler_hook_action()
         endwhile
 
         botright vnew
+        wincmd p | wincmd p
     endif
 endfunction
 
 " Unite
 let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
+call unite#custom_default_action('vimshell/history', 'insert')
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-    nmap <buffer><Esc> :q<Cr>
-    nmap <buffer>@     <Plug>(unite_toggle_mark_current_candidate)
-    nmap <buffer>a     <Plug>(unite_insert_enter)
-
-    call unite#custom_default_action('vimshell/history', 'insert')
+    nmap <buffer><Esc>     :q<Cr>
+    nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
+    nmap <buffer>a         <Plug>(unite_insert_enter)
 endfunction
 
 " Neocomplcache
+let g:neocomplcache_dictionary_filetype_lists = {}
+let g:neocomplcache_dictionary_filetype_lists['default'] = ''
+let g:neocomplcache_dictionary_filetype_lists['vimshell'] = $HOME. '/.vimshell/command-history'
 let g:neocomplcache_enable_at_startup=1
 if !exists('g:neocomplcache_keyword_patterns')
     let g:neocomplcache_keyword_patterns = {}
@@ -508,7 +518,8 @@ if !exists('g:neocomplcache_omni_patterns')
     let g:neocomplcache_omni_patterns = {}
 endif
 " let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
-" let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
 
 " VimShell
 let g:vimshell_split_command="sp"
@@ -519,7 +530,9 @@ let g:vimshell_disable_escape_highlight=1
 let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
-    nnoremap <buffer>a G$a
+    nnoremap <buffer>a     G$a
+    inoremap <buffer><C-l> :Unite -no-start-insert vimshell/history vimshell/external_history<Cr>
+
     call vimshell#altercmd#define('ll', 'ls -al')
     call vimshell#altercmd#define('l', 'll')
     call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
@@ -527,6 +540,10 @@ endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
     call vimshell#execute('ls -al')
 endfunction
+
+" PrettyPrint
+let g:prettyprint_indent=2
+let g:prettyprint_width=78
 
 " ZenCoding
 let g:user_zen_leader_key="<C-k>"
