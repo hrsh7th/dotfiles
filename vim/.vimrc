@@ -11,21 +11,21 @@ let s:is_linux = !s:is_win && !s:is_mac
 
 " set $MYVIMRUNTIME.
 if s:is_win
-    let $MYVIMRUNTIME=expand('~/vimfiles')
+  let $MYVIMRUNTIME=expand('~/vimfiles')
 else
-    let $MYVIMRUNTIME=expand('~/.vim')
+  let $MYVIMRUNTIME=expand('~/.vim')
 endif
 
 " shellslash.
 if s:is_win
-    set shellslash
+  set shellslash
 endif
 
 " setting neobundle.
 if has('vim_starting')
-    filetype plugin indent off
-    exec 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim/')
-    call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
+  filetype plugin indent off
+  exec 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim/')
+  call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
 endif
 
 NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
@@ -62,6 +62,7 @@ NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/othree/eregex.vim.git'
 NeoBundle 'git://github.com/soh335/unite-qflist.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
+NeoBundle 'vvparser', {'type' : 'nosync'}
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -203,37 +204,37 @@ colorscheme mrkn256
 " GUI Settings.
 " ---------------------------------------------------------
 if has('gui_running')
-    " line height.
-    set linespace=0
+  " line height.
+  set linespace=0
 
-    " disable ime.
-    set iminsert=0
-    set imsearch=0
+  " disable ime.
+  set iminsert=0
+  set imsearch=0
 
-    " ime color.
-    highlight CursorIM guibg=#ff0000 guifg=NONE
+  " ime color.
+  highlight CursorIM guibg=#ff0000 guifg=NONE
 
-    " colorscheme in gui.
-    colorscheme mrkn256
+  " colorscheme in gui.
+  colorscheme mrkn256
 
-    " visible gui parts.
-    set guioptions-=m guioptions-=T guioptions+=b
+  " visible gui parts.
+  set guioptions-=m guioptions-=T guioptions+=b
 
-    " multibyte characters.
-    set ambiwidth=double
+  " multibyte characters.
+  set ambiwidth=double
 
-    " font.
-    if s:is_win
-        set guifont=Consolas:h10:b
-        set guifontwide=MigMix_1m:h9:b
-    elseif s:is_mac
-        set guifont=Menlo:h9
-    elseif s:is_linux
-        set guifont=Menlo:h9
-    endif
+  " font.
+  if s:is_win
+    set guifont=Consolas:h10:b
+    set guifontwide=MigMix_1m:h9:b
+  elseif s:is_mac
+    set guifont=Menlo:h9
+  elseif s:is_linux
+    set guifont=Menlo:h9
+  endif
 
-    " no mouse focus.
-    set nomousefocus
+  " no mouse focus.
+  set nomousefocus
 endif
 
 " ---------------------------------------------------------
@@ -340,40 +341,41 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetypes.
 autocmd! Filetype javascript exec get(g:my_coding_styles, 's2', '')
+autocmd! Filetype vim exec get(g:my_coding_styles, 's2', '')
 
 " using commandline-window.
 autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
 function! g:my_cmdwinenter_settings()
-    nnoremap <buffer><Esc> :<C-u>quit<CR>
-    startinsert!
+  nnoremap <buffer><Esc> :<C-u>quit<CR>
+  startinsert!
 endfunction
 
 " guienter.
 autocmd! GUIEnter * call g:my_guienter_settings()
 function! g:my_guienter_settings()
-    if s:is_win
-        set transparency=180
-    elseif s:is_mac
-        set transparency=20
-    endif
+  if s:is_win
+    set transparency=180
+  elseif s:is_mac
+    set transparency=20
+  endif
 endfunction
 
 " detect encoding.
 if !has('gui_running')
-    if &term == 'win32' || &term == 'win64'
-        set termencoding=cp932
-        set encoding=japan
-    else
-        if $ENV_ACCESS ==# 'linux'
-            set termencoding=euc-jp
-        elseif $ENV_ACCESS ==# 'colinux'
-            set termencoding=utf-8
-        else
-            set termencoding=&encoding
-        endif
-    endif
-elseif s:is_win
+  if &term == 'win32' || &term == 'win64'
     set termencoding=cp932
+    set encoding=japan
+  else
+    if $ENV_ACCESS ==# 'linux'
+      set termencoding=euc-jp
+    elseif $ENV_ACCESS ==# 'colinux'
+      set termencoding=utf-8
+    else
+      set termencoding=&encoding
+    endif
+  endif
+elseif s:is_win
+  set termencoding=cp932
 endif
 
 " visible multibyte space.
@@ -388,59 +390,59 @@ inoremap <expr>{  g:my_pair_close('{')
 inoremap <expr>"  g:my_pair_close('"')
 inoremap <expr>'  g:my_pair_close("'")
 function! g:my_pair_close(char)
-    if exists("g:pair[a:char]")
-        let ignore_right_patterns = ['\w', '\$', ',']
-        for pattern in ignore_right_patterns
-            if getline('.')[col('.') - 1] =~ pattern
-                return a:char
-            endif
-        endfor
-        return a:char. g:pair[a:char]. "\<Left>"
-    endif
-    return a:char
+  if exists("g:pair[a:char]")
+    let ignore_right_patterns = ['\w', '\$', ',']
+    for pattern in ignore_right_patterns
+      if getline('.')[col('.') - 1] =~ pattern
+        return a:char
+      endif
+    endfor
+    return a:char. g:pair[a:char]. "\<Left>"
+  endif
+  return a:char
 endfunction
 
 " skip all pair.
 function! g:my_pair_all_skip()
-    let ret = ""
-    while count(g:pair, getline('.')[col('.') + cnt]) > 0
-        let ret .= "\<Right>"
-    endwhile
-    return ret != "" ? ret : "\<Tab>"
+  let ret = ""
+  while count(g:pair, getline('.')[col('.') + cnt]) > 0
+    let ret .= "\<Right>"
+  endwhile
+  return ret != "" ? ret : "\<Tab>"
 endfunction
 
 " skip pair.
 function! g:my_pair_skip()
-    if count(g:pair, getline('.')[col('.') - 1]) > 0
-        return "\<Right>"
-    endif
-    return "\<Tab>"
+  if count(g:pair, getline('.')[col('.') - 1]) > 0
+    return "\<Right>"
+  endif
+  return "\<Tab>"
 endfunction
 
 " enter pair.
 function! g:my_pair_enter()
-    if g:my_pair_is_between()
-        return "\<Cr>\<Up>\<End>\<Cr>\<Tab>"
-    endif
-    return "\<Cr>"
+  if g:my_pair_is_between()
+    return "\<Cr>\<Up>\<End>\<Cr>\<Tab>"
+  endif
+  return "\<Cr>"
 endfunction
 
 " delete pair.
 function! g:my_pair_delete()
-    if g:my_pair_is_between()
-        return "\<Right>\<Bs>\<Bs>"
-    endif
-    return "\<Bs>"
+  if g:my_pair_is_between()
+    return "\<Right>\<Bs>\<Bs>"
+  endif
+  return "\<Bs>"
 endfunction
 
 " is between.
 function! g:my_pair_is_between()
-    if exists("g:pair[getline('.')[col('.') - 2]]")
-        if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
-            return 1
-        endif
+  if exists("g:pair[getline('.')[col('.') - 2]]")
+    if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
+      return 1
     endif
-    return 0
+  endif
+  return 0
 endfunction
 
 " ---------------------------------------------------------
@@ -460,49 +462,50 @@ let g:vimfiler_tree_opened_icon='▾'
 let g:vimfiler_tree_closed_icon='▸'
 autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-    nmap     <buffer><Tab>         <Plug>(vimfiler_choose_action)
-    nmap     <buffer>j             j<Plug>(vimfiler_print_filename)
-    nmap     <buffer>k             k<Plug>(vimfiler_print_filename)
-    nmap     <buffer>@             <Plug>(vimfiler_toggle_mark_current_line)
-    nnoremap <buffer>b             :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
-    nnoremap <buffer>v             :call vimfiler#mappings#do_action('vsplit')<Cr>
-    nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
-    nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
-    nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-    nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
+  nmap     <buffer><expr><Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+  nmap     <buffer><Tab>         <Plug>(vimfiler_choose_action)
+  nmap     <buffer>j             j<Plug>(vimfiler_print_filename)
+  nmap     <buffer>k             k<Plug>(vimfiler_print_filename)
+  nmap     <buffer>@             <Plug>(vimfiler_toggle_mark_current_line)
+  nnoremap <buffer>b             :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
+  nnoremap <buffer>v             :call vimfiler#mappings#do_action('vsplit')<Cr>
+  nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
+  nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
+  nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
+  nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
 
-    let vimfiler = b:vimfiler
-    if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-        set winfixwidth
-    endif
+  let vimfiler = b:vimfiler
+  if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+    set winfixwidth
+  endif
 endfunction
 function! g:my_vimfiler_hook_action()
-    let vimfiler = b:vimfiler
-    if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-        let winnr = 0
-        while winnr <= winnr('$')
-            if getwinvar(winnr, '&filetype') != 'vimfiler'
-                exec winnr. 'wincmd w'
-                return
-            endif
-            let winnr += 1
-        endwhile
+  let vimfiler = b:vimfiler
+  if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+    let winnr = 0
+    while winnr <= winnr('$')
+      if getwinvar(winnr, '&filetype') != 'vimfiler'
+        exec winnr. 'wincmd w'
+        return
+      endif
+      let winnr += 1
+    endwhile
 
-        botright vnew
-        wincmd p | wincmd p
-    endif
+    botright vnew
+    wincmd p | wincmd p
+  endif
 endfunction
 
 " Unite
 let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
-call unite#custom_default_action('vimshell/history', 'insert')
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-    nmap <buffer><Esc>     :q<Cr>
-    nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
-    nmap <buffer>a         <Plug>(unite_insert_enter)
+  nmap <buffer><Esc>     :q<Cr>
+  nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
+  nmap <buffer>a         <Plug>(unite_insert_enter)
+
+  call unite#custom_default_action('vimshell/history', 'insert')
 endfunction
 
 " Neocomplcache
@@ -511,11 +514,11 @@ let g:neocomplcache_dictionary_filetype_lists['default'] = ''
 let g:neocomplcache_dictionary_filetype_lists['vimshell'] = $HOME. '/.vimshell/command-history'
 let g:neocomplcache_enable_at_startup=1
 if !exists('g:neocomplcache_keyword_patterns')
-    let g:neocomplcache_keyword_patterns = {}
+  let g:neocomplcache_keyword_patterns = {}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
 if !exists('g:neocomplcache_omni_patterns')
-    let g:neocomplcache_omni_patterns = {}
+  let g:neocomplcache_omni_patterns = {}
 endif
 " let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
 let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
@@ -530,15 +533,15 @@ let g:vimshell_disable_escape_highlight=1
 let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
-    nnoremap <buffer>a     G$a
-    inoremap <buffer><C-l> :Unite -no-start-insert vimshell/history vimshell/external_history<Cr>
+  nnoremap <buffer>a     G$a
+  inoremap <buffer><C-l> :Unite -no-start-insert vimshell/history vimshell/external_history<Cr>
 
-    call vimshell#altercmd#define('ll', 'ls -al')
-    call vimshell#altercmd#define('l', 'll')
-    call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
+  call vimshell#altercmd#define('ll', 'ls -al')
+  call vimshell#altercmd#define('l', 'll')
+  call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
 endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
-    call vimshell#execute('ls -al')
+  call vimshell#execute('ls -al')
 endfunction
 
 " PrettyPrint
