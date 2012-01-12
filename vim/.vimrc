@@ -62,7 +62,6 @@ NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/othree/eregex.vim.git'
 NeoBundle 'git://github.com/soh335/unite-qflist.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
-NeoBundle 'vvparser', {'type' : 'nosync'}
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -300,7 +299,7 @@ nnoremap <F5>  :<C-u>VimShell<Cr>
 nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap <C-l> :<C-u>UniteResume<Cr>
 nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap /     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
+nnoremap ?     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -342,6 +341,7 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 " for filetypes.
 autocmd! Filetype javascript exec get(g:my_coding_styles, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_styles, 's2', '')
+autocmd! Filetype php exec get(g:my_coding_styles, 's4', '')
 
 " using commandline-window.
 autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
@@ -539,6 +539,8 @@ function! g:my_vimshell_settings()
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
   call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
+
+  set nowrap
 endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
   call vimshell#execute('ls -al')
