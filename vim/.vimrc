@@ -53,6 +53,7 @@ NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
+NeoBundle 'git://github.com/hrsh7th/vim-vsparser.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/tsukkee/unite-help.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -472,7 +473,7 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
   nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
   nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-  nnoremap <buffer><F8>          :VimfilerTab -double<Cr>
+  nnoremap <buffer><F8>          :VimFilerTab -double<Cr>
 
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
@@ -504,8 +505,6 @@ function! g:my_unite_settings()
   nmap <buffer><Esc>     :q<Cr>
   nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a         <Plug>(unite_insert_enter)
-
-  call unite#custom_default_action('vimshell/history', 'insert')
 endfunction
 
 " Neocomplcache
@@ -534,7 +533,7 @@ let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a     G$a
-  inoremap <buffer><C-l> :Unite -no-start-insert vimshell/history vimshell/external_history<Cr>
+  inoremap <buffer><C-l> <Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
 
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
