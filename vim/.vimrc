@@ -30,6 +30,7 @@ endif
 
 NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+NeoBundle 'git://github.com/Shougo/echodoc.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
@@ -322,13 +323,13 @@ vmap <Leader>m <Plug>(quickhl-toggle)
 " Command Settings.
 " ---------------------------------------------------------
 " switch CodingStyle.
-let g:my_coding_styles = {}
-let g:my_coding_styles['d']  = 'set expandtab   tabstop=4 shiftwidth=4 softtabstop&'
-let g:my_coding_styles['s4'] = 'set expandtab   tabstop=4 shiftwidth=4 softtabstop&'
-let g:my_coding_styles['s2'] = 'set expandtab   tabstop=2 shiftwidth=2 softtabstop&'
-let g:my_coding_styles['t4'] = 'set noexpandtab tabstop=4 shiftwidth=4 softtabstop&'
-let g:my_coding_styles['t2'] = 'set noexpandtab tabstop=2 shiftwidth=2 softtabstop&'
-command! -bar -nargs=1 CodingStyle exec get(g:my_coding_styles, <f-args>, '')
+let g:my_coding_style = {}
+let g:my_coding_style['d']  = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop&'
+let g:my_coding_style['s4'] = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop&'
+let g:my_coding_style['s2'] = 'setlocal expandtab   tabstop=2 shiftwidth=2 softtabstop&'
+let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop&'
+let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop&'
+command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
 
 " difforig
 command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | diffthis
@@ -340,9 +341,9 @@ command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | d
 autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetypes.
-autocmd! Filetype javascript exec get(g:my_coding_styles, 's2', '')
-autocmd! Filetype vim exec get(g:my_coding_styles, 's2', '')
-autocmd! Filetype php exec get(g:my_coding_styles, 's4', '')
+autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 
 " using commandline-window.
 autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
@@ -502,9 +503,17 @@ let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-  nmap <buffer><Esc>     :q<Cr>
-  nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
-  nmap <buffer>a         <Plug>(unite_insert_enter)
+  nmap <buffer><Esc>       :q<Cr>
+  nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
+  nmap <buffer>a           <Plug>(unite_insert_enter)
+  nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
+  nmap <buffer><C-n>       <Plug>(unite_loop_cursor_down)
+  imap <buffer><C-p>       <Esc><Plug>(unite_loop_cursor_up)
+  imap <buffer><C-n>       <Esc><Plug>(unite_loop_cursor_down)
+  nnoremap <buffer><expr>s unite#do_action('split')
+  nnoremap <buffer><expr>v unite#do_action('vsplit')
+
+  call unite#custom_default_action('vimshell/hisotry', 'insert')
 endfunction
 
 " Neocomplcache
