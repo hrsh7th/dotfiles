@@ -49,21 +49,23 @@ NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-ref.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
-NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-vsparser.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/tsukkee/unite-help.git'
-NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-NeoBundle 'git://github.com/mattn/webapi-vim.git'
+NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/othree/eregex.vim.git'
 NeoBundle 'git://github.com/soh335/unite-qflist.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
+NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
+NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -247,11 +249,11 @@ endif
 " Global KeyMappings.
 " ---------------------------------------------------------
 " quit window.
-nnoremap <Leader>q :<C-u>q<Cr>
-nnoremap <Leader>! :<C-u>q!<Cr>
+nnoremap <Leader>q :q<Cr>
+nnoremap <Leader>! :q!<Cr>
 
 " quit window.
-nnoremap <Leader>w :<C-u>w<Cr>
+nnoremap <Leader>w :w<Cr>
 
 " move window.
 nnoremap <Leader>h <C-w>h
@@ -260,15 +262,15 @@ nnoremap <Leader>k <C-w>k
 nnoremap <Leader>l <C-w>l
 
 " default codingstyle.
-nnoremap <Leader><S-d> :<C-u>CodingStyle d<Cr>
+nnoremap <Leader><S-d> :CodingStyle d<Cr>
 
 " move tab.
-nnoremap <Leader>tc    :<C-u>tabclose<Cr>
-nnoremap <Leader><S-l> :<C-u>tabnext<Cr>
-nnoremap <Leader><S-h> :<C-u>tabprev<Cr>
+nnoremap <Leader>tc    :tabclose<Cr>
+nnoremap <Leader><S-l> :tabnext<Cr>
+nnoremap <Leader><S-h> :tabprev<Cr>
 
 " nohlsearch.
-nmap <Leader><Esc> :<C-u>nohlsearch<Cr><Plug>(quickhl-reset)
+nmap <Leader><Esc> :nohlsearch<Cr><Plug>(quickhl-reset)
 
 " move visual line.
 nnoremap j gj
@@ -301,16 +303,16 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
-nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
+nnoremap <expr><F2> ":VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
 
 " VimShell
-nnoremap <F5>  :<C-u>VimShell<Cr>
+nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap <F3>  :<C-u>Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
-nnoremap <C-l> :<C-u>UniteResume<Cr>
-nnoremap <F8>  :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap ?     :<C-u>Unite -buffer-name=line -start-insert line<Cr>
+nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
+nnoremap m :UniteResume<Cr>
+nnoremap <F8>  :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -322,7 +324,7 @@ vmap <C-l> <Plug>(textmanip-move-right)
 vmap <C-h> <Plug>(textmanip-move-left)
 
 " QuickRun
-nnoremap <Leader>r :<C-u>QuickRun<Cr>
+nnoremap <Leader>r :QuickRun<Cr>
 
 " Quickhl
 nmap <Leader>m <Plug>(quickhl-toggle)
@@ -333,11 +335,11 @@ vmap <Leader>m <Plug>(quickhl-toggle)
 " ---------------------------------------------------------
 " switch CodingStyle.
 let g:my_coding_style = {}
-let g:my_coding_style['d']  = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop&'
 let g:my_coding_style['s4'] = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop&'
 let g:my_coding_style['s2'] = 'setlocal expandtab   tabstop=2 shiftwidth=2 softtabstop&'
 let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop&'
 let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop&'
+let g:my_coding_style['d']  = g:my_coding_style['s4']
 command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
 
 " difforig
@@ -349,7 +351,8 @@ command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | d
 " for extension.
 autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
-" for filetypes.
+" for filetype.
+autocmd! Filetype js set filetype=javascript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
@@ -357,7 +360,7 @@ autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 " using commandline-window.
 autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
 function! g:my_cmdwinenter_settings()
-  nnoremap <buffer><Esc> :<C-u>quit<CR>
+  nnoremap <buffer><Esc> :q<CR>
   startinsert!
 endfunction
 
@@ -476,9 +479,9 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
   nnoremap <buffer>v          :call vimfiler#mappings#do_action('vsplit')<Cr>
   nnoremap <buffer>s          :call vimfiler#mappings#do_action('split')<Cr>
-  nnoremap <buffer><F10>      :<C-u>call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
-  nnoremap <buffer><F5>       :<C-u>call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-  nnoremap <buffer><F8>       :<C-u>VimFilerTab -double<Cr>
+  nnoremap <buffer><F10>      :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
+  nnoremap <buffer><F5>       :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
+  nnoremap <buffer><F8>       :VimFilerTab -double<Cr>
 
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
@@ -523,7 +526,7 @@ let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-  nnoremap <buffer><Esc>   :<C-u>q<Cr>
+  nnoremap <buffer><Esc>   :q<Cr>
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
@@ -562,7 +565,7 @@ let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a     G$a
-  inoremap <buffer><C-l> <Esc>:<C-u>Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
+  inoremap <buffer><C-l> <Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
 
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
@@ -586,6 +589,26 @@ let g:user_zen_settings = {}
 let g:user_zen_settings['html'] = { 'indentation': '    ' }
 let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
 let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
+
+" easymotion
+let g:EasyMotion_do_mapping=1
+let g:EasyMotion_leader_key=""
+let g:EasyMotion_mapping_f='f'
+let g:EasyMotion_mapping_F='F'
+let g:EasyMotion_mapping_t=''
+let g:EasyMotion_mapping_T=''
+let g:EasyMotion_mapping_w=''
+let g:EasyMotion_mapping_W=''
+let g:EasyMotion_mapping_b=''
+let g:EasyMotion_mapping_B=''
+let g:EasyMotion_mapping_e=''
+let g:EasyMotion_mapping_E=''
+let g:EasyMotion_mapping_ge=''
+let g:EasyMotion_mapping_gE=''
+let g:EasyMotion_mapping_j=''
+let g:EasyMotion_mapping_k=''
+let g:EasyMotion_mapping_n=''
+let g:EasyMotion_mapping_N=''
 
 " Align
 let g:Align_xstrlen=3
