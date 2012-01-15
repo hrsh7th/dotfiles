@@ -66,6 +66,7 @@ NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
+NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -169,7 +170,7 @@ set notitle
 set cursorline
 
 " commandline height.
-set cmdheight=1
+set cmdheight=2
 
 " visible statusline.
 set laststatus=2
@@ -311,7 +312,7 @@ nnoremap <F5>  :VimShell<Cr>
 " Unite
 nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap m :UniteResume<Cr>
-nnoremap <F8>  :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F8>  :Unite -buffer-name=outline -auto-preview -vertical -winwidth=45 outline<Cr>
 nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
@@ -357,11 +358,13 @@ autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 
-" using commandline-window.
-autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
-function! g:my_cmdwinenter_settings()
-  nnoremap <buffer><Esc> :q<CR>
-  startinsert!
+" vimenter.
+autocmd VimEnter * call g:my_vimenter_settings()
+function! g:my_vimenter_settings()
+  call vimshell#create_shell(0, expand('~/'))
+  call vimshell#execute('ls -al')
+  call feedkeys("\<Esc>")
+  call feedkeys("\<F2>")
 endfunction
 
 " guienter.
@@ -372,6 +375,13 @@ function! g:my_guienter_settings()
   elseif s:is_mac
     set transparency=20
   endif
+endfunction
+
+" using commandline-window.
+autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
+function! g:my_cmdwinenter_settings()
+  nnoremap <buffer><Esc> :q<CR>
+  startinsert!
 endfunction
 
 " detect encoding.
@@ -397,7 +407,7 @@ highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
 " auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'"}
+let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
 inoremap <expr>(  g:my_pair_close('(')
 inoremap <expr>[  g:my_pair_close('[')
 inoremap <expr>{  g:my_pair_close('{')
@@ -407,7 +417,7 @@ function! g:my_pair_close(char)
   if exists("g:pair[a:char]")
     let ignore_right_patterns = ['\w', '\$', ',']
     for pattern in ignore_right_patterns
-      if getline('.')[col('.') - 1] =~ pattern
+      if getline('.')[col('.') - 1] =~ pattern || exists("g:pair[getline('.')[col('.') - 1]]")
         return a:char
       endif
     endfor
@@ -461,8 +471,9 @@ let g:echodoc_enable_at_startup=1
 
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
-let g:my_vimfiler_winwidth=40
-let g:my_vimfiler_prev_winnr=''
+let g:my_vimfiler_winwidth=35
+let g:my_vimfiler_ignore_filetype=['vimfiler', 'vimshell', 'unite']
+let g:my_vimfiler_prev_bufnr=-1
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
@@ -476,7 +487,7 @@ function! g:my_vimfiler_settings()
   nmap     <buffer>@          <Plug>(vimfiler_toggle_mark_current_line)
   nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
-  nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
+  nnoremap <buffer>b          :Unite -buffer-name=bookmark-directory_mru -default-action=cd -no-start-insert bookmark directory_mru<Cr>
   nnoremap <buffer>v          :call vimfiler#mappings#do_action('vsplit')<Cr>
   nnoremap <buffer>s          :call vimfiler#mappings#do_action('split')<Cr>
   nnoremap <buffer><F10>      :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
@@ -491,20 +502,21 @@ endfunction
 autocmd BufEnter,BufWinEnter * call g:my_vimfiler_winenter()
 function! g:my_vimfiler_winenter()
   if getwinvar(winnr(), '&filetype') == 'vimfiler'
-    let ignore = ['vimfiler', 'unite', 'vimshell']
     if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-      let winnr = winnr('#')
-      if index(ignore, getwinvar(winnr, '&filetype')) < 0
-        let g:my_vimfiler_prev_winnr=winnr
+      let bufnr = bufnr('$')
+      if index(g:my_vimfiler_ignore_filetype, getwinvar(bufwinnr(bufnr), '&filetype')) < 0
+        let g:my_vimfiler_prev_bufnr=bufnr
       endif
+      exec 'vertical resize '. g:my_vimfiler_winwidth
     endif
   endif
 endfunction
 function! g:my_vimfiler_hook_action()
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-    if g:my_vimfiler_prev_winnr != ''
-      exec g:my_vimfiler_prev_winnr. 'wincmd w'
+    let winnr = bufwinnr(g:my_vimfiler_prev_bufnr)
+    if winnr > -1
+      exec winnr. 'wincmd w'
       return
     endif
 
@@ -567,6 +579,7 @@ function! g:my_vimshell_settings()
   nnoremap <buffer>a     G$a
   inoremap <buffer><C-l> <Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
 
+  call vimshell#altercmd#define('ls', 'ls -al')
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
   call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
@@ -603,12 +616,12 @@ let g:EasyMotion_mapping_b=''
 let g:EasyMotion_mapping_B=''
 let g:EasyMotion_mapping_e=''
 let g:EasyMotion_mapping_E=''
-let g:EasyMotion_mapping_ge=''
-let g:EasyMotion_mapping_gE=''
 let g:EasyMotion_mapping_j=''
 let g:EasyMotion_mapping_k=''
 let g:EasyMotion_mapping_n=''
 let g:EasyMotion_mapping_N=''
+let g:EasyMotion_mapping_ge=''
+let g:EasyMotion_mapping_gE=''
 
 " Align
 let g:Align_xstrlen=3
