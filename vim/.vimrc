@@ -41,7 +41,6 @@ NeoBundle 'git://github.com/vim-scripts/Align.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/vim-scripts/mrkn256.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
@@ -64,6 +63,7 @@ NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/othree/eregex.vim.git'
 NeoBundle 'git://github.com/soh335/unite-qflist.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
+NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -198,8 +198,13 @@ set shortmess+=I
 " show numbers.
 set number
 
+" solarized.
+let g:solarized_termcolors=256
+let g:solarized_bold=1
+let g:solarized_italic=1
+
 " cui colorscheme.
-colorscheme mrkn256
+set background=dark | colorscheme solarized
 
 " ---------------------------------------------------------
 " GUI Settings.
@@ -216,7 +221,7 @@ if has('gui_running')
   highlight CursorIM guibg=#ff0000 guifg=NONE
 
   " colorscheme in gui.
-  colorscheme mrkn256
+  set background=dark | colorscheme solarized
 
   " visible gui parts.
   set guioptions-=m guioptions-=T guioptions+=b
@@ -242,7 +247,11 @@ endif
 " Global KeyMappings.
 " ---------------------------------------------------------
 " quit window.
-nnoremap <Leader>q :q<Cr>
+nnoremap <Leader>q :<C-u>q<Cr>
+nnoremap <Leader>! :<C-u>q!<Cr>
+
+" quit window.
+nnoremap <Leader>w :<C-u>w<Cr>
 
 " move window.
 nnoremap <Leader>h <C-w>h
@@ -254,25 +263,25 @@ nnoremap <Leader>l <C-w>l
 nnoremap <Leader><S-d> :<C-u>CodingStyle d<Cr>
 
 " move tab.
-nmap <Leader>tc    :tabclose<Cr>
-nmap <Leader><S-l> :tabnext<Cr>
-nmap <Leader><S-h> :tabprev<Cr>
+nnoremap <Leader>tc    :<C-u>tabclose<Cr>
+nnoremap <Leader><S-l> :<C-u>tabnext<Cr>
+nnoremap <Leader><S-h> :<C-u>tabprev<Cr>
 
 " nohlsearch.
-nmap <Leader><Esc> :nohlsearch<Cr><Plug>(quickhl-reset)
+nmap <Leader><Esc> :<C-u>nohlsearch<Cr><Plug>(quickhl-reset)
 
 " move visual line.
-nmap j gj
-nmap k gk
+nnoremap j gj
+nnoremap k gk
 
 " big scroll.
-nmap <S-l> 10l10zl
-nmap <S-h> 10h10zh
-nmap <S-k> 5k5<C-y>
-nmap <S-j> 5j5<C-e>
+nnoremap <S-l> 10l10zl
+nnoremap <S-h> 10h10zh
+nnoremap <S-k> 5k5<C-y>
+nnoremap <S-j> 5j5<C-e>
 
 " formatter.
-nmap <F12> ggVG=
+nnoremap <F12> ggVG=
 
 " move insert-mode.
 inoremap <C-l> <C-o>l
@@ -292,7 +301,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
-nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -simple -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
+nnoremap <expr><F2> ":<C-u>VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
 
 " VimShell
 nnoremap <F5>  :<C-u>VimShell<Cr>
@@ -404,15 +413,6 @@ function! g:my_pair_close(char)
   return a:char
 endfunction
 
-" skip all pair.
-function! g:my_pair_all_skip()
-  let ret = ""
-  while count(g:pair, getline('.')[col('.') + cnt]) > 0
-    let ret .= "\<Right>"
-  endwhile
-  return ret != "" ? ret : "\<Tab>"
-endfunction
-
 " skip pair.
 function! g:my_pair_skip()
   if count(g:pair, getline('.')[col('.') - 1]) > 0
@@ -453,9 +453,13 @@ endfunction
 " Netrw
 let g:netrw_cursorline=0
 
+" echodoc
+let g:echodoc_enable_at_startup=1
+
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=40
+let g:my_vimfiler_prev_winnr=''
 let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
@@ -464,26 +468,43 @@ let g:vimfiler_tree_opened_icon='▾'
 let g:vimfiler_tree_closed_icon='▸'
 autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
-  nmap     <buffer><expr><Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-  nmap     <buffer><Tab>         <Plug>(vimfiler_choose_action)
-  nmap     <buffer>j             j<Plug>(vimfiler_print_filename)
-  nmap     <buffer>k             k<Plug>(vimfiler_print_filename)
-  nmap     <buffer>@             <Plug>(vimfiler_toggle_mark_current_line)
-  nnoremap <buffer>b             :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
-  nnoremap <buffer>v             :call vimfiler#mappings#do_action('vsplit')<Cr>
-  nnoremap <buffer>s             :call vimfiler#mappings#do_action('split')<Cr>
-  nnoremap <buffer><F10>         :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
-  nnoremap <buffer><F5>          :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
-  nnoremap <buffer><F8>          :VimFilerTab -double<Cr>
+  nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+  nmap     <buffer><Tab>      <Plug>(vimfiler_choose_action)
+  nmap     <buffer>@          <Plug>(vimfiler_toggle_mark_current_line)
+  nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
+  nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
+  nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_hisotry -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
+  nnoremap <buffer>v          :call vimfiler#mappings#do_action('vsplit')<Cr>
+  nnoremap <buffer>s          :call vimfiler#mappings#do_action('split')<Cr>
+  nnoremap <buffer><F10>      :<C-u>call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
+  nnoremap <buffer><F5>       :<C-u>call vimfiler#mappings#do_current_dir_action('cd')<Cr>
+  nnoremap <buffer><F8>       :<C-u>VimFilerTab -double<Cr>
 
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
     set winfixwidth
   endif
 endfunction
+autocmd BufEnter,BufWinEnter * call g:my_vimfiler_winenter()
+function! g:my_vimfiler_winenter()
+  if getwinvar(winnr(), '&filetype') == 'vimfiler'
+    let ignore = ['vimfiler', 'unite', 'vimshell']
+    if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+      let winnr = winnr('#')
+      if index(ignore, getwinvar(winnr, '&filetype')) < 0
+        let g:my_vimfiler_prev_winnr=winnr
+      endif
+    endif
+  endif
+endfunction
 function! g:my_vimfiler_hook_action()
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+    if g:my_vimfiler_prev_winnr != ''
+      exec g:my_vimfiler_prev_winnr. 'wincmd w'
+      return
+    endif
+
     let winnr = 0
     while winnr <= winnr('$')
       if getwinvar(winnr, '&filetype') != 'vimfiler'
@@ -494,7 +515,6 @@ function! g:my_vimfiler_hook_action()
     endwhile
 
     botright vnew
-    wincmd p | wincmd p
   endif
 endfunction
 
@@ -503,13 +523,13 @@ let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-  nmap <buffer><Esc>       :q<Cr>
+  nnoremap <buffer><Esc>   :<C-u>q<Cr>
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
   nmap <buffer><C-n>       <Plug>(unite_loop_cursor_down)
-  imap <buffer><C-p>       <Esc><Plug>(unite_loop_cursor_up)
-  imap <buffer><C-n>       <Esc><Plug>(unite_loop_cursor_down)
+  imap <buffer><C-p>       <Plug>(unite_insert_leave)<Plug>(unite_loop_cursor_up)
+  imap <buffer><C-n>       <Plug>(unite_insert_leave)<Plug>(unite_loop_cursor_down)
   nnoremap <buffer><expr>s unite#do_action('split')
   nnoremap <buffer><expr>v unite#do_action('vsplit')
 
@@ -529,8 +549,8 @@ if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_patterns = {}
 endif
 " let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
-let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
+" let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+" autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
 
 " VimShell
 let g:vimshell_split_command="sp"
@@ -542,7 +562,7 @@ let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a     G$a
-  inoremap <buffer><C-l> <Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
+  inoremap <buffer><C-l> <Esc>:<C-u>Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
 
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
