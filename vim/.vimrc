@@ -36,15 +36,12 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/unite-ssh.git'
-NeoBundle 'git://github.com/Shougo/vim-vcs.git'
 NeoBundle 'git://github.com/vim-scripts/Align.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
-NeoBundle 'git://github.com/vim-scripts/netrw.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
-NeoBundle 'git://github.com/thinca/vim-unite-history.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-ref.git'
@@ -56,17 +53,13 @@ NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-vsparser.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
-NeoBundle 'git://github.com/tsukkee/unite-help.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
-NeoBundle 'git://github.com/othree/eregex.vim.git'
-NeoBundle 'git://github.com/soh335/unite-qflist.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
-NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -202,9 +195,8 @@ set shortmess+=I
 set number
 
 " solarized.
-let g:solarized_termcolors=256
-let g:solarized_bold=1
-let g:solarized_italic=1
+" let g:solarized_termcolors=256
+let g:solarized_termtrans=1
 
 " cui colorscheme.
 set background=dark | colorscheme solarized
@@ -256,14 +248,14 @@ nnoremap <Leader>! :q!<Cr>
 " quit window.
 nnoremap <Leader>w :w<Cr>
 
+" default codingstyle.
+nnoremap <Leader><S-d> :CodingStyle d<Cr>
+
 " move window.
 nnoremap <Leader>h <C-w>h
 nnoremap <Leader>j <C-w>j
 nnoremap <Leader>k <C-w>k
 nnoremap <Leader>l <C-w>l
-
-" default codingstyle.
-nnoremap <Leader><S-d> :CodingStyle d<Cr>
 
 " move tab.
 nnoremap <Leader>tc    :tabclose<Cr>
@@ -310,10 +302,10 @@ nnoremap <expr><F2> ":VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -s
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
-nnoremap m :UniteResume<Cr>
-nnoremap <F8>  :Unite -buffer-name=outline -auto-preview -vertical -winwidth=45 outline<Cr>
-nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
+nnoremap <F3> :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
+nnoremap m    :UniteResume<Cr>
+nnoremap <F8> :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap ?    :Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -361,9 +353,6 @@ autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 " vimenter.
 autocmd VimEnter * call g:my_vimenter_settings()
 function! g:my_vimenter_settings()
-  call vimshell#create_shell(0, expand('~/'))
-  call vimshell#execute('ls -al')
-  call feedkeys("\<Esc>")
   call feedkeys("\<F2>")
 endfunction
 
@@ -494,18 +483,17 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer><F5>       :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
   nnoremap <buffer><F8>       :VimFilerTab -double<Cr>
 
-  let vimfiler = b:vimfiler
-  if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
+  if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
     set winfixwidth
   endif
 endfunction
-autocmd BufEnter,BufWinEnter * call g:my_vimfiler_winenter()
+autocmd WinEnter * call g:my_vimfiler_winenter()
 function! g:my_vimfiler_winenter()
   if getwinvar(winnr(), '&filetype') == 'vimfiler'
     if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-      let bufnr = bufnr('$')
-      if index(g:my_vimfiler_ignore_filetype, getwinvar(bufwinnr(bufnr), '&filetype')) < 0
-        let g:my_vimfiler_prev_bufnr=bufnr
+      let winnr = winnr('#')
+      if index(g:my_vimfiler_ignore_filetype, getwinvar(winnr, '&filetype')) < 0
+        let g:my_vimfiler_prev_bufnr=winbufnr(winnr)
       endif
       exec 'vertical resize '. g:my_vimfiler_winwidth
     endif
@@ -522,7 +510,7 @@ function! g:my_vimfiler_hook_action()
 
     let winnr = 0
     while winnr <= winnr('$')
-      if getwinvar(winnr, '&filetype') != 'vimfiler'
+      if index(g:my_vimfiler_ignore_filetype, getwinvar(winnr, '&filetype')) < 0
         exec winnr. 'wincmd w'
         return
       endif
@@ -538,7 +526,7 @@ let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
 autocmd FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
-  nnoremap <buffer><Esc>   :q<Cr>
+  nmap <buffer><Esc>       <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
