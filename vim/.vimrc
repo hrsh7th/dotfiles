@@ -52,6 +52,7 @@ NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-vsparser.git'
+NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
@@ -59,7 +60,11 @@ NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
-NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
+NeoBundle 'git://github.com/kmnk/vim-unite-svn.git'
+NeoBundle 'git://github.com/scrooloose/syntastic.git'
+
+" set terminal color.
+set t_Co=256
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -169,7 +174,15 @@ set cmdheight=2
 set laststatus=2
 
 " setting statusline.
-set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+set statusline=%!g:my_statusline()
+function! g:my_statusline()
+  let statusline  = ' %f '
+  let statusline .= "%{'['. (&fenc != '' ? &fenc : &enc). ']['. &ff. ']'}"
+  let statusline .= '%m%r%h%w'
+  let statusline .= '%='
+  let statusline .= '%l, %c, %P'
+  return statusline
+endfunction
 
 " no wrap.
 set nowrap
@@ -452,8 +465,9 @@ endfunction
 " ---------------------------------------------------------
 " Plugin Settings.
 " ---------------------------------------------------------
-" Netrw
-let g:netrw_cursorline=0
+" syntastic
+let g:syntastic_enable_signs=1
+let g:syntastic_auto_loc_list=1
 
 " echodoc
 let g:echodoc_enable_at_startup=1
@@ -473,6 +487,7 @@ autocmd FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
   nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
   nmap     <buffer><Tab>      <Plug>(vimfiler_choose_action)
+  nmap     <buffer>0          <Plug>(vimfiler_toggle_maximize_window)
   nmap     <buffer>@          <Plug>(vimfiler_toggle_mark_current_line)
   nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
