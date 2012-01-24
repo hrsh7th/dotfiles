@@ -44,23 +44,19 @@ NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/thinca/vim-ref.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
-NeoBundle 'git://github.com/hrsh7th/vim-vsparser.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/tyru/restart.vim.git'
-NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
-NeoBundle 'git://github.com/kmnk/vim-unite-svn.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
 
 " set terminal color.
@@ -95,6 +91,10 @@ set hidden
 " disable swap file.
 set noswapfile
 
+" undo-persistence.
+set undodir=~/.vimundo
+set undofile
+
 " using clipboard.
 set clipboard+=unnamed
 
@@ -126,7 +126,7 @@ filetype plugin on
 filetype indent off
 
 " ---------------------------------------------------------
-" Editting Settings.
+" Edit Settings.
 " ---------------------------------------------------------
 " autoindent.
 set autoindent
@@ -151,6 +151,7 @@ set backspace=2
 
 " commandline complete.
 set wildmenu
+set wildmode=longest:list,list
 
 " cursor move behavior.
 set whichwrap=b,s,h,l,<,>,[,]
@@ -186,7 +187,6 @@ endfunction
 
 " no wrap.
 set nowrap
-"set wrap
 
 " show special chars.
 set list
@@ -206,6 +206,7 @@ set shortmess+=I
 
 " show numbers.
 set number
+" set relativenumber
 
 " solarized.
 " let g:solarized_termcolors=256
@@ -258,11 +259,8 @@ endif
 nnoremap <Leader>q :q<Cr>
 nnoremap <Leader>! :q!<Cr>
 
-" quit window.
+" save window.
 nnoremap <Leader>w :w<Cr>
-
-" default codingstyle.
-nnoremap <Leader><S-d> :CodingStyle d<Cr>
 
 " move window.
 nnoremap <Leader>h <C-w>h
@@ -294,9 +292,6 @@ nnoremap <F12> ggVG=
 " move insert-mode.
 inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
-
-" insert cr.
-inoremap <C-j> <Cr><Up><End>
 
 " using commandline-window.
 nnoremap : q:
@@ -341,10 +336,10 @@ vmap <Leader>m <Plug>(quickhl-toggle)
 " ---------------------------------------------------------
 " switch CodingStyle.
 let g:my_coding_style = {}
-let g:my_coding_style['s4'] = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop&'
-let g:my_coding_style['s2'] = 'setlocal expandtab   tabstop=2 shiftwidth=2 softtabstop&'
-let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop&'
-let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop&'
+let g:my_coding_style['s4'] = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop=4'
+let g:my_coding_style['s2'] = 'setlocal expandtab   tabstop=2 shiftwidth=2 softtabstop=2'
+let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4'
+let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop=2'
 let g:my_coding_style['d']  = g:my_coding_style['s4']
 command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
 
@@ -362,12 +357,6 @@ autocmd! Filetype js set filetype=javascript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
-
-" vimenter.
-autocmd VimEnter * call g:my_vimenter_settings()
-function! g:my_vimenter_settings()
-  call feedkeys("\<F2>")
-endfunction
 
 " guienter.
 autocmd! GUIEnter * call g:my_guienter_settings()
@@ -409,7 +398,7 @@ highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
 " auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
+let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>', '>' : '<'}
 inoremap <expr>(  g:my_pair_close('(')
 inoremap <expr>[  g:my_pair_close('[')
 inoremap <expr>{  g:my_pair_close('{')
@@ -579,8 +568,8 @@ let g:vimshell_disable_escape_highlight=1
 let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
-  nnoremap <buffer>a     G$a
-  inoremap <buffer><C-l> <Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history<Cr>
+  nnoremap <buffer>a           G$a
+  inoremap <buffer><expr><C-l> "\<Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history -input=". vimshell#get_cur_text().  "\<Cr>"
 
   call vimshell#altercmd#define('ls', 'ls -al')
   call vimshell#altercmd#define('ll', 'ls -al')
