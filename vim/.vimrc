@@ -410,7 +410,7 @@ function! g:my_pair_close(char)
   if exists("g:pair[a:char]")
     let ignore_right_patterns = ['\w']
     for pattern in ignore_right_patterns
-      if getline('.')[col('.') - 1] =~ pattern || exists("g:pair[getline('.')[col('.') - 1]]")
+      if getline('.')[col('.') - 1] =~ pattern || exists("g:pair[getline('.')[col('.') - 2]]")
         return a:char
       endif
     endfor
