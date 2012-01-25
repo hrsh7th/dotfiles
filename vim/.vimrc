@@ -209,8 +209,8 @@ set number
 " set relativenumber
 
 " solarized.
-" let g:solarized_termcolors=256
-let g:solarized_termtrans=1
+let g:solarized_termcolors=256
+" let g:solarized_termtrans=1
 
 " cui colorscheme.
 set background=dark | colorscheme solarized
@@ -406,7 +406,7 @@ inoremap <expr>"  g:my_pair_close('"')
 inoremap <expr>'  g:my_pair_close("'")
 function! g:my_pair_close(char)
   if exists("g:pair[a:char]")
-    let ignore_right_patterns = ['\w', '\$', ',']
+    let ignore_right_patterns = ['\w']
     for pattern in ignore_right_patterns
       if getline('.')[col('.') - 1] =~ pattern || exists("g:pair[getline('.')[col('.') - 1]]")
         return a:char
@@ -539,8 +539,6 @@ function! g:my_unite_settings()
   imap <buffer><C-n>       <Plug>(unite_insert_leave)<Plug>(unite_loop_cursor_down)
   nnoremap <buffer><expr>s unite#do_action('split')
   nnoremap <buffer><expr>v unite#do_action('vsplit')
-
-  call unite#custom_default_action('vimshell/hisotry', 'insert')
 endfunction
 
 " Neocomplcache
@@ -568,8 +566,12 @@ let g:vimshell_disable_escape_highlight=1
 let g:vimshell_interactive_update_time=100
 autocmd FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
-  nnoremap <buffer>a           G$a
-  inoremap <buffer><expr><C-l> "\<Esc>:Unite -default-action=insert -no-start-insert vimshell/history vimshell/external_history -input=". vimshell#get_cur_text().  "\<Cr>"
+  nnoremap <buffer>a             G$a
+  inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
+    \ 'start_insert' : 0,
+    \ 'default_action': 'insert',
+    \ 'input' : vimshell#get_cur_text(),
+    \ })
 
   call vimshell#altercmd#define('ls', 'ls -al')
   call vimshell#altercmd#define('ll', 'ls -al')
