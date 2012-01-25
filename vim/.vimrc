@@ -58,6 +58,7 @@ NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
+NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 
 " set terminal color.
 set t_Co=256
@@ -355,6 +356,7 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 " for filetype.
 autocmd! Filetype js set filetype=javascript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 
@@ -593,7 +595,7 @@ let g:user_zen_leader_key="<C-k>"
 let g:user_zen_expandabbr_key="<C-k><Space>"
 let g:user_zen_complete_tag=1
 let g:user_zen_settings = {}
-let g:user_zen_settings['html'] = { 'indentation': '    ' }
+let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '    ' }
 let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
 let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
 
