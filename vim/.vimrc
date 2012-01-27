@@ -365,6 +365,18 @@ autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
+autocmd! BufWinLeave *.shd call g:my_shd_sttings()
+function! g:my_shd_settings()
+  let bufnrs = filter(range(1, bufnr('$')), 'expand("#". v:val. ":p") =~ ".shd$"')
+  if len(bufnrs)
+    enew
+    setlocal nobuflisted
+    setlocal buftype=nofile
+    setlocal bufhidden=hide
+    setlocal noswapfile
+    exec bufnrs[0]. 'bd'
+  endif
+endfunction
 
 " guienter.
 autocmd! GUIEnter * call g:my_guienter_settings()
@@ -624,6 +636,9 @@ let g:EasyMotion_mapping_n=''
 let g:EasyMotion_mapping_N=''
 let g:EasyMotion_mapping_ge=''
 let g:EasyMotion_mapping_gE=''
+
+" shadow
+let g:shadow_debug=1
 
 " Align
 let g:Align_xstrlen=3
