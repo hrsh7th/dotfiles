@@ -45,6 +45,7 @@ NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
+NeoBundle 'git://github.com/thinca/vim-localrc.git'
 NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -59,6 +60,7 @@ NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
+NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 
 " set terminal color.
 set t_Co=256
@@ -91,6 +93,10 @@ set hidden
 
 " disable swap file.
 set noswapfile
+
+" read file.
+set autoread
+autocmd! WinEnter * checktime
 
 " undo-persistence.
 set undodir=~/.vimundo
@@ -282,10 +288,10 @@ nnoremap j gj
 nnoremap k gk
 
 " big scroll.
-nnoremap <S-l> 10l10zl
-nnoremap <S-h> 10h10zh
-nnoremap <S-k> 5k5<C-y>
-nnoremap <S-j> 5j5<C-e>
+nnoremap <S-l> 15l15zl
+nnoremap <S-h> 15h15zh
+nnoremap <S-k> 10k10<C-y>
+nnoremap <S-j> 10j10<C-e>
 
 " formatter.
 nnoremap <F12> ggVG=
@@ -364,7 +370,7 @@ autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
 autocmd! GUIEnter * call g:my_guienter_settings()
 function! g:my_guienter_settings()
   if s:is_win
-    set transparency=180
+    set transparency=240
   elseif s:is_mac
     set transparency=20
   endif
@@ -410,7 +416,7 @@ function! g:my_pair_close(char)
   if exists("g:pair[a:char]")
     let ignore_right_patterns = ['\w']
     for pattern in ignore_right_patterns
-      if getline('.')[col('.') - 1] =~ pattern || exists("g:pair[getline('.')[col('.') - 2]]")
+      if getline('.')[col('.') - 1] =~ pattern
         return a:char
       endif
     endfor
@@ -474,7 +480,7 @@ let g:vimfiler_directory_display_top=1
 let g:vimfiler_tree_leaf_icon=' '
 let g:vimfiler_tree_opened_icon='▾'
 let g:vimfiler_tree_closed_icon='▸'
-autocmd FileType vimfiler call g:my_vimfiler_settings()
+autocmd! FileType vimfiler call g:my_vimfiler_settings()
 function! g:my_vimfiler_settings()
   nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
   nmap     <buffer><Tab>      <Plug>(vimfiler_choose_action)
@@ -493,7 +499,7 @@ function! g:my_vimfiler_settings()
     set winfixwidth
   endif
 endfunction
-autocmd WinEnter * call g:my_vimfiler_winenter()
+autocmd! WinEnter * call g:my_vimfiler_winenter()
 function! g:my_vimfiler_winenter()
   if getwinvar(winnr(), '&filetype') == 'vimfiler'
     if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
@@ -523,14 +529,14 @@ function! g:my_vimfiler_hook_action()
       let winnr += 1
     endwhile
 
-    botright vnew
+    botright vnew | wincmd p | wincmd p
   endif
 endfunction
 
 " Unite
 let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
-autocmd FileType unite call g:my_unite_settings()
+autocmd! FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
   nmap <buffer><Esc>       <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
@@ -557,7 +563,7 @@ if !exists('g:neocomplcache_omni_patterns')
 endif
 " let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
 " let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-" autocmd FileType php setlocal omnifunc=phpcomplete#CompletePHP
+" autocmd! FileType php setlocal omnifunc=phpcomplete#CompletePHP
 
 " VimShell
 let g:vimshell_split_command="sp"
@@ -566,9 +572,9 @@ let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
 let g:vimshell_interactive_update_time=100
-autocmd FileType vimshell call g:my_vimshell_settings()
+autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
-  nnoremap <buffer>a             G$a
+  nnoremap <buffer>a           G$a
   inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
     \ 'start_insert' : 0,
     \ 'default_action': 'insert',
