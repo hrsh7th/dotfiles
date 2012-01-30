@@ -114,6 +114,10 @@ set scrolloff=3 sidescrolloff=3
 " visualmode block.
 set virtualedit=all
 
+" enable modeline.
+set modeline
+set modelines=1
+
 " encoding.
 set encoding=utf-8
 
@@ -365,17 +369,15 @@ autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
-autocmd! BufWinLeave *.shd call g:my_shd_sttings()
+autocmd! BufWinLeave *.shd call g:my_shd_settings()
 function! g:my_shd_settings()
-  let bufnrs = filter(range(1, bufnr('$')), 'expand("#". v:val. ":p") =~ ".shd$"')
-  if len(bufnrs)
-    enew
-    setlocal nobuflisted
-    setlocal buftype=nofile
-    setlocal bufhidden=hide
-    setlocal noswapfile
-    exec bufnrs[0]. 'bd'
-  endif
+  enew
+  setlocal nobuflisted
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  setlocal noswapfile
+
+  silent exec 'bdelete! '. expand('<abuf>')
 endfunction
 
 " guienter.
