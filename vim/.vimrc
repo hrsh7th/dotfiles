@@ -131,7 +131,7 @@ syntax on
 filetype on
 
 " use filetype plugin.
-filetype plugin on
+filetype plugin off
 
 " use filetype indent.
 filetype indent off
@@ -147,6 +147,10 @@ set copyindent
 
 " tabwidth.
 set shiftwidth=4
+
+" format.
+set comments=sl:/*,mb:\ *,elx:\ */
+set formatoptions+=rco
 
 " softtab.
 set expandtab
@@ -294,8 +298,12 @@ nnoremap k gk
 " big scroll.
 nnoremap <S-l> 15l15zl
 nnoremap <S-h> 15h15zh
-nnoremap <S-k> 10k10<C-y>
-nnoremap <S-j> 10j10<C-e>
+nnoremap <S-k> 15k15<C-y>
+nnoremap <S-j> 15j15<C-e>
+vnoremap <S-l> 15l
+vnoremap <S-h> 15h
+vnoremap <S-k> 15k
+vnoremap <S-j> 15j
 
 " formatter.
 nnoremap <F12> ggVG=
@@ -323,7 +331,7 @@ nnoremap <F5>  :VimShell<Cr>
 " Unite
 nnoremap <F3> :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap m    :UniteResume<Cr>
-nnoremap <F8> :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F8> :Unite -buffer-name=outline -no-quit -vertical -winwidth=45 outline<Cr>
 nnoremap ?    :Unite -buffer-name=line -start-insert line<Cr>
 
 " Neocomplcache
@@ -478,7 +486,7 @@ endfunction
 " ---------------------------------------------------------
 " syntastic
 let g:syntastic_enable_signs=1
-let g:syntastic_auto_loc_list=1
+let g:syntastic_auto_loc_list=0
 
 " echodoc
 let g:echodoc_enable_at_startup=1
@@ -543,7 +551,17 @@ function! g:my_vimfiler_hook_action()
       let winnr += 1
     endwhile
 
-    botright vnew | wincmd p | wincmd p
+    if winnr > 1
+      exec winnr. 'wincmd w'
+      return
+    endif
+
+    botright vnew
+    setlocal nobuflisted
+    setlocal buftype=nofile
+    setlocal bufhidden=hide
+    setlocal noswapfile
+    wincmd p | wincmd p
   endif
 endfunction
 
@@ -553,6 +571,7 @@ let g:unite_split_rule="botright"
 autocmd! FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
   nmap <buffer><Esc>       <Plug>(unite_exit)
+  nmap <buffer><Leader>q   <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
