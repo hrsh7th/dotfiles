@@ -28,7 +28,6 @@ if has('vim_starting')
   call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
 endif
 
-NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
@@ -41,21 +40,17 @@ NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
-NeoBundle 'git://github.com/thinca/vim-scouter.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-localrc.git'
-NeoBundle 'git://github.com/t9md/vim-textmanip.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
-NeoBundle 'git://github.com/tyru/restart.vim.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
-NeoBundle 'git://github.com/choplin/unite-vim_hacks.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
@@ -305,9 +300,6 @@ vnoremap <S-h> 15h
 vnoremap <S-k> 15k
 vnoremap <S-j> 15j
 
-" formatter.
-nnoremap <F12> ggVG=
-
 " move insert-mode.
 inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
@@ -329,10 +321,11 @@ nnoremap <expr><F2> ":VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -s
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap <F3> :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
-nnoremap m    :UniteResume<Cr>
-nnoremap <F8> :Unite -buffer-name=outline -no-quit -vertical -winwidth=45 outline<Cr>
-nnoremap ?    :Unite -buffer-name=line -start-insert line<Cr>
+nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
+nnoremap m     :UniteResume<Cr>
+nnoremap <F8>  :Unite -buffer-name=outline -no-quit -vertical -winwidth=45 outline<Cr>
+nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
+nnoremap <F12> :Unite -buffer-name=process process<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -494,6 +487,7 @@ let g:echodoc_enable_at_startup=1
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=35
+let g:my_vimfiler_ignore_action=['cd', 'vimfiler__mkdir', 'vimfiler__rename', 'vimfiler__copy', 'vimfiler__delete', 'vimfiler__move', 'vimfiler__shell']
 let g:my_vimfiler_ignore_filetype=['vimfiler', 'vimshell', 'unite']
 let g:my_vimfiler_prev_bufnr=-1
 let g:vimfiler_safe_mode_by_default=0
@@ -510,7 +504,7 @@ function! g:my_vimfiler_settings()
   nmap     <buffer>@          <Plug>(vimfiler_toggle_mark_current_line)
   nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
-  nnoremap <buffer>b          :Unite -buffer-name=bookmark-directory_mru -default-action=cd -no-start-insert bookmark directory_mru<Cr>
+  nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
   nnoremap <buffer>v          :call vimfiler#mappings#do_action('vsplit')<Cr>
   nnoremap <buffer>s          :call vimfiler#mappings#do_action('split')<Cr>
   nnoremap <buffer><F10>      :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
@@ -533,27 +527,31 @@ function! g:my_vimfiler_winenter()
     endif
   endif
 endfunction
-function! g:my_vimfiler_hook_action()
+function! g:my_vimfiler_hook_action(action)
+  if index(g:my_vimfiler_ignore_action, a:action) >= 0
+    return 0
+  endif
+
   let vimfiler = b:vimfiler
   if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
     let winnr = bufwinnr(g:my_vimfiler_prev_bufnr)
     if winnr > -1
       exec winnr. 'wincmd w'
-      return
+      return 1
     endif
 
     let winnr = 0
     while winnr <= winnr('$')
       if index(g:my_vimfiler_ignore_filetype, getwinvar(winnr, '&filetype')) < 0
         exec winnr. 'wincmd w'
-        return
+        return 1
       endif
       let winnr += 1
     endwhile
 
     if winnr > 1
       exec winnr. 'wincmd w'
-      return
+      return 1
     endif
 
     botright vnew
@@ -562,6 +560,7 @@ function! g:my_vimfiler_hook_action()
     setlocal bufhidden=hide
     setlocal noswapfile
     wincmd p | wincmd p
+    return 1
   endif
 endfunction
 
@@ -599,8 +598,8 @@ endif
 " autocmd! FileType php setlocal omnifunc=phpcomplete#CompletePHP
 
 " VimShell
-let g:vimshell_split_command="sp"
-let g:vimshell_split_height=30
+let g:vimshell_popup_height=40
+let g:vimshell_popup_command='topleft sp | call g:my_vimshell_popup()'
 let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
@@ -608,6 +607,8 @@ let g:vimshell_interactive_update_time=100
 autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a           G$a
+  inoremap <buffer><Tab>       <Nop>
+  imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
   inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
     \ 'start_insert' : 0,
     \ 'default_action': 'insert',
@@ -618,11 +619,17 @@ function! g:my_vimshell_settings()
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
   call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
-
-  set nowrap
 endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
   call vimshell#execute('ls -al')
+endfunction
+autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
+function! g:my_vimshell_interactive_settings()
+  inoremap <buffer><Tab>       <Nop>
+  imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+endfunction
+function g:my_vimshell_popup()
+ exec 'resize '. winheight(0) * g:vimshell_popup_height / 100
 endfunction
 
 " PrettyPrint
