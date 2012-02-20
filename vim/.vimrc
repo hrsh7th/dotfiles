@@ -29,6 +29,7 @@ if has('vim_starting')
 endif
 
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
@@ -113,11 +114,17 @@ set virtualedit=all
 set modeline
 set modelines=1
 
+" updatetime.
+set updatetime=100
+
 " encoding.
 set encoding=utf-8
 
 " equalalways.
 set equalalways
+
+" not preview.
+set completeopt-=preview
 
 " on syntax.
 syntax on
@@ -207,9 +214,6 @@ set ruler
 
 " show commands in statusline.
 set showcmd
-
-" not cursor blink.
-set guicursor=a:blinkon0
 
 " not show messages.
 set shortmess+=I
@@ -305,8 +309,8 @@ inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
 
 " using commandline-window.
-nnoremap : q:
-xnoremap : q:
+" nnoremap : q:
+" xnoremap : q:
 
 " enter pair.
 inoremap <expr><Cr> g:my_pair_enter()
@@ -315,7 +319,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
-nnoremap <expr><F2> ":VimFiler -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
+nnoremap <expr><F2> ":VimFilerBufferDir -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
 
 " VimShell
 nnoremap <F5>  :VimShell<Cr>
@@ -570,7 +574,6 @@ let g:unite_split_rule="botright"
 autocmd! FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
   nmap <buffer><Esc>       <Plug>(unite_exit)
-  nmap <buffer><Leader>q   <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
@@ -603,7 +606,6 @@ let g:vimshell_popup_command='topleft sp | call g:my_vimshell_popup()'
 let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
-let g:vimshell_interactive_update_time=100
 autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a           G$a
