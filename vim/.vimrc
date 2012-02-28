@@ -36,27 +36,26 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/unite-ssh.git'
-NeoBundle 'git://github.com/vim-scripts/Align.git'
-NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
-NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-localrc.git'
-NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
+NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
+NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
-NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
+NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
 " set terminal color.
 set t_Co=256
@@ -125,6 +124,9 @@ set equalalways
 
 " not preview.
 set completeopt-=preview
+
+" paste toggle.
+set pastetoggle=<F9>
 
 " on syntax.
 syntax on
@@ -196,6 +198,9 @@ set statusline=%!g:my_statusline()
 function! g:my_statusline()
   let statusline  = ' %f '
   let statusline .= "%{'['. (&fenc != '' ? &fenc : &enc). ']['. &ff. ']'}"
+  if &paste
+    let statusline .= '[p]'
+  endif
   let statusline .= '%m%r%h%w'
   let statusline .= '%='
   let statusline .= '%l, %c, %P'
@@ -491,10 +496,8 @@ let g:echodoc_enable_at_startup=1
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=35
-let g:my_vimfiler_ignore_action=['cd', 'vimfiler__mkdir', 'vimfiler__rename', 'vimfiler__copy', 'vimfiler__delete', 'vimfiler__move', 'vimfiler__shell']
-let g:my_vimfiler_ignore_filetype=['vimfiler', 'vimshell', 'unite']
-let g:my_vimfiler_prev_bufnr=-1
 let g:vimfiler_safe_mode_by_default=0
+let g:vimfiler_edit_action='nicely_open'
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
 let g:vimfiler_tree_leaf_icon=' '
@@ -509,68 +512,30 @@ function! g:my_vimfiler_settings()
   nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
   nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
-  nnoremap <buffer>v          :call vimfiler#mappings#do_action('vsplit')<Cr>
-  nnoremap <buffer>s          :call vimfiler#mappings#do_action('split')<Cr>
+  nnoremap <buffer>v          :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
+  nnoremap <buffer>s          :call vimfiler#mappings#do_action('nicely_split')<Cr>
+  nnoremap <buffer>gr         :call vimfiler#mappings#do_current_dir_action('nicely_grep')<Cr>
   nnoremap <buffer><F10>      :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
-  nnoremap <buffer><F5>       :call vimfiler#mappings#do_current_dir_action('cd')<Cr>
   nnoremap <buffer><F8>       :VimFilerTab -double<Cr>
 
   if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
     set winfixwidth
   endif
 endfunction
-autocmd! WinEnter * call g:my_vimfiler_winenter()
-function! g:my_vimfiler_winenter()
-  if getwinvar(winnr(), '&filetype') == 'vimfiler'
-    if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-      let winnr = winnr('#')
-      if index(g:my_vimfiler_ignore_filetype, getwinvar(winnr, '&filetype')) < 0
-        let g:my_vimfiler_prev_bufnr=winbufnr(winnr)
-      endif
-      exec 'vertical resize '. g:my_vimfiler_winwidth
-    endif
-  endif
-endfunction
-function! g:my_vimfiler_hook_action(action)
-  if index(g:my_vimfiler_ignore_action, a:action) >= 0
-    return 0
-  endif
-
-  let vimfiler = b:vimfiler
-  if vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-    let winnr = bufwinnr(g:my_vimfiler_prev_bufnr)
-    if winnr > -1
-      exec winnr. 'wincmd w'
-      return 1
-    endif
-
-    let winnr = 0
-    while winnr <= winnr('$')
-      if index(g:my_vimfiler_ignore_filetype, getwinvar(winnr, '&filetype')) < 0
-        exec winnr. 'wincmd w'
-        return 1
-      endif
-      let winnr += 1
-    endwhile
-
-    if winnr > 1
-      exec winnr. 'wincmd w'
-      return 1
-    endif
-
-    botright vnew
-    setlocal nobuflisted
-    setlocal buftype=nofile
-    setlocal bufhidden=hide
-    setlocal noswapfile
-    wincmd p | wincmd p
-    return 1
+augroup my-vimfiler
+  autocmd!
+  autocmd WinEnter * call g:my_vimfiler_winenter_settings()
+augroup END
+function! g:my_vimfiler_winenter_settings()
+  if exists('b:vimfiler')
+    let b:vimfiler.prev_winnr = winnr('#')
   endif
 endfunction
 
 " Unite
 let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
+let g:unite_kind_openable_lcd_command='cd'
 autocmd! FileType unite call g:my_unite_settings()
 function! g:my_unite_settings()
   nmap <buffer><Esc>       <Plug>(unite_exit)
@@ -583,6 +548,59 @@ function! g:my_unite_settings()
   nnoremap <buffer><expr>s unite#do_action('split')
   nnoremap <buffer><expr>v unite#do_action('vsplit')
 endfunction
+augroup my-unite
+  autocmd!
+  autocmd WinEnter * call g:my_unite_winenter_settings()
+augroup END
+function! g:my_unite_winenter_settings()
+  if exists('b:unite')
+    let b:unite.prev_winnr = winnr('#')
+  endif
+endfunction
+
+" custom action.
+let my_action = { 'is_selectable': 1 }
+function! my_action.func(candidates)
+  exec g:get_prev_winnr(). 'wincmd w' | call unite#take_action('grep', a:candidates)
+endfunction
+call unite#custom_action('file', 'nicely_grep', my_action)
+
+let my_action = { 'is_selectable': 1 }
+function! my_action.func(candidates)
+  let winnr = winnr()
+  exec g:get_prev_winnr(). 'wincmd w'
+  exec 'edit '. a:candidates[0].action__path
+  exec winnr. 'wincmd w'
+endfunction
+call unite#custom_action('file', 'nicely_open', my_action)
+
+let my_action = { 'is_selectable': 1 }
+function! my_action.func(candidates)
+  let winnr = winnr()
+  exec g:get_prev_winnr(). 'wincmd w'
+  exec 'split '. a:candidates[0].action__path
+  exec winnr. 'wincmd w'
+endfunction
+call unite#custom_action('file', 'nicely_split', my_action)
+
+let my_action = { 'is_selectable': 1 }
+function! my_action.func(candidates)
+  let winnr = winnr()
+  exec g:get_prev_winnr(). 'wincmd w'
+  exec 'vsplit '. a:candidates[0].action__path
+  exec winnr. 'wincmd w'
+endfunction
+call unite#custom_action('file', 'nicely_vsplit', my_action)
+
+function! g:get_prev_winnr()
+  if exists('b:vimfiler.prev_winnr')
+    return b:vimfiler.prev_winnr
+  endif
+  if exists('b:unite.prev_winnr')
+    return b:unite.prev_winnr
+  endif
+  return winnr('#')
+endfunction
 
 " Neocomplcache
 let g:neocomplcache_dictionary_filetype_lists = {}
@@ -593,12 +611,6 @@ if !exists('g:neocomplcache_keyword_patterns')
   let g:neocomplcache_keyword_patterns = {}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
-if !exists('g:neocomplcache_omni_patterns')
-  let g:neocomplcache_omni_patterns = {}
-endif
-" let g:neocomplcache_omni_patterns.ruby = '[^. *\t]\.\h\w*\|\h\w*::'
-" let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-" autocmd! FileType php setlocal omnifunc=phpcomplete#CompletePHP
 
 " VimShell
 let g:vimshell_popup_height=40
@@ -630,7 +642,7 @@ function! g:my_vimshell_interactive_settings()
   inoremap <buffer><Tab>       <Nop>
   imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
 endfunction
-function g:my_vimshell_popup()
+function! g:my_vimshell_popup()
  exec 'resize '. winheight(0) * g:vimshell_popup_height / 100
 endfunction
 
@@ -669,7 +681,4 @@ let g:EasyMotion_mapping_gE=''
 
 " shadow
 let g:shadow_debug=1
-
-" Align
-let g:Align_xstrlen=3
 
