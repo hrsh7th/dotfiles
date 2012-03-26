@@ -56,6 +56,7 @@ NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+NeoBundle 'git://github.com/pangloss/vim-javascript'
 
 " set terminal color.
 set t_Co=256
@@ -135,10 +136,10 @@ syntax on
 filetype on
 
 " use filetype plugin.
-filetype plugin off
+filetype plugin on
 
 " use filetype indent.
-filetype indent off
+filetype indent on
 
 " ---------------------------------------------------------
 " Edit Settings.
@@ -300,14 +301,17 @@ nnoremap j gj
 nnoremap k gk
 
 " big scroll.
-nnoremap <S-l> 15l15zl
-nnoremap <S-h> 15h15zh
-nnoremap <S-k> 15k15<C-y>
-nnoremap <S-j> 15j15<C-e>
+nnoremap <S-l> 15l
+nnoremap <S-h> 15h
+nnoremap <S-k> 15k
+nnoremap <S-j> 15j
 vnoremap <S-l> 15l
 vnoremap <S-h> 15h
 vnoremap <S-k> 15k
 vnoremap <S-j> 15j
+
+" join line.
+nnoremap <C-j> <S-j>x
 
 " move insert-mode.
 inoremap <C-l> <C-o>l
@@ -324,7 +328,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
-nnoremap <expr><F2> ":VimFilerBufferDir -buffer-name=". g:my_vimfiler_explorer_name. " -split -winwidth=". g:my_vimfiler_winwidth. " -toggle<Cr>"
+nnoremap <expr><F2> ":VimFilerBufferDir -split -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit -auto-cd<Cr>"
 
 " VimShell
 nnoremap <F5>  :VimShell<Cr>
@@ -332,8 +336,9 @@ nnoremap <F5>  :VimShell<Cr>
 " Unite
 nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
 nnoremap m     :UniteResume<Cr>
-nnoremap <F8>  :Unite -buffer-name=outline -no-quit -vertical -winwidth=45 outline<Cr>
+nnoremap <F8>  :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
 nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
+nnoremap <F10> :Unite -buffer-name=file_rec/async file_rec/async<Cr>
 nnoremap <F12> :Unite -buffer-name=process process<Cr>
 
 " Neocomplcache
@@ -359,9 +364,9 @@ vmap <Leader>m <Plug>(quickhl-toggle)
 let g:my_coding_style = {}
 let g:my_coding_style['s4'] = 'setlocal expandtab   tabstop=4 shiftwidth=4 softtabstop=4'
 let g:my_coding_style['s2'] = 'setlocal expandtab   tabstop=2 shiftwidth=2 softtabstop=2'
+let g:my_coding_style['t']  = 'setlocal noexpandtab'
 let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4'
 let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop=2'
-let g:my_coding_style['d']  = g:my_coding_style['s4']
 command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
 
 " difforig
@@ -374,6 +379,7 @@ command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | d
 autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetype.
+autocmd! FileType * setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
 autocmd! Filetype js set filetype=javascript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
@@ -460,7 +466,7 @@ endfunction
 " enter pair.
 function! g:my_pair_enter()
   if g:my_pair_is_between()
-    return "\<Cr>\<Up>\<End>\<Cr>\<Tab>"
+    return "\<Cr>\<Up>\<End>\<Cr>"
   endif
   return "\<Cr>"
 endfunction
@@ -496,36 +502,35 @@ let g:echodoc_enable_at_startup=1
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
 let g:my_vimfiler_winwidth=35
-let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_edit_action='nicely_open'
+let g:vimfiler_safe_mode_by_default=0
 let g:vimfiler_as_default_explorer=1
 let g:vimfiler_directory_display_top=1
 let g:vimfiler_tree_leaf_icon=' '
-let g:vimfiler_tree_opened_icon='▾'
-let g:vimfiler_tree_closed_icon='▸'
-autocmd! FileType vimfiler call g:my_vimfiler_settings()
-function! g:my_vimfiler_settings()
-  nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-  nmap     <buffer><Tab>      <Plug>(vimfiler_choose_action)
-  nmap     <buffer>0          <Plug>(vimfiler_toggle_maximize_window)
-  nmap     <buffer>@          <Plug>(vimfiler_toggle_mark_current_line)
-  nmap     <buffer>j          j<Plug>(vimfiler_print_filename)
-  nmap     <buffer>k          k<Plug>(vimfiler_print_filename)
-  nnoremap <buffer>b          :Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
-  nnoremap <buffer>v          :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
-  nnoremap <buffer>s          :call vimfiler#mappings#do_action('nicely_split')<Cr>
-  nnoremap <buffer>gr         :call vimfiler#mappings#do_current_dir_action('nicely_grep')<Cr>
-  nnoremap <buffer><F10>      :call vimfiler#mappings#do_current_dir_action('rec/async')<Cr>
-  nnoremap <buffer><F8>       :VimFilerTab -double<Cr>
-
-  if b:vimfiler.context.profile_name == g:my_vimfiler_explorer_name
-    set winfixwidth
-  endif
-endfunction
+let g:vimfiler_tree_opened_icon='-'
+let g:vimfiler_tree_closed_icon='+'
 augroup my-vimfiler
   autocmd!
+  autocmd FileType vimfiler call g:my_vimfiler_settings()
   autocmd WinEnter * call g:my_vimfiler_winenter_settings()
 augroup END
+function! g:my_vimfiler_settings()
+  nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit -auto-cd<Cr>"
+  nmap     <buffer><expr><Cr>  vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "e")
+  nmap     <buffer><Tab>       <Plug>(vimfiler_choose_action)
+  nmap     <buffer>0           <Plug>(vimfiler_toggle_maximize_window)
+  nmap     <buffer>@           <Plug>(vimfiler_toggle_mark_current_line)
+  nmap     <buffer>j           j<Plug>(vimfiler_print_filename)
+  nmap     <buffer>k           k<Plug>(vimfiler_print_filename)
+  nnoremap <buffer>b           :Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
+  nnoremap <buffer>e           :call vimfiler#mappings#do_action('nicely_open')<Cr>
+  nnoremap <buffer>v           :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
+  nnoremap <buffer>s           :call vimfiler#mappings#do_action('nicely_split')<Cr>
+  nnoremap <buffer>gr          :call vimfiler#mappings#do_current_dir_action('nicely_grep')<Cr>
+  nnoremap <buffer><F10>       :call vimfiler#mappings#do_current_dir_action('nicely_rec/async')<Cr>
+  nnoremap <buffer><F8>        :VimFilerTab -double<Cr>
+  set winfixwidth
+endfunction
 function! g:my_vimfiler_winenter_settings()
   if exists('b:vimfiler')
     let b:vimfiler.prev_winnr = winnr('#')
@@ -535,80 +540,106 @@ endfunction
 " Unite
 let g:unite_enable_start_insert=0
 let g:unite_split_rule="botright"
+let g:unite_source_grep_default_opts='-Hni'
 let g:unite_kind_openable_lcd_command='cd'
-autocmd! FileType unite call g:my_unite_settings()
+augroup my-unite
+  autocmd!
+  autocmd FileType unite call g:my_unite_settings()
+  autocmd WinEnter * call g:my_unite_winenter_settings()
+augroup END
 function! g:my_unite_settings()
   nmap <buffer><Esc>       <Plug>(unite_exit)
+  nmap <buffer>:q          <Plug>(unite_exit)
+  nmap <buffer><Leader>q   <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
   nmap <buffer>a           <Plug>(unite_insert_enter)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
   nmap <buffer><C-n>       <Plug>(unite_loop_cursor_down)
-  imap <buffer><C-p>       <Plug>(unite_insert_leave)<Plug>(unite_loop_cursor_up)
-  imap <buffer><C-n>       <Plug>(unite_insert_leave)<Plug>(unite_loop_cursor_down)
+  imap <buffer><C-p>       <Plug>(unite_insert_leave)
+  imap <buffer><C-n>       <Plug>(unite_insert_leave)
   nnoremap <buffer><expr>s unite#do_action('split')
   nnoremap <buffer><expr>v unite#do_action('vsplit')
 endfunction
-augroup my-unite
-  autocmd!
-  autocmd WinEnter * call g:my_unite_winenter_settings()
-augroup END
 function! g:my_unite_winenter_settings()
   if exists('b:unite')
     let b:unite.prev_winnr = winnr('#')
   endif
 endfunction
 
-" custom action.
-let my_action = { 'is_selectable': 1 }
+" unite filter.
+let my_filter = { 'name' : 'matcher_remove' }
+function! my_filter.filter(candidates, context)
+  let candidates = a:candidates
+  for regex in ['^*vimfiler*', '^*vimshell*']
+    let candidates = filter(a:candidates, 'v:val.word !~# "'. regex. '"')
+  endfor
+  return candidates
+endfunction
+call unite#define_filter(my_filter)
+call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob'])
+
+" unite action.
+let my_action = { 'is_selectable' : 1 }
 function! my_action.func(candidates)
-  exec g:get_prev_winnr(). 'wincmd w' | call unite#take_action('grep', a:candidates)
+  exec g:get_prev_winnr(). 'wincmd w'
+  call unite#take_action('grep_directory', [a:candidates[0]])
 endfunction
 call unite#custom_action('file', 'nicely_grep', my_action)
 
-let my_action = { 'is_selectable': 1 }
+let my_action = { 'is_selectable' : 1 }
 function! my_action.func(candidates)
-  let winnr = winnr()
+  exec g:get_prev_winnr(). 'wincmd w'
+  call vimfiler#mappings#do_current_dir_action('rec/async')
+endfunction
+call unite#custom_action('file', 'nicely_rec/async', my_action)
+
+let my_action = { 'is_selectable' : 1 }
+function! my_action.func(candidates)
   exec g:get_prev_winnr(). 'wincmd w'
   exec 'edit '. a:candidates[0].action__path
-  exec winnr. 'wincmd w'
 endfunction
 call unite#custom_action('file', 'nicely_open', my_action)
 
-let my_action = { 'is_selectable': 1 }
+let my_action = { 'is_selectable' : 1 }
 function! my_action.func(candidates)
-  let winnr = winnr()
   exec g:get_prev_winnr(). 'wincmd w'
   exec 'split '. a:candidates[0].action__path
-  exec winnr. 'wincmd w'
 endfunction
 call unite#custom_action('file', 'nicely_split', my_action)
 
-let my_action = { 'is_selectable': 1 }
+let my_action = { 'is_selectable' : 1 }
 function! my_action.func(candidates)
-  let winnr = winnr()
   exec g:get_prev_winnr(). 'wincmd w'
   exec 'vsplit '. a:candidates[0].action__path
-  exec winnr. 'wincmd w'
 endfunction
 call unite#custom_action('file', 'nicely_vsplit', my_action)
 
 function! g:get_prev_winnr()
+  let ftypes = ['unite', 'vimshell', 'vimfiler']
   if exists('b:vimfiler.prev_winnr')
-    return b:vimfiler.prev_winnr
+    let nr = b:vimfiler.prev_winnr
   endif
   if exists('b:unite.prev_winnr')
-    return b:unite.prev_winnr
+    let nr = b:unite.prev_winnr
   endif
-  return winnr('#')
+  if exists('nr') && index(ftypes, getwinvar(nr, '&filetype')) < 0
+    return nr
+  endif
+
+  let winnrs = filter(range(1, winnr('$')), 'index(ftypes, getwinvar(v:val, "&filetype")) < 0')
+  if empty(winnrs)
+    return winnr()
+  endif
+  return winnrs[0]
 endfunction
 
 " Neocomplcache
-let g:neocomplcache_dictionary_filetype_lists = {}
-let g:neocomplcache_dictionary_filetype_lists['default'] = ''
-let g:neocomplcache_dictionary_filetype_lists['vimshell'] = $HOME. '/.vimshell/command-history'
 let g:neocomplcache_enable_at_startup=1
+let g:neocomplcache_dictionary_filetype_lists={}
+let g:neocomplcache_dictionary_filetype_lists['default']=''
+let g:neocomplcache_dictionary_filetype_lists['vimshell']=$HOME. '/.vimshell/command-history'
 if !exists('g:neocomplcache_keyword_patterns')
-  let g:neocomplcache_keyword_patterns = {}
+  let g:neocomplcache_keyword_patterns={}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
 
