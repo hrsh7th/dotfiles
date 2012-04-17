@@ -36,17 +36,20 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/unite-ssh.git'
+NeoBundle 'git://github.com/Shougo/vim-vcs.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-localrc.git'
+NeoBundle 'git://github.com/thinca/vim-visualstar.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
+NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
@@ -56,7 +59,8 @@ NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/pangloss/vim-javascript'
+NeoBundle 'git://github.com/pangloss/vim-javascript.git'
+NeoBundle 'git://github.com/thisivan/vim-matchit.git'
 
 " set terminal color.
 set t_Co=256
@@ -238,6 +242,7 @@ set background=dark | colorscheme solarized
 " ---------------------------------------------------------
 " GUI Settings.
 " ---------------------------------------------------------
+set mouse=a
 if has('gui_running')
   " line height.
   set linespace=0
@@ -303,12 +308,15 @@ nnoremap k gk
 " big scroll.
 nnoremap <S-l> 15l
 nnoremap <S-h> 15h
-nnoremap <S-k> 15k
-nnoremap <S-j> 15j
+nnoremap <S-k> 8k
+nnoremap <S-j> 8j
 vnoremap <S-l> 15l
 vnoremap <S-h> 15h
-vnoremap <S-k> 15k
-vnoremap <S-j> 15j
+vnoremap <S-k> 8k
+vnoremap <S-j> 8j
+
+" quick replace.
+nnoremap <Leader>* *:%s/<C-r>///g<Left><Left>
 
 " join line.
 nnoremap <C-j> <S-j>x
@@ -318,8 +326,8 @@ inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
 
 " using commandline-window.
-" nnoremap : q:
-" xnoremap : q:
+nnoremap : q:
+xnoremap : q:
 
 " enter pair.
 inoremap <expr><Cr> g:my_pair_enter()
@@ -327,28 +335,25 @@ inoremap <expr><Cr> g:my_pair_enter()
 " delete pair.
 inoremap <expr><Bs> g:my_pair_delete()
 
+" show vcs diff.
+nnoremap <F6> :call g:my_vcs_diff()<Cr>
+
 " VimFiler
-nnoremap <expr><F2> ":VimFilerBufferDir -split -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit -auto-cd<Cr>"
+nnoremap <expr><F2> ":VimFilerBufferDir -split -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
 
 " VimShell
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap <F3>  :Unite -buffer-name=buffer_tab-file_mru buffer_tab file_mru<Cr>
-nnoremap m     :UniteResume<Cr>
-nnoremap <F8>  :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap ?     :Unite -buffer-name=line -start-insert line<Cr>
-nnoremap <F10> :Unite -buffer-name=file_rec/async file_rec/async<Cr>
-nnoremap <F12> :Unite -buffer-name=process process<Cr>
+nnoremap m           :UniteResume<Cr>
+nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_mru-file_rec/async -hide-source-names buffer_tab file_mru ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir : ""). "<Cr>"
+nnoremap <F7>        :Unite -buffer-name=todo todo<Cr>
+nnoremap <F8>        :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap ?           :Unite -buffer-name=line line<Cr>
+nnoremap <F12>       :Unite -buffer-name=process process<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
-
-" textmanip
-vmap <C-j> <Plug>(textmanip-move-down)
-vmap <C-k> <Plug>(textmanip-move-up)
-vmap <C-l> <Plug>(textmanip-move-right)
-vmap <C-h> <Plug>(textmanip-move-left)
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
@@ -380,6 +385,7 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetype.
 autocmd! FileType * setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
+autocmd! Filetype diff setlocal nofoldenable
 autocmd! Filetype js set filetype=javascript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
@@ -479,6 +485,29 @@ function! g:my_pair_delete()
   return "\<Bs>"
 endfunction
 
+" show vcs diff.
+function! g:my_vcs_diff()
+  let current = expand('%')
+  tabnew
+  setlocal filetype=text
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  setlocal nobuflisted
+  setlocal noswapfile
+  setlocal noreadonly
+  exec 'e '. current
+  diffthis
+  vnew
+  setlocal filetype=text
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  setlocal nobuflisted
+  setlocal noswapfile
+  setlocal noreadonly
+  exec 'read! svn cat '. current
+  diffthis
+endfunction
+
 " is between.
 function! g:my_pair_is_between()
   if exists("g:pair[getline('.')[col('.') - 2]]")
@@ -515,10 +544,9 @@ augroup my-vimfiler
   autocmd WinEnter * call g:my_vimfiler_winenter_settings()
 augroup END
 function! g:my_vimfiler_settings()
-  nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit -auto-cd<Cr>"
+  nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit<Cr>"
   nmap     <buffer><expr><Cr>  vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "e")
   nmap     <buffer><Tab>       <Plug>(vimfiler_choose_action)
-  nmap     <buffer>0           <Plug>(vimfiler_toggle_maximize_window)
   nmap     <buffer>@           <Plug>(vimfiler_toggle_mark_current_line)
   nmap     <buffer>j           j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k           k<Plug>(vimfiler_print_filename)
@@ -528,6 +556,7 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer>s           :call vimfiler#mappings#do_action('nicely_split')<Cr>
   nnoremap <buffer>gr          :call vimfiler#mappings#do_current_dir_action('nicely_grep')<Cr>
   nnoremap <buffer><F10>       :call vimfiler#mappings#do_current_dir_action('nicely_rec/async')<Cr>
+  nnoremap <buffer><F5>        :call vimfiler#mappings#do_current_dir_action('my_project_cd')<Cr>
   nnoremap <buffer><F8>        :VimFilerTab -double<Cr>
   set winfixwidth
 endfunction
@@ -539,9 +568,13 @@ endfunction
 
 " Unite
 let g:unite_enable_start_insert=0
+exec 'let g:unite_data_directory=expand("~/.unite")'
 let g:unite_split_rule="botright"
 let g:unite_source_grep_default_opts='-Hni'
+let g:unite_source_file_rec_min_cache_files=0
 let g:unite_kind_openable_lcd_command='cd'
+let g:unite_update_time=100
+let g:my_unite_project_dir=""
 augroup my-unite
   autocmd!
   autocmd FileType unite call g:my_unite_settings()
@@ -559,6 +592,11 @@ function! g:my_unite_settings()
   imap <buffer><C-n>       <Plug>(unite_insert_leave)
   nnoremap <buffer><expr>s unite#do_action('split')
   nnoremap <buffer><expr>v unite#do_action('vsplit')
+
+  let unite = unite#get_current_unite()
+  if unite.profile_name == 'todo'
+    nnoremap <buffer><S-n>   :UniteTodoAddSimple<Cr>
+  endif
 endfunction
 function! g:my_unite_winenter_settings()
   if exists('b:unite')
@@ -576,7 +614,10 @@ function! my_filter.filter(candidates, context)
   return candidates
 endfunction
 call unite#define_filter(my_filter)
-call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob'])
+call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_default', 'sorter_default'])
+call unite#custom_filters('file_mru', ['matcher_glob', 'converter_default', 'sorter_default'])
+call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+call unite#custom_filters('todo', ['matcher_glob', 'sorter_word'])
 
 " unite action.
 let my_action = { 'is_selectable' : 1 }
@@ -614,6 +655,12 @@ function! my_action.func(candidates)
 endfunction
 call unite#custom_action('file', 'nicely_vsplit', my_action)
 
+let my_action = { 'is_selectable' : 1 }
+function! my_action.func(candidates)
+  let g:my_unite_project_dir=a:candidates[0].action__directory
+endfunction
+call unite#custom_action('file', 'my_project_cd', my_action)
+
 function! g:get_prev_winnr()
   let ftypes = ['unite', 'vimshell', 'vimfiler']
   if exists('b:vimfiler.prev_winnr')
@@ -635,6 +682,8 @@ endfunction
 
 " Neocomplcache
 let g:neocomplcache_enable_at_startup=1
+let g:neocomplcache_enable_camel_case_completion=1
+let g:neocomplcache_enable_underbar_completion=1
 let g:neocomplcache_dictionary_filetype_lists={}
 let g:neocomplcache_dictionary_filetype_lists['default']=''
 let g:neocomplcache_dictionary_filetype_lists['vimshell']=$HOME. '/.vimshell/command-history'
@@ -642,6 +691,7 @@ if !exists('g:neocomplcache_keyword_patterns')
   let g:neocomplcache_keyword_patterns={}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
+let g:neocomplcache_omni_patterns={}
 
 " VimShell
 let g:vimshell_popup_height=40
@@ -679,7 +729,7 @@ endfunction
 
 " PrettyPrint
 let g:prettyprint_indent=2
-let g:prettyprint_width=78
+let g:prettyprint_width=50
 
 " ZenCoding
 let g:user_zen_leader_key="<C-k>"
