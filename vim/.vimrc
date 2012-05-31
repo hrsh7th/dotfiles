@@ -821,8 +821,12 @@ let g:rbpt_colorpairs = [
   \ ['darkred',     'DarkOrchid3'],
   \ ['red',         'firebrick3'],
   \ ]
-autocmd VimEnter * RainbowParenthesesToggle
-autocmd Syntax * RainbowParenthesesLoadRound
-autocmd Syntax * RainbowParenthesesLoadSquare
-autocmd Syntax * RainbowParenthesesLoadBraces
+try
+  call rainbow_parentheses#load(0)
+  autocmd VimEnter * RainbowParenthesesToggle
+  autocmd Syntax * RainbowParenthesesLoadRound
+  autocmd Syntax * RainbowParenthesesLoadSquare
+  autocmd Syntax * RainbowParenthesesLoadBraces
+catch
+endtry
 
