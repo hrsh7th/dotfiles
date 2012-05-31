@@ -41,6 +41,7 @@ NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-localrc.git'
 NeoBundle 'git://github.com/thinca/vim-visualstar.git'
+NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -700,7 +701,7 @@ function! g:get_prev_winnr()
   if exists('b:unite.prev_winnr')
     let nr = b:unite.prev_winnr
   endif
-  if exists('nr') && index(ftypes, getwinvar(nr, '&filetype')) < 0
+  if exists('nr') && (index(ftypes, getwinvar(nr, '&filetype')) < 0 || winnr('$') == 2)
     return nr
   endif
 
