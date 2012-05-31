@@ -35,10 +35,7 @@ NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
-NeoBundle 'git://github.com/Shougo/unite-ssh.git'
-NeoBundle 'git://github.com/Shougo/vim-vcs.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
-NeoBundle 'git://github.com/thinca/vim-fontzoom.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
@@ -47,9 +44,10 @@ NeoBundle 'git://github.com/thinca/vim-visualstar.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
+NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundle 'git://github.com/ujihisa/neco-look.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
@@ -59,11 +57,18 @@ NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/pangloss/vim-javascript.git'
 NeoBundle 'git://github.com/thisivan/vim-matchit.git'
+NeoBundle 'git://github.com/tsukkee/unite-tag.git'
+NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
+NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
+NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
 
 " set terminal color.
 set t_Co=256
+
+" for ctags.
+set tags=./.tags;
 
 " set mapleader.
 let mapleader="\<Space>"
@@ -215,8 +220,24 @@ endfunction
 " no wrap.
 set nowrap
 
+" fold settings.
+function! MyFoldtext()
+  let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
+  let num = winwidth('.')
+  while num > 0
+    let txt = txt. ' '
+    let num = num - 1
+  endwhile
+  return txt
+endfunction
+set foldmethod=indent
+set foldminlines=3
+set foldlevel=1
+set foldnestmax=2
+set foldtext=MyFoldtext()
+
 " show special chars.
-set list
+set nolist
 set listchars=trail:^
 
 " show ruler.
@@ -234,7 +255,9 @@ set number
 
 " solarized.
 let g:solarized_termcolors=256
-" let g:solarized_termtrans=1
+let g:solarized_contrast='high'
+let g:solarized_termtrans=1
+let g:solarized_visibility=1
 
 " cui colorscheme.
 set background=dark | colorscheme solarized
@@ -242,7 +265,7 @@ set background=dark | colorscheme solarized
 " ---------------------------------------------------------
 " GUI Settings.
 " ---------------------------------------------------------
-set mouse=a
+set mouse=n
 if has('gui_running')
   " line height.
   set linespace=0
@@ -339,18 +362,20 @@ inoremap <expr><Bs> g:my_pair_delete()
 nnoremap <F6> :call g:my_vcs_diff()<Cr>
 
 " VimFiler
-nnoremap <expr><F2> ":VimFilerBufferDir -split -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
+nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
 
 " VimShell
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap m           :UniteResume<Cr>
-nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_mru-file_rec/async -hide-source-names buffer_tab file_mru ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir : ""). "<Cr>"
-nnoremap <F7>        :Unite -buffer-name=todo todo<Cr>
-nnoremap <F8>        :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap ?           :Unite -buffer-name=line line<Cr>
-nnoremap <F12>       :Unite -buffer-name=process process<Cr>
+nnoremap m            :UniteResume<Cr>
+nnoremap <expr><F3>  ":Unite -buffer-name=buffer_tab-file_mru-file_rec/async-outline-tag -hide-source-names buffer_tab file_mru ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. " outline tag" : "outline"). "<Cr>"
+nnoremap <F7>         :Unite -buffer-name=todo todo<Cr>
+nnoremap <F8>         :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap ?            :Unite -buffer-name=line line<Cr>
+nnoremap <F12>        :Unite -buffer-name=process process<Cr>
+nnoremap <Leader>u    :Unite -buffer-name=source -no-start-insert source<Cr>
+nnoremap <expr><C-f> ":mark'<Cr> :Unite -buffer-name=tag -immediately -no-start-insert tag:". expand('<cword>'). "<Cr>"
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
@@ -387,7 +412,9 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 autocmd! FileType * setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
 autocmd! Filetype diff setlocal nofoldenable
 autocmd! Filetype js set filetype=javascript
+autocmd! Filetype as set filetype=actionscript
 autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype actionscript exec get(g:my_coding_style, 't2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
@@ -442,7 +469,7 @@ highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
 " auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>', '>' : '<'}
+let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
 inoremap <expr>(  g:my_pair_close('(')
 inoremap <expr>[  g:my_pair_close('[')
 inoremap <expr>{  g:my_pair_close('{')
@@ -456,6 +483,7 @@ function! g:my_pair_close(char)
         return a:char
       endif
     endfor
+
     return a:char. g:pair[a:char]. "\<Left>"
   endif
   return a:char
@@ -485,6 +513,26 @@ function! g:my_pair_delete()
   return "\<Bs>"
 endfunction
 
+" create tag.
+function! g:my_create_tag()
+  if g:my_unite_project_dir == ""
+    echoerr 'my_unite_project_dir is not detected.'
+    return
+  endif
+
+  exec ':VimShellExecute ctags -f '. g:my_unite_project_dir. '.tags -R '. g:my_unite_project_dir. ' --exclude=.svn --language-force=JavaScript'
+endfunction
+
+" is between.
+function! g:my_pair_is_between()
+  if exists("g:pair[getline('.')[col('.') - 2]]")
+    if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
+      return 1
+    endif
+  endif
+  return 0
+endfunction
+
 " show vcs diff.
 function! g:my_vcs_diff()
   let current = expand('%')
@@ -505,17 +553,8 @@ function! g:my_vcs_diff()
   setlocal noswapfile
   setlocal noreadonly
   exec 'read! svn cat '. current
+  call feedkeys('ggdd')
   diffthis
-endfunction
-
-" is between.
-function! g:my_pair_is_between()
-  if exists("g:pair[getline('.')[col('.') - 2]]")
-    if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
-      return 1
-    endif
-  endif
-  return 0
 endfunction
 
 " ---------------------------------------------------------
@@ -554,7 +593,6 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer>e           :call vimfiler#mappings#do_action('nicely_open')<Cr>
   nnoremap <buffer>v           :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
   nnoremap <buffer>s           :call vimfiler#mappings#do_action('nicely_split')<Cr>
-  nnoremap <buffer>gr          :call vimfiler#mappings#do_current_dir_action('nicely_grep')<Cr>
   nnoremap <buffer><F10>       :call vimfiler#mappings#do_current_dir_action('nicely_rec/async')<Cr>
   nnoremap <buffer><F5>        :call vimfiler#mappings#do_current_dir_action('my_project_cd')<Cr>
   nnoremap <buffer><F8>        :VimFilerTab -double<Cr>
@@ -585,7 +623,7 @@ function! g:my_unite_settings()
   nmap <buffer>:q          <Plug>(unite_exit)
   nmap <buffer><Leader>q   <Plug>(unite_exit)
   nmap <buffer>@           <Plug>(unite_toggle_mark_current_candidate)
-  nmap <buffer>a           <Plug>(unite_insert_enter)
+  nmap <buffer>a           <Plug>(unite_append_end)
   nmap <buffer><C-p>       <Plug>(unite_loop_cursor_up)
   nmap <buffer><C-n>       <Plug>(unite_loop_cursor_down)
   imap <buffer><C-p>       <Plug>(unite_insert_leave)
@@ -620,13 +658,6 @@ call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'conv
 call unite#custom_filters('todo', ['matcher_glob', 'sorter_word'])
 
 " unite action.
-let my_action = { 'is_selectable' : 1 }
-function! my_action.func(candidates)
-  exec g:get_prev_winnr(). 'wincmd w'
-  call unite#take_action('grep_directory', [a:candidates[0]])
-endfunction
-call unite#custom_action('file', 'nicely_grep', my_action)
-
 let my_action = { 'is_selectable' : 1 }
 function! my_action.func(candidates)
   exec g:get_prev_winnr(). 'wincmd w'
@@ -684,14 +715,23 @@ endfunction
 let g:neocomplcache_enable_at_startup=1
 let g:neocomplcache_enable_camel_case_completion=1
 let g:neocomplcache_enable_underbar_completion=1
+let g:neocomplcache_enable_prefetch=1
 let g:neocomplcache_dictionary_filetype_lists={}
 let g:neocomplcache_dictionary_filetype_lists['default']=''
 let g:neocomplcache_dictionary_filetype_lists['vimshell']=$HOME. '/.vimshell/command-history'
+let g:neocomplcache_auto_completion_start_length=2
 if !exists('g:neocomplcache_keyword_patterns')
   let g:neocomplcache_keyword_patterns={}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
+if !exists('g:neocomplcache_omni_patterns')
+  let g:neocomplcache_omni_patterns={}
+endif
 let g:neocomplcache_omni_patterns={}
+if !exists('g:neocomplcache_omni_patterns')
+  let g:neocomplcache_omni_functions={}
+endif
+let g:neocomplcache_omni_functions={}
 
 " VimShell
 let g:vimshell_popup_height=40
@@ -762,4 +802,27 @@ let g:EasyMotion_mapping_gE=''
 
 " shadow
 let g:shadow_debug=1
+
+" rainbow_parentheses.
+let g:rbpt_colorpairs = [
+  \ ['brown',       'RoyalBlue3'],
+  \ ['Darkblue',    'SeaGreen3'],
+  \ ['darkgray',    'DarkOrchid3'],
+  \ ['darkgreen',   'firebrick3'],
+  \ ['darkcyan',    'RoyalBlue3'],
+  \ ['darkred',     'SeaGreen3'],
+  \ ['darkmagenta', 'DarkOrchid3'],
+  \ ['brown',       'firebrick3'],
+  \ ['gray',        'RoyalBlue3'],
+  \ ['darkmagenta', 'DarkOrchid3'],
+  \ ['Darkblue',    'firebrick3'],
+  \ ['darkgreen',   'RoyalBlue3'],
+  \ ['darkcyan',    'SeaGreen3'],
+  \ ['darkred',     'DarkOrchid3'],
+  \ ['red',         'firebrick3'],
+  \ ]
+autocmd VimEnter * RainbowParenthesesToggle
+autocmd Syntax * RainbowParenthesesLoadRound
+autocmd Syntax * RainbowParenthesesLoadSquare
+autocmd Syntax * RainbowParenthesesLoadBraces
 
