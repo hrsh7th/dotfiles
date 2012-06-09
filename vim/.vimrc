@@ -64,6 +64,7 @@ NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
 NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
+NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
 
 " set terminal color.
 set t_Co=256
@@ -257,7 +258,7 @@ set number
 " solarized.
 let g:solarized_termcolors=256
 let g:solarized_contrast='high'
-let g:solarized_termtrans=1
+" let g:solarized_termtrans=1
 let g:solarized_visibility=1
 
 " cui colorscheme.
@@ -743,8 +744,6 @@ let g:vimshell_disable_escape_highlight=1
 autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a           G$a
-  inoremap <buffer><Tab>       <Nop>
-  imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
   inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
     \ 'start_insert' : 0,
     \ 'default_action': 'insert',
