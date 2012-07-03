@@ -37,36 +37,38 @@ NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
-NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
-NeoBundle 'git://github.com/thinca/vim-localrc.git'
-NeoBundle 'git://github.com/thinca/vim-visualstar.git'
-NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
-NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
-NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
-NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
-NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
-NeoBundle 'git://github.com/ujihisa/neco-look.git'
-NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
-NeoBundle 'git://github.com/tpope/vim-surround.git'
-NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
-NeoBundle 'git://github.com/altercation/vim-colors-solarized.git'
-NeoBundle 'git://github.com/scrooloose/syntastic.git'
-NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
-NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
-NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/thisivan/vim-matchit.git'
-NeoBundle 'git://github.com/tsukkee/unite-tag.git'
-NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
-NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
+NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
+NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
+NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
+NeoBundleLazy 'git://github.com/thinca/vim-quickrun.git'
+NeoBundleLazy 'git://github.com/thinca/vim-prettyprint.git'
+NeoBundleLazy 'git://github.com/thinca/vim-localrc.git'
+NeoBundleLazy 'git://github.com/thinca/vim-ft-svn_diff.git'
+NeoBundleLazy 'git://github.com/h1mesuke/unite-outline.git'
+NeoBundleLazy 'git://github.com/h1mesuke/vim-alignta.git'
+NeoBundleLazy 'git://github.com/hrsh7th/unite-todo.git'
+NeoBundleLazy 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundleLazy 'git://github.com/ujihisa/shadow.vim.git'
+NeoBundleLazy 'git://github.com/tpope/vim-surround.git'
+NeoBundleLazy 'git://github.com/tpope/vim-haml.git'
+NeoBundleLazy 'git://github.com/vim-scripts/sudo.vim.git'
+NeoBundleLazy 'git://github.com/t9md/vim-quickhl.git'
+NeoBundleLazy 'git://github.com/umezo/vim-unite-vcs.git'
+NeoBundleLazy 'git://github.com/mattn/zencoding-vim.git'
+NeoBundleLazy 'git://github.com/triglav/vim-visual-increment.git'
+NeoBundleLazy 'git://github.com/scrooloose/syntastic.git'
+NeoBundleLazy 'git://github.com/kchmck/vim-coffee-script.git'
+NeoBundleLazy 'git://github.com/tsukkee/unite-tag.git'
+NeoBundleLazy 'git://github.com/jeroenbourgois/vim-actionscript.git'
+NeoBundleLazy 'git://github.com/pasela/unite-webcolorname.git'
+NeoBundleLazy 'git://github.com/jelera/vim-javascript-syntax.git'
 
-" set terminal color.
+" set terminal config.
 set t_Co=256
+set background=dark
 
 " for ctags.
 set tags=./.tags;
@@ -218,6 +220,9 @@ function! g:my_statusline()
   return statusline
 endfunction
 
+" diffopts.
+"set diffopt=iwhite
+
 " no wrap.
 set nowrap
 
@@ -238,7 +243,7 @@ set foldnestmax=2
 set foldtext=MyFoldtext()
 
 " show special chars.
-set nolist
+set list
 set listchars=trail:^
 
 " show ruler.
@@ -254,14 +259,8 @@ set shortmess+=I
 set number
 " set relativenumber
 
-" solarized.
-let g:solarized_termcolors=256
-let g:solarized_contrast='high'
-let g:solarized_termtrans=1
-let g:solarized_visibility=1
-
 " cui colorscheme.
-set background=dark | colorscheme solarized
+colorscheme jellybeans
 
 " ---------------------------------------------------------
 " GUI Settings.
@@ -306,6 +305,7 @@ endif
 " ---------------------------------------------------------
 " quit window.
 nnoremap <Leader>q :q<Cr>
+nnoremap <Leader>t :tabclose<Cr>
 nnoremap <Leader>! :q!<Cr>
 
 " save window.
@@ -318,7 +318,6 @@ nnoremap <Leader>k <C-w>k
 nnoremap <Leader>l <C-w>l
 
 " move tab.
-nnoremap <Leader>tc    :tabclose<Cr>
 nnoremap <Leader><S-l> :tabnext<Cr>
 nnoremap <Leader><S-h> :tabprev<Cr>
 
@@ -360,7 +359,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " show vcs diff.
-nnoremap <F6> :call g:my_vcs_diff()<Cr>
+nnoremap <F6> :Unite -buffer-name=vcs_status -input=!External vcs/status<Cr>
 
 " VimFiler
 nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
@@ -370,10 +369,11 @@ nnoremap <F5>  :VimShell<Cr>
 
 " Unite
 nnoremap m            :UniteResume<Cr>
-nnoremap <expr><F3>  ":Unite -buffer-name=buffer_tab-file_mru-file_rec/async-outline-tag -hide-source-names buffer_tab file_mru ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. " outline tag" : "outline"). "<Cr>"
+nnoremap <expr><F3>  ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
 nnoremap <F7>         :Unite -buffer-name=todo todo<Cr>
 nnoremap <F8>         :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
 nnoremap ?            :Unite -buffer-name=line line<Cr>
+nnoremap <F10>        :VimShellTab<Cr>
 nnoremap <F12>        :Unite -buffer-name=process process<Cr>
 nnoremap <Leader>u    :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <expr><C-f> ":mark'<Cr> :Unite -buffer-name=tag -immediately -no-start-insert tag:". expand('<cword>'). "<Cr>"
@@ -485,7 +485,7 @@ function! g:my_pair_close(char)
       endif
     endfor
 
-    return a:char. g:pair[a:char]. "\<Left>"
+    return a:char . g:pair[a:char]. "\<Left>"
   endif
   return a:char
 endfunction
@@ -534,30 +534,6 @@ function! g:my_pair_is_between()
   return 0
 endfunction
 
-" show vcs diff.
-function! g:my_vcs_diff()
-  let current = expand('%')
-  tabnew
-  setlocal filetype=text
-  setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal nobuflisted
-  setlocal noswapfile
-  setlocal noreadonly
-  exec 'e '. current
-  diffthis
-  vnew
-  setlocal filetype=text
-  setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal nobuflisted
-  setlocal noswapfile
-  setlocal noreadonly
-  exec 'read! svn cat '. current
-  call feedkeys('ggdd')
-  diffthis
-endfunction
-
 " ---------------------------------------------------------
 " Plugin Settings.
 " ---------------------------------------------------------
@@ -582,6 +558,7 @@ augroup my-vimfiler
   autocmd!
   autocmd FileType vimfiler call g:my_vimfiler_settings()
   autocmd WinEnter * call g:my_vimfiler_winenter_settings()
+  autocmd BufLeave * call g:my_vimfiler_bufleave_settings()
 augroup END
 function! g:my_vimfiler_settings()
   nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit<Cr>"
@@ -594,14 +571,18 @@ function! g:my_vimfiler_settings()
   nnoremap <buffer>e           :call vimfiler#mappings#do_action('nicely_open')<Cr>
   nnoremap <buffer>v           :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
   nnoremap <buffer>s           :call vimfiler#mappings#do_action('nicely_split')<Cr>
-  nnoremap <buffer><F10>       :call vimfiler#mappings#do_current_dir_action('nicely_rec/async')<Cr>
   nnoremap <buffer><F5>        :call vimfiler#mappings#do_current_dir_action('my_project_cd')<Cr>
   nnoremap <buffer><F8>        :VimFilerTab -double<Cr>
-  set winfixwidth
 endfunction
 function! g:my_vimfiler_winenter_settings()
   if exists('b:vimfiler')
     let b:vimfiler.prev_winnr = winnr('#')
+    set winfixwidth
+  endif
+endfunction
+function! g:my_vimfiler_bufleave_settings()
+  if !exists('b:vimfiler')
+    set nowinfixwidth
   endif
 endfunction
 
@@ -613,6 +594,7 @@ let g:unite_source_grep_default_opts='-Hni'
 let g:unite_source_file_rec_min_cache_files=0
 let g:unite_kind_openable_lcd_command='cd'
 let g:unite_update_time=100
+let g:unite_winheight=15
 let g:my_unite_project_dir=""
 augroup my-unite
   autocmd!
@@ -634,7 +616,7 @@ function! g:my_unite_settings()
 
   let unite = unite#get_current_unite()
   if unite.profile_name == 'todo'
-    nnoremap <buffer><S-n>   :UniteTodoAddSimple<Cr>
+    nnoremap <buffer><S-n> :UniteTodoAddSimple<Cr>
   endif
 endfunction
 function! g:my_unite_winenter_settings()
@@ -701,7 +683,7 @@ function! g:get_prev_winnr()
   if exists('b:unite.prev_winnr')
     let nr = b:unite.prev_winnr
   endif
-  if exists('nr') && (index(ftypes, getwinvar(nr, '&filetype')) < 0 || winnr('$') == 2)
+  if exists('nr') && (index(ftypes, getwinvar(nr, '&filetype')) < 0)
     return nr
   endif
 
@@ -709,6 +691,7 @@ function! g:get_prev_winnr()
   if empty(winnrs)
     return winnr()
   endif
+
   return winnrs[0]
 endfunction
 
@@ -717,6 +700,10 @@ let g:neocomplcache_enable_at_startup=1
 let g:neocomplcache_enable_camel_case_completion=1
 let g:neocomplcache_enable_underbar_completion=1
 let g:neocomplcache_enable_prefetch=1
+if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
+  let g:neocomplcache_snippets_dir=$MYVIMRUNTIME. '/bundle/vim-neco-snippets'
+  let g:neocomplcache_snippets_disable_runtime_snippets=1
+endif
 let g:neocomplcache_dictionary_filetype_lists={}
 let g:neocomplcache_dictionary_filetype_lists['default']=''
 let g:neocomplcache_dictionary_filetype_lists['vimshell']=$HOME. '/.vimshell/command-history'
@@ -743,8 +730,6 @@ let g:vimshell_disable_escape_highlight=1
 autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a           G$a
-  inoremap <buffer><Tab>       <Nop>
-  imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
   inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
     \ 'start_insert' : 0,
     \ 'default_action': 'insert',
@@ -773,7 +758,6 @@ let g:prettyprint_indent=2
 let g:prettyprint_width=50
 
 " ZenCoding
-let g:user_zen_leader_key="<C-k>"
 let g:user_zen_expandabbr_key="<C-k><Space>"
 let g:user_zen_complete_tag=1
 let g:user_zen_settings = {}
@@ -803,6 +787,9 @@ let g:EasyMotion_mapping_gE=''
 
 " shadow
 let g:shadow_debug=1
+
+" powerline
+let g:Powerline_symbols='unicode'
 
 " rainbow_parentheses.
 let g:rbpt_colorpairs = [
