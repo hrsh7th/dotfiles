@@ -66,8 +66,9 @@ NeoBundleLazy 'git://github.com/jeroenbourgois/vim-actionscript.git'
 NeoBundleLazy 'git://github.com/pasela/unite-webcolorname.git'
 NeoBundleLazy 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundleLazy 'git://github.com/digitaltoad/vim-jade.git'
+NeoBundleLazy 'git://github.com/digitaltoad/vim-jade.git'
 
-" set terminal config.
+" set terminal color.
 set t_Co=256
 set background=dark
 
