@@ -37,36 +37,37 @@ NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
+NeoBundle 'git://github.com/tyru/caw.vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
 NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
-NeoBundleLazy 'git://github.com/thinca/vim-quickrun.git'
-NeoBundleLazy 'git://github.com/thinca/vim-prettyprint.git'
-NeoBundleLazy 'git://github.com/thinca/vim-localrc.git'
-NeoBundleLazy 'git://github.com/thinca/vim-ft-svn_diff.git'
-NeoBundleLazy 'git://github.com/h1mesuke/unite-outline.git'
-NeoBundleLazy 'git://github.com/h1mesuke/vim-alignta.git'
-NeoBundleLazy 'git://github.com/hrsh7th/unite-todo.git'
-NeoBundleLazy 'git://github.com/ujihisa/unite-colorscheme.git'
-NeoBundleLazy 'git://github.com/ujihisa/shadow.vim.git'
-NeoBundleLazy 'git://github.com/tpope/vim-surround.git'
-NeoBundleLazy 'git://github.com/tpope/vim-haml.git'
-NeoBundleLazy 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundleLazy 'git://github.com/t9md/vim-quickhl.git'
-NeoBundleLazy 'git://github.com/umezo/vim-unite-vcs.git'
-NeoBundleLazy 'git://github.com/mattn/zencoding-vim.git'
-NeoBundleLazy 'git://github.com/triglav/vim-visual-increment.git'
-NeoBundleLazy 'git://github.com/scrooloose/syntastic.git'
-NeoBundleLazy 'git://github.com/kchmck/vim-coffee-script.git'
-NeoBundleLazy 'git://github.com/tsukkee/unite-tag.git'
-NeoBundleLazy 'git://github.com/jeroenbourgois/vim-actionscript.git'
-NeoBundleLazy 'git://github.com/pasela/unite-webcolorname.git'
-NeoBundleLazy 'git://github.com/jelera/vim-javascript-syntax.git'
-NeoBundleLazy 'git://github.com/digitaltoad/vim-jade.git'
-NeoBundleLazy 'git://github.com/digitaltoad/vim-jade.git'
+NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
+NeoBundle 'git://github.com/thinca/vim-localrc.git'
+NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
+NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
+NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
+NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
+NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
+NeoBundle 'git://github.com/tpope/vim-surround.git'
+NeoBundle 'git://github.com/tpope/vim-haml.git'
+NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+NeoBundle 'git://github.com/umezo/vim-unite-vcs.git'
+NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
+NeoBundle 'git://github.com/scrooloose/syntastic.git'
+NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
+NeoBundle 'git://github.com/tsukkee/unite-tag.git'
+NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
+NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
+NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
+NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
 
 " set terminal color.
 set t_Co=256
@@ -360,7 +361,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 " delete pair.
 inoremap <expr><Bs> g:my_pair_delete()
 
-" show vcs diff.
+" show vcs/status.
 nnoremap <F6> :Unite -buffer-name=vcs_status -input=!External vcs/status<Cr>
 
 " VimFiler
@@ -374,17 +375,20 @@ nnoremap m            :UniteResume<Cr>
 nnoremap <expr><F3>  ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
 nnoremap <F7>         :Unite -buffer-name=todo todo<Cr>
 nnoremap <F8>         :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap ?            :Unite -buffer-name=line line<Cr>
 nnoremap <F10>        :VimShellTab<Cr>
 nnoremap <F12>        :Unite -buffer-name=process process<Cr>
-nnoremap <Leader>u    :Unite -buffer-name=source -no-start-insert source<Cr>
-nnoremap <expr><C-f> ":mark'<Cr> :Unite -buffer-name=tag -immediately -no-start-insert tag:". expand('<cword>'). "<Cr>"
+nnoremap <Leader>u   :Unite -buffer-name=source -no-start-insert source<Cr>
+nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skippable() ? g:my_pair_skip() : pumvisible() ? "\<C-n>" : g:my_pair_skip()
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
+
+" Caw"
+nmap <Leader><Leader> <Plug>(caw:i:toggle)
+vmap <Leader><Leader> <Plug>(caw:i:toggle)
 
 " Quickhl
 nmap <Leader>m <Plug>(quickhl-toggle)
@@ -492,12 +496,24 @@ function! g:my_pair_close(char)
   return a:char
 endfunction
 
+" appen lin end.
+function! g:my_append_end(char)
+  let pos = getpos('.')
+  exec 'normal! A' . a:char
+  call setpos('.', pos)
+endfunction
+
 " skip pair.
 function! g:my_pair_skip()
-  if count(g:pair, getline('.')[col('.') - 1]) > 0
+  if g:my_pair_skippable()
     return "\<Right>"
   endif
   return "\<Tab>"
+endfunction
+
+" is skippable.
+function! g:my_pair_skippable()
+  return count(g:pair, getline('.')[col('.') - 1]) > 0
 endfunction
 
 " enter pair.
@@ -627,6 +643,19 @@ function! g:my_unite_winenter_settings()
   endif
 endfunction
 
+" Unite menu.
+let g:unite_source_menu_menus={}
+let g:unite_source_menu_menus.global = {
+      \ 'description': 'global menu.'
+      \ }
+let g:unite_source_menu_menus.global.candidates = {
+      \ 'NeoComplCacheEditSnippets': 'NeoComplCacheEditSnippets'
+      \ }
+function! g:unite_source_menu_menus.global.map(key, value)
+  return { 'word': a:key, 'kind': 'command', 'action__command': a:value }
+endfunction
+
+
 " unite filter.
 let my_filter = { 'name' : 'matcher_remove' }
 function! my_filter.filter(candidates, context)
@@ -733,10 +762,10 @@ autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
   nnoremap <buffer>a           G$a
   inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
-    \ 'start_insert' : 0,
-    \ 'default_action': 'insert',
-    \ 'input' : vimshell#get_cur_text(),
-    \ })
+        \ 'start_insert' : 0,
+        \ 'default_action': 'insert',
+        \ 'input' : vimshell#get_cur_text(),
+        \ })
 
   call vimshell#altercmd#define('ls', 'ls -al')
   call vimshell#altercmd#define('ll', 'ls -al')
@@ -749,10 +778,10 @@ endfunction
 autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
 function! g:my_vimshell_interactive_settings()
   inoremap <buffer><Tab>       <Nop>
-  imap     <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+  imap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skippable() ? g:my_pair_skip() : pumvisible() ? "\<C-n>" : g:my_pair_skip()
 endfunction
 function! g:my_vimshell_popup()
- exec 'resize '. winheight(0) * g:vimshell_popup_height / 100
+  exec 'resize '. winheight(0) * g:vimshell_popup_height / 100
 endfunction
 
 " PrettyPrint
@@ -760,7 +789,7 @@ let g:prettyprint_indent=2
 let g:prettyprint_width=50
 
 " ZenCoding
-let g:user_zen_expandabbr_key="<C-k><Space>"
+let g:user_zen_expandabbr_key='<C-k>'
 let g:user_zen_complete_tag=1
 let g:user_zen_settings = {}
 let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '    ' }
@@ -795,22 +824,22 @@ let g:Powerline_symbols='unicode'
 
 " rainbow_parentheses.
 let g:rbpt_colorpairs = [
-  \ ['brown',       'RoyalBlue3'],
-  \ ['Darkblue',    'SeaGreen3'],
-  \ ['darkgray',    'DarkOrchid3'],
-  \ ['darkgreen',   'firebrick3'],
-  \ ['darkcyan',    'RoyalBlue3'],
-  \ ['darkred',     'SeaGreen3'],
-  \ ['darkmagenta', 'DarkOrchid3'],
-  \ ['brown',       'firebrick3'],
-  \ ['gray',        'RoyalBlue3'],
-  \ ['darkmagenta', 'DarkOrchid3'],
-  \ ['Darkblue',    'firebrick3'],
-  \ ['darkgreen',   'RoyalBlue3'],
-  \ ['darkcyan',    'SeaGreen3'],
-  \ ['darkred',     'DarkOrchid3'],
-  \ ['red',         'firebrick3'],
-  \ ]
+      \ ['brown',       'RoyalBlue3'],
+      \ ['Darkblue',    'SeaGreen3'],
+      \ ['darkgray',    'DarkOrchid3'],
+      \ ['darkgreen',   'firebrick3'],
+      \ ['darkcyan',    'RoyalBlue3'],
+      \ ['darkred',     'SeaGreen3'],
+      \ ['darkmagenta', 'DarkOrchid3'],
+      \ ['brown',       'firebrick3'],
+      \ ['gray',        'RoyalBlue3'],
+      \ ['darkmagenta', 'DarkOrchid3'],
+      \ ['Darkblue',    'firebrick3'],
+      \ ['darkgreen',   'RoyalBlue3'],
+      \ ['darkcyan',    'SeaGreen3'],
+      \ ['darkred',     'DarkOrchid3'],
+      \ ['red',         'firebrick3'],
+      \ ]
 try
   call rainbow_parentheses#load(0)
   autocmd VimEnter * RainbowParenthesesToggle
