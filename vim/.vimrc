@@ -362,7 +362,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " show vcs/status.
-nnoremap <F6> :Unite -buffer-name=vcs_status -input=!External vcs/status<Cr>
+nnoremap <expr><F6> ":Unite -buffer-name=vcs_status -input=!^X vcs/status:" . g:my_unite_project_dir . "\<Cr>"
 
 " VimFiler
 nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
@@ -670,6 +670,7 @@ call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_default'
 call unite#custom_filters('file_mru', ['matcher_glob', 'converter_default', 'sorter_default'])
 call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
 call unite#custom_filters('todo', ['matcher_glob', 'sorter_word'])
+call unite#custom_filters('vcs/status', ['matcher_regexp', 'sorter_word'])
 
 " unite action.
 let my_action = { 'is_selectable' : 1 }
