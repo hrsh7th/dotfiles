@@ -28,46 +28,47 @@ if has('vim_starting')
   call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
 endif
 
-NeoBundle 'git://github.com/Shougo/neocomplcache.git'
-NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
+NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
+NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
+NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
+NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+NeoBundle 'git://github.com/Shougo/unite.vim.git'
+NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
-NeoBundle 'git://github.com/Shougo/vimfiler.git'
-NeoBundle 'git://github.com/Shougo/unite.vim.git'
-NeoBundle 'git://github.com/thinca/vim-openbuf.git'
-NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
-NeoBundle 'git://github.com/tyru/caw.vim.git'
-NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
-NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
-NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
-NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
-NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
-NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
-NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
-NeoBundle 'git://github.com/thinca/vim-localrc.git'
-NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
+NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
+NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
-NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
-NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
-NeoBundle 'git://github.com/tpope/vim-surround.git'
-NeoBundle 'git://github.com/tpope/vim-haml.git'
-NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-NeoBundle 'git://github.com/umezo/vim-unite-vcs.git'
-NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
-NeoBundle 'git://github.com/scrooloose/syntastic.git'
-NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
-NeoBundle 'git://github.com/tsukkee/unite-tag.git'
-NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
-NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
+NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
-NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
-NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
+NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
+NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
+NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
+NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
+NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+NeoBundle 'git://github.com/scrooloose/syntastic.git'
+NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
+NeoBundle 'git://github.com/thinca/vim-localrc.git'
+NeoBundle 'git://github.com/thinca/vim-openbuf.git'
+NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
+NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
+NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+NeoBundle 'git://github.com/tpope/vim-haml.git'
+NeoBundle 'git://github.com/tpope/vim-surround.git'
+NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
+NeoBundle 'git://github.com/tsukkee/unite-tag.git'
+NeoBundle 'git://github.com/tyru/caw.vim.git'
+NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
+NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundle 'git://github.com/umezo/vim-unite-vcs.git'
+NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 
 " set terminal color.
 set t_Co=256
@@ -209,20 +210,6 @@ set cmdheight=2
 " visible statusline.
 set laststatus=2
 
-" setting statusline.
-set statusline=%!g:my_statusline()
-function! g:my_statusline()
-  let statusline  = ' %f '
-  let statusline .= "%{'['. (&fenc != '' ? &fenc : &enc). ']['. &ff. ']'}"
-  if &paste
-    let statusline .= '[p]'
-  endif
-  let statusline .= '%m%r%h%w'
-  let statusline .= '%='
-  let statusline .= '%l, %c, %P'
-  return statusline
-endfunction
-
 " diffopts.
 "set diffopt=iwhite
 
@@ -355,6 +342,13 @@ inoremap <C-h> <C-o>h
 nnoremap : q:
 xnoremap : q:
 
+" close pair.
+inoremap <expr>(  g:my_pair_close('(')
+inoremap <expr>[  g:my_pair_close('[')
+inoremap <expr>{  g:my_pair_close('{')
+inoremap <expr>"  g:my_pair_close('"')
+inoremap <expr>'  g:my_pair_close("'")
+
 " enter pair.
 inoremap <expr><Cr> g:my_pair_enter()
 
@@ -371,12 +365,12 @@ nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfil
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap m            :UniteResume<Cr>
-nnoremap <expr><F3>  ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
-nnoremap <F7>         :Unite -buffer-name=todo todo<Cr>
-nnoremap <F8>         :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
-nnoremap <F10>        :VimShellTab<Cr>
-nnoremap <F12>        :Unite -buffer-name=process process<Cr>
+nnoremap m           :UniteResume<Cr>
+nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
+nnoremap <F7>        :Unite -buffer-name=todo todo<Cr>
+nnoremap <F8>        :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F10>       :VimShellTab<Cr>
+nnoremap <F12>       :Unite -buffer-name=process process<Cr>
 nnoremap <Leader>u   :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
@@ -386,13 +380,18 @@ imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
 
-" Caw"
+" Caw
 nmap <Leader><Leader> <Plug>(caw:i:toggle)
 vmap <Leader><Leader> <Plug>(caw:i:toggle)
 
 " Quickhl
 nmap <Leader>m <Plug>(quickhl-toggle)
 vmap <Leader>m <Plug>(quickhl-toggle)
+
+" Surround
+nnoremap <expr>cis g:my_surround_detect('ci')
+nnoremap <expr>dis g:my_surround_detect('di')
+nnoremap <expr>vis g:my_surround_detect('vi')
 
 " ---------------------------------------------------------
 " Command Settings.
@@ -424,7 +423,8 @@ autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype actionscript exec get(g:my_coding_style, 't2', '')
 autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype php exec get(g:my_coding_style, 's4', '')
+autocmd! Filetype php exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype html exec get(g:my_coding_style, 's2', '')
 autocmd! BufWinLeave *.shd call g:my_shd_settings()
 function! g:my_shd_settings()
   enew
@@ -477,11 +477,6 @@ match MbSpace /　/
 
 " auto close pair.
 let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
-inoremap <expr>(  g:my_pair_close('(')
-inoremap <expr>[  g:my_pair_close('[')
-inoremap <expr>{  g:my_pair_close('{')
-inoremap <expr>"  g:my_pair_close('"')
-inoremap <expr>'  g:my_pair_close("'")
 function! g:my_pair_close(char)
   if exists("g:pair[a:char]")
     let ignore_right_patterns = ['\w']
@@ -494,13 +489,6 @@ function! g:my_pair_close(char)
     return a:char . g:pair[a:char]. "\<Left>"
   endif
   return a:char
-endfunction
-
-" appen lin end.
-function! g:my_append_end(char)
-  let pos = getpos('.')
-  exec 'normal! A' . a:char
-  call setpos('.', pos)
 endfunction
 
 " skip pair.
@@ -532,16 +520,6 @@ function! g:my_pair_delete()
   return "\<Bs>"
 endfunction
 
-" create tag.
-function! g:my_create_tag()
-  if g:my_unite_project_dir == ""
-    echoerr 'my_unite_project_dir is not detected.'
-    return
-  endif
-
-  exec ':VimShellExecute ctags -f '. g:my_unite_project_dir. '.tags -R '. g:my_unite_project_dir. ' --exclude=.svn --language-force=JavaScript'
-endfunction
-
 " is between.
 function! g:my_pair_is_between()
   if exists("g:pair[getline('.')[col('.') - 2]]")
@@ -550,6 +528,23 @@ function! g:my_pair_is_between()
     endif
   endif
   return 0
+endfunction
+
+" auto detect surround char.
+function! g:my_surround_detect(key)
+  let pattern = "'\"{[("
+  let front = strpart(getline("."), 0, col("."))
+  let max = -1
+  for pat in split(pattern, '.\zs')
+    let pos = strridx(front, pat)
+    if pos > max
+      let max = pos
+    endif
+  endfor
+  if max >= 0
+    let surround = strpart(front, max, 1)
+    return a:key . surround
+  endif
 endfunction
 
 " ---------------------------------------------------------
@@ -793,7 +788,7 @@ let g:prettyprint_width=50
 let g:user_zen_expandabbr_key='<C-k>'
 let g:user_zen_complete_tag=1
 let g:user_zen_settings = {}
-let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '    ' }
+let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
 let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
 let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
 
