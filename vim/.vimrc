@@ -44,6 +44,7 @@ NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
 NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
@@ -66,7 +67,6 @@ NeoBundle 'git://github.com/tsukkee/unite-tag.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
 NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
-NeoBundle 'git://github.com/umezo/vim-unite-vcs.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 
@@ -375,7 +375,8 @@ nnoremap <Leader>u   :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skippable() ? g:my_pair_skip() : pumvisible() ? "\<C-n>" : g:my_pair_skip()
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+imap <expr>] pumvisible() ? "\<C-n>" : ']'
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
