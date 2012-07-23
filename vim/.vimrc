@@ -355,9 +355,6 @@ inoremap <expr><Cr> g:my_pair_enter()
 " delete pair.
 inoremap <expr><Bs> g:my_pair_delete()
 
-" show vcs/status.
-nnoremap <expr><F6> ":Unite -buffer-name=vcs_status -input=!^X vcs/status:" . g:my_unite_project_dir . "\<Cr>"
-
 " VimFiler
 nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
 
@@ -367,7 +364,8 @@ nnoremap <F5>  :VimShell<Cr>
 " Unite
 nnoremap m           :UniteResume<Cr>
 nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
-nnoremap <F7>        :Unite -buffer-name=todo todo<Cr>
+nnoremap <F6>        :Unite -buffer-name=vcs_status vcs/status<Cr>
+nnoremap <F7>        :Unite -buffer-name=vcs_log vcs/log<Cr>
 nnoremap <F8>        :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
 nnoremap <F10>       :VimShellTab<Cr>
 nnoremap <F12>       :Unite -buffer-name=process process<Cr>
@@ -553,6 +551,9 @@ endfunction
 " syntastic
 let g:syntastic_enable_signs=1
 let g:syntastic_auto_loc_list=0
+if filereadable($HOME . '/.jshintrc')
+  let g:syntastic_javascript_jshint_conf=$HOME. '/.jshintrc'
+endif
 
 " echodoc
 let g:echodoc_enable_at_startup=1
