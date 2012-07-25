@@ -268,7 +268,7 @@ if has('gui_running')
   highlight CursorIM guibg=#ff0000 guifg=NONE
 
   " colorscheme in gui.
-  set background=dark | colorscheme solarized
+  colorscheme jellybeans
 
   " visible gui parts.
   set guioptions-=m guioptions-=T guioptions+=b
