@@ -745,6 +745,7 @@ if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_patterns={}
 endif
 let g:neocomplcache_omni_patterns={}
+let g:neocomplcache_omni_patterns.javascript = ''
 if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_functions={}
 endif
