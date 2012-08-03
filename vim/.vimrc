@@ -38,7 +38,6 @@ NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
-NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
@@ -46,8 +45,6 @@ NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
-NeoBundle 'git://github.com/jeroenbourgois/vim-actionscript.git'
-NeoBundle 'git://github.com/kchmck/vim-coffee-script.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
@@ -63,12 +60,9 @@ NeoBundle 'git://github.com/thinca/vim-quickrun.git'
 NeoBundle 'git://github.com/tpope/vim-haml.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
-NeoBundle 'git://github.com/tsukkee/unite-tag.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
-NeoBundle 'git://github.com/ujihisa/shadow.vim.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-NeoBundle 'git://github.com/vim-scripts/vcscommand.vim.git'
 
 " set terminal color.
 set t_Co=256
@@ -366,7 +360,7 @@ nnoremap m           :UniteResume<Cr>
 nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
 nnoremap <F6>        :Unite -buffer-name=vcs_status vcs/status<Cr>
 nnoremap <F7>        :Unite -buffer-name=vcs_log vcs/log<Cr>
-nnoremap <F8>        :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F8>        :Unite -buffer-name=outline -vertical -no-quit -winwidth=45 outline<Cr>
 nnoremap <F10>       :VimShellTab<Cr>
 nnoremap <F12>       :Unite -buffer-name=process process<Cr>
 nnoremap <Leader>u   :Unite -buffer-name=source -no-start-insert source<Cr>
