@@ -419,6 +419,8 @@ autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype php exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype html exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype css exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype scss exec get(g:my_coding_style, 's2', '')
 autocmd! BufWinLeave *.shd call g:my_shd_settings()
 function! g:my_shd_settings()
   enew
@@ -740,6 +742,7 @@ if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_patterns={}
 endif
 let g:neocomplcache_omni_patterns={}
+let g:neocomplcache_omni_patterns.javascript = ''
 if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_functions={}
 endif
