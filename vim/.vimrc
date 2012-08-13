@@ -369,6 +369,7 @@ nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
 inoremap <expr> ] searchpair('\[', '', '\]', 'nbW', 'synIDattr(synID(line("."), col("."), 1), "name") =~? "String"') ? ']' : "\<C-n>"
+inoremap <expr> } searchpair('{', '', '}', 'nbW', 'synIDattr(synID(line("."), col("."), 1), "name") =~? "String"') ? '}' : "\<C-p>"
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
