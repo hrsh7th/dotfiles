@@ -105,8 +105,10 @@ set autoread
 autocmd! WinEnter * checktime
 
 " undo-persistence.
-set undodir=~/.vimundo
-set undofile
+if has('persistent_undo')
+  set undodir=~/.vimundo
+  set undofile
+endif
 
 " using clipboard.
 set clipboard+=unnamed
@@ -211,20 +213,20 @@ set laststatus=2
 set nowrap
 
 " fold settings.
-function! MyFoldtext()
-  let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
-  let num = winwidth('.')
-  while num > 0
-    let txt = txt. ' '
-    let num = num - 1
-  endwhile
-  return txt
-endfunction
-set foldmethod=indent
-set foldminlines=3
-set foldlevel=1
-set foldnestmax=2
-set foldtext=MyFoldtext()
+" function! MyFoldtext()
+"   let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
+"   let num = winwidth('.')
+"   while num > 0
+"     let txt = txt. ' '
+"     let num = num - 1
+"   endwhile
+"   return txt
+" endfunction
+" set foldmethod=indent
+" set foldminlines=3
+" set foldlevel=1
+" set foldnestmax=2
+" set foldtext=MyFoldtext()
 
 " show special chars.
 set list
@@ -368,8 +370,8 @@ nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
-inoremap <expr> ] searchpair('\[', '', '\]', 'nbW', 'synIDattr(synID(line("."), col("."), 1), "name") =~? "String"') ? ']' : "\<C-n>"
-inoremap <expr> } searchpair('{', '', '}', 'nbW', 'synIDattr(synID(line("."), col("."), 1), "name") =~? "String"') ? '}' : "\<C-p>"
+inoremap ] <C-n>
+inoremap } <C-p>
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
@@ -604,6 +606,7 @@ exec 'let g:unite_data_directory=expand("~/.unite")'
 let g:unite_split_rule="botright"
 let g:unite_source_grep_default_opts='-Hni'
 let g:unite_source_file_rec_min_cache_files=0
+let g:unite_source_file_rec_ignore_pattern=".sass-cache"
 let g:unite_kind_openable_lcd_command='cd'
 let g:unite_update_time=100
 let g:unite_winheight=15
