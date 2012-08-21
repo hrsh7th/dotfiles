@@ -151,7 +151,7 @@ filetype on
 filetype plugin on
 
 " use filetype indent.
-filetype indent on
+filetype indent off
 
 " ---------------------------------------------------------
 " Edit Settings.
@@ -159,8 +159,8 @@ filetype indent on
 " autoindent.
 set autoindent
 
-" copy indnet.
-set copyindent
+" smartindent.
+set smartindent
 
 " tabwidth.
 set shiftwidth=4
@@ -358,20 +358,21 @@ nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfil
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap m           :UniteResume<Cr>
-nnoremap <expr><F3> ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab ". (g:my_unite_project_dir != "" ? "file_rec/async:". g:my_unite_project_dir. "" : ""). "<Cr>"
-nnoremap <F6>        :Unite -buffer-name=vcs_status vcs/status<Cr>
-nnoremap <F7>        :Unite -buffer-name=vcs_log vcs/log<Cr>
-nnoremap <F8>        :Unite -buffer-name=outline -vertical -no-quit -winwidth=45 outline<Cr>
-nnoremap <F10>       :VimShellTab<Cr>
-nnoremap <F12>       :Unite -buffer-name=process process<Cr>
-nnoremap <Leader>u   :Unite -buffer-name=source -no-start-insert source<Cr>
-nnoremap <Leader>0   :Unite -buffer-name=source -no-start-insert menu:global<Cr>
+nnoremap m                :UniteResume<Cr>
+nnoremap <expr><Leader>f ":Unite -silent -immediately -input=" . tolower(expand('<cword>')) . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
+nnoremap <expr><F3>      ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
+nnoremap <F6>             :Unite -buffer-name=vcs_status vcs/status<Cr>
+nnoremap <F7>             :Unite -buffer-name=vcs_log vcs/log<Cr>
+nnoremap <F8>             :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
+nnoremap <F10>            :VimShellTab<Cr>
+nnoremap <F12>            :Unite -buffer-name=process process<Cr>
+nnoremap <Leader>u        :Unite -buffer-name=source -no-start-insert source<Cr>
+nnoremap <Leader>0        :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
 inoremap ] <C-n>
-inoremap } <C-p>
+inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
@@ -505,7 +506,7 @@ endfunction
 " enter pair.
 function! g:my_pair_enter()
   if g:my_pair_is_between()
-    return "\<Cr>\<Up>\<End>\<Cr>"
+    return "\<Cr>\<C-d>\<Up>\<End>\<Cr>"
   endif
   return "\<Cr>"
 endfunction
