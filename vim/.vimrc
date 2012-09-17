@@ -44,6 +44,7 @@ NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
+NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -151,7 +152,7 @@ filetype on
 filetype plugin on
 
 " use filetype indent.
-filetype indent off
+filetype indent on
 
 " ---------------------------------------------------------
 " Edit Settings.
@@ -227,6 +228,7 @@ set nowrap
 " set foldlevel=1
 " set foldnestmax=2
 " set foldtext=MyFoldtext()
+set nofoldenable
 
 " show special chars.
 set list
@@ -339,17 +341,11 @@ nnoremap : q:
 xnoremap : q:
 
 " close pair.
-inoremap <expr>(  g:my_pair_close('(')
-inoremap <expr>[  g:my_pair_close('[')
-inoremap <expr>{  g:my_pair_close('{')
-inoremap <expr>"  g:my_pair_close('"')
-inoremap <expr>'  g:my_pair_close("'")
-
-" enter pair.
-inoremap <expr><Cr> g:my_pair_enter()
-
-" delete pair.
-inoremap <expr><Bs> g:my_pair_delete()
+inoremap ( ()<Left>
+inoremap [ []<Left>
+inoremap { {}<Left>
+inoremap ' ''<Left>
+inoremap " ""<Left>
 
 " VimFiler
 nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
@@ -370,7 +366,8 @@ nnoremap <Leader>u        :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <Leader>0        :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<Plug>(insert_point_next_point)"
+imap <S-Tab> <Plug>(insert_point_prev_point)
 inoremap ] <C-n>
 inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 
@@ -473,61 +470,6 @@ endif
 " visible multibyte space.
 highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
-
-" auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
-function! g:my_pair_close(char)
-  if exists("g:pair[a:char]")
-    let ignore_right_patterns = ['\w']
-    for pattern in ignore_right_patterns
-      if getline('.')[col('.') - 1] =~ pattern
-        return a:char
-      endif
-    endfor
-
-    return a:char . g:pair[a:char]. "\<Left>"
-  endif
-  return a:char
-endfunction
-
-" skip pair.
-function! g:my_pair_skip()
-  if g:my_pair_skippable()
-    return "\<Right>"
-  endif
-  return "\<Tab>"
-endfunction
-
-" is skippable.
-function! g:my_pair_skippable()
-  return count(g:pair, getline('.')[col('.') - 1]) > 0
-endfunction
-
-" enter pair.
-function! g:my_pair_enter()
-  if g:my_pair_is_between()
-    return "\<Cr>\<C-d>\<Up>\<End>\<Cr>"
-  endif
-  return "\<Cr>"
-endfunction
-
-" delete pair.
-function! g:my_pair_delete()
-  if g:my_pair_is_between()
-    return "\<Right>\<Bs>\<Bs>"
-  endif
-  return "\<Bs>"
-endfunction
-
-" is between.
-function! g:my_pair_is_between()
-  if exists("g:pair[getline('.')[col('.') - 2]]")
-    if getline('.')[col('.') - 1] == g:pair[getline('.')[col('.') - 2]]
-      return 1
-    endif
-  endif
-  return 0
-endfunction
 
 " auto detect surround char.
 function! g:my_surround_detect(key)
