@@ -31,33 +31,34 @@ endif
 NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
+NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
-NeoBundle 'git://github.com/digitaltoad/vim-jade.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+NeoBundle 'git://github.com/hrsh7th/vim-unite-matcher-context.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
+NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
+NeoBundle 'git://github.com/mbbill/undotree.git'
+NeoBundle 'git://github.com/miripiruni/vim-better-css-indent.git'
 NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
 NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
-NeoBundle 'git://github.com/thinca/vim-localrc.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/tpope/vim-haml.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
@@ -66,7 +67,6 @@ NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
 " set terminal color.
 set t_Co=256
-set background=dark
 
 " for ctags.
 set tags=./.tags;
@@ -151,13 +151,16 @@ filetype on
 filetype plugin on
 
 " use filetype indent.
-filetype indent off
+filetype indent on
 
 " ---------------------------------------------------------
 " Edit Settings.
 " ---------------------------------------------------------
 " autoindent.
 set autoindent
+
+" cindent.
+set cindent
 
 " smartindent.
 set smartindent
@@ -227,6 +230,7 @@ set nowrap
 " set foldlevel=1
 " set foldnestmax=2
 " set foldtext=MyFoldtext()
+set nofoldenable
 
 " show special chars.
 set list
@@ -246,7 +250,7 @@ set number
 " set relativenumber
 
 " cui colorscheme.
-colorscheme jellybeans
+colorscheme ron
 
 " ---------------------------------------------------------
 " GUI Settings.
@@ -262,9 +266,6 @@ if has('gui_running')
 
   " ime color.
   highlight CursorIM guibg=#ff0000 guifg=NONE
-
-  " colorscheme in gui.
-  colorscheme jellybeans
 
   " visible gui parts.
   set guioptions-=m guioptions-=T guioptions+=b
@@ -352,7 +353,7 @@ inoremap <expr><Cr> g:my_pair_enter()
 inoremap <expr><Bs> g:my_pair_delete()
 
 " VimFiler
-nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
+nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -buffer-name=" . g:my_vimfiler_explorer_name . " -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
 
 " VimShell
 nnoremap <F5>  :VimShell<Cr>
@@ -372,7 +373,7 @@ nnoremap <Leader>0        :Unite -buffer-name=source -no-start-insert menu:globa
 " Neocomplcache
 imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
 inoremap ] <C-n>
-inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
+inoremap <expr>} getline('.')[0:col('.')] =~# '\s*' ? "}" : "\<C-p>"
 
 " QuickRun
 nnoremap <Leader>r :QuickRun<Cr>
@@ -401,9 +402,6 @@ let g:my_coding_style['t']  = 'setlocal noexpandtab'
 let g:my_coding_style['t4'] = 'setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4'
 let g:my_coding_style['t2'] = 'setlocal noexpandtab tabstop=2 shiftwidth=2 softtabstop=2'
 command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
-
-" difforig
-command! DiffOrig vert new | set bt=nofile | r # | 0d_ | diffthis | wincmd p | diffthis
 
 " ---------------------------------------------------------
 " Other Settings.
@@ -506,7 +504,7 @@ endfunction
 " enter pair.
 function! g:my_pair_enter()
   if g:my_pair_is_between()
-    return "\<Cr>\<C-d>\<Up>\<End>\<Cr>"
+    return "\<Cr>\<Up>\<End>\<Cr>"
   endif
   return "\<Cr>"
 endfunction
@@ -579,9 +577,13 @@ function! g:my_vimfiler_settings()
   nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit<Cr>"
   nmap     <buffer><expr><Cr>  vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "e")
   nmap     <buffer><Tab>       <Plug>(vimfiler_choose_action)
+  nmap     <buffer>c           <Plug>(vimfiler_clipboard_copy_file)
+  nmap     <buffer>m           <Plug>(vimfiler_clipboard_move_file)
+  nmap     <buffer>p           <Plug>(vimfiler_clipboard_paste)
   nmap     <buffer>@           <Plug>(vimfiler_toggle_mark_current_line)
   nmap     <buffer>j           j<Plug>(vimfiler_print_filename)
   nmap     <buffer>k           k<Plug>(vimfiler_print_filename)
+  nmap     <buffer>;           <Plug>(vimfiler_cd_input_directory)
   nnoremap <buffer>b           :Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<Cr>
   nnoremap <buffer>e           :call vimfiler#mappings#do_action('nicely_open')<Cr>
   nnoremap <buffer>v           :call vimfiler#mappings#do_action('nicely_vsplit')<Cr>
@@ -602,16 +604,15 @@ function! g:my_vimfiler_bufleave_settings()
 endfunction
 
 " Unite
+let g:my_unite_project_dir=""
 let g:unite_enable_start_insert=0
 exec 'let g:unite_data_directory=expand("~/.unite")'
 let g:unite_split_rule="botright"
 let g:unite_source_grep_default_opts='-Hni'
 let g:unite_source_file_rec_min_cache_files=0
 let g:unite_source_file_rec_ignore_pattern=".sass-cache"
-let g:unite_kind_openable_lcd_command='cd'
 let g:unite_update_time=100
 let g:unite_winheight=15
-let g:my_unite_project_dir=""
 augroup my-unite
   autocmd!
   autocmd FileType unite call g:my_unite_settings()
@@ -647,12 +648,16 @@ let g:unite_source_menu_menus.global = {
       \ 'description': 'global menu.'
       \ }
 let g:unite_source_menu_menus.global.candidates = {
-      \ 'NeoComplCacheEditSnippets': 'NeoComplCacheEditSnippets'
+      \ 'NeoComplCacheEditSnippets': 'NeoComplCacheEditSnippets',
+      \ 'set filetype=': 'execute "set filetype=" . input("filetype: ")',
+      \ 'e $MYVIMRC': 'e $MYVIMRC',
+      \ 'Unite neobundle/update': 'Unite neobundle/update',
+      \ 'UndotreeToggle': 'UndotreeToggle',
+      \ 'UndotreeUpdate': 'UndotreeUpdate'
       \ }
 function! g:unite_source_menu_menus.global.map(key, value)
   return { 'word': a:key, 'kind': 'command', 'action__command': a:value }
 endfunction
-
 
 " unite filter.
 let my_filter = { 'name' : 'matcher_remove' }
@@ -663,12 +668,9 @@ function! my_filter.filter(candidates, context)
   endfor
   return candidates
 endfunction
+call unite#filters#matcher_default#use(['matcher_context'])
 call unite#define_filter(my_filter)
-call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_default', 'sorter_default'])
-call unite#custom_filters('file_mru', ['matcher_glob', 'converter_default', 'sorter_default'])
 call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
-call unite#custom_filters('todo', ['matcher_glob', 'sorter_word'])
-call unite#custom_filters('vcs/status', ['matcher_regexp', 'sorter_word'])
 
 " unite action.
 let my_action = { 'is_selectable' : 1 }
@@ -729,7 +731,9 @@ endfunction
 let g:neocomplcache_enable_at_startup=1
 let g:neocomplcache_enable_camel_case_completion=1
 let g:neocomplcache_enable_underbar_completion=1
+let g:neocomplcache_tags_caching_limit_file_size=1
 let g:neocomplcache_enable_prefetch=1
+let g:neocomplcache_min_keyword_length=4
 if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
   let g:neocomplcache_snippets_dir=$MYVIMRUNTIME. '/bundle/vim-neco-snippets'
   let g:neocomplcache_snippets_disable_runtime_snippets=1
@@ -745,16 +749,19 @@ let g:neocomplcache_keyword_patterns['default']='\h\w*'
 if !exists('g:neocomplcache_omni_patterns')
   let g:neocomplcache_omni_patterns={}
 endif
-let g:neocomplcache_omni_patterns={}
 let g:neocomplcache_omni_patterns.javascript = ''
-if !exists('g:neocomplcache_omni_patterns')
+if !exists('g:neocomplcache_omni_functions')
   let g:neocomplcache_omni_functions={}
 endif
 let g:neocomplcache_omni_functions={}
+if !exists('g:neocomplcache_member_patterns')
+  let g:neocomplcache_member_patterns={}
+endif
+let g:neocomplcache_member_patterns.javascript = '\(\h\|\$\)\w*\%(()\|\[\h\w*\]\)\?'
 
 " VimShell
 let g:vimshell_popup_height=40
-let g:vimshell_popup_command='topleft sp | call g:my_vimshell_popup()'
+let g:vimshell_popup_command='topleft sp | execute "resize " . g:my_vimshell_popup()'
 let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
@@ -781,7 +788,7 @@ function! g:my_vimshell_interactive_settings()
   imap <buffer><expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skippable() ? g:my_pair_skip() : pumvisible() ? "\<C-n>" : g:my_pair_skip()
 endfunction
 function! g:my_vimshell_popup()
-  exec 'resize '. winheight(0) * g:vimshell_popup_height / 100
+  return winheight(0) * g:vimshell_popup_height / 100
 endfunction
 
 " PrettyPrint
