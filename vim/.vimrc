@@ -28,7 +28,6 @@ if has('vim_starting')
   call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
 endif
 
-NeoBundle 'git://github.com/Lokaltog/vim-easymotion.git'
 NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
 NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
@@ -41,6 +40,7 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
+NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-matcher-context.git'
@@ -339,18 +339,18 @@ inoremap <C-h> <C-o>h
 nnoremap : q:
 xnoremap : q:
 
-" close pair.
-inoremap <expr>(  g:my_pair_close('(')
-inoremap <expr>[  g:my_pair_close('[')
-inoremap <expr>{  g:my_pair_close('{')
-inoremap <expr>"  g:my_pair_close('"')
-inoremap <expr>'  g:my_pair_close("'")
-
 " enter pair.
-inoremap <expr><Cr> g:my_pair_enter()
+inoremap <expr><CR> g:my_pair_enter()
 
 " delete pair.
-inoremap <expr><Bs> g:my_pair_delete()
+inoremap <expr><BS> g:my_pair_delete()
+
+" close pair.
+inoremap ( ()<Left>
+inoremap [ []<Left>
+inoremap { {}<Left>
+inoremap ' ''<Left>
+inoremap " ""<Left>
 
 " VimFiler
 nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -buffer-name=" . g:my_vimfiler_explorer_name . " -winwidth=". g:my_vimfiler_winwidth. " -toggle -no-quit<Cr>"
@@ -371,7 +371,8 @@ nnoremap <Leader>u        :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <Leader>0        :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : g:my_pair_skip()
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<Plug>(insert_point_next_point)"
+imap <S-Tab> <Plug>(insert_point_prev_point)
 inoremap ] <C-n>
 inoremap <expr>} getline('.')[0:col('.')] =~# '\s*' ? "}" : "\<C-p>"
 
@@ -471,35 +472,6 @@ endif
 " visible multibyte space.
 highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
-
-" auto close pair.
-let g:pair = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<' : '>'}
-function! g:my_pair_close(char)
-  if exists("g:pair[a:char]")
-    let ignore_right_patterns = ['\w']
-    for pattern in ignore_right_patterns
-      if getline('.')[col('.') - 1] =~ pattern
-        return a:char
-      endif
-    endfor
-
-    return a:char . g:pair[a:char]. "\<Left>"
-  endif
-  return a:char
-endfunction
-
-" skip pair.
-function! g:my_pair_skip()
-  if g:my_pair_skippable()
-    return "\<Right>"
-  endif
-  return "\<Tab>"
-endfunction
-
-" is skippable.
-function! g:my_pair_skippable()
-  return count(g:pair, getline('.')[col('.') - 1]) > 0
-endfunction
 
 " enter pair.
 function! g:my_pair_enter()
@@ -802,26 +774,6 @@ let g:user_zen_settings = {}
 let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
 let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
 let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
-
-" easymotion
-let g:EasyMotion_do_mapping=1
-let g:EasyMotion_leader_key=""
-let g:EasyMotion_mapping_f='f'
-let g:EasyMotion_mapping_F='F'
-let g:EasyMotion_mapping_t=''
-let g:EasyMotion_mapping_T=''
-let g:EasyMotion_mapping_w=''
-let g:EasyMotion_mapping_W=''
-let g:EasyMotion_mapping_b=''
-let g:EasyMotion_mapping_B=''
-let g:EasyMotion_mapping_e=''
-let g:EasyMotion_mapping_E=''
-let g:EasyMotion_mapping_j=''
-let g:EasyMotion_mapping_k=''
-let g:EasyMotion_mapping_n=''
-let g:EasyMotion_mapping_N=''
-let g:EasyMotion_mapping_ge=''
-let g:EasyMotion_mapping_gE=''
 
 " shadow
 let g:shadow_debug=1
