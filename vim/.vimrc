@@ -40,19 +40,19 @@ NeoBundle 'git://github.com/Shougo/vimshell.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
+NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
 NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
-NeoBundle 'git://github.com/hrsh7th/vim-unite-matcher-context.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/mbbill/undotree.git'
-NeoBundle 'git://github.com/miripiruni/vim-better-css-indent.git'
+NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
+NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
 NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-NeoBundle 'git://github.com/scrooloose/syntastic.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
 NeoBundle 'git://github.com/thinca/vim-openbuf.git'
@@ -339,6 +339,8 @@ inoremap <C-h> <C-o>h
 nnoremap : q:
 xnoremap : q:
 
+nnoremap / :<C-u>Unite -buffer-name=line_fast -start-insert line/fast<CR>
+
 " enter pair.
 inoremap <expr><CR> g:my_pair_enter()
 
@@ -359,7 +361,7 @@ nnoremap <expr><F2> ":VimFilerBufferDir -split -auto-cd -buffer-name=" . g:my_vi
 nnoremap <F5>  :VimShell<Cr>
 
 " Unite
-nnoremap m                :UniteResume<Cr>
+nnoremap m                :Unite resume<Cr>
 nnoremap <expr><Leader>f ":Unite -silent -immediately -input=" . tolower(expand('<cword>')) . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
 nnoremap <expr><F3>      ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
 nnoremap <F6>             :Unite -buffer-name=vcs_status vcs/status<Cr>
@@ -371,8 +373,12 @@ nnoremap <Leader>u        :Unite -buffer-name=source -no-start-insert source<Cr>
 nnoremap <Leader>0        :Unite -buffer-name=source -no-start-insert menu:global<Cr>
 
 " Neocomplcache
-imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ? "\<Plug>(neocomplcache_snippets_expand)" : "\<Plug>(insert_point_next_point)"
+imap <expr><Tab> neocomplcache#sources#snippets_complete#expandable() ?
+      \ "\<Plug>(neocomplcache_snippets_expand)"
+      \ : (getline('.')[0:col('.')] =~# '^\s\+$' ? "\<Tab>" : "\<Plug>(insert_point_next_point)")
 imap <S-Tab> <Plug>(insert_point_prev_point)
+smap <Tab> <Plug>(insert_point_next_point_select)
+smap <S-Tab> <Plug>(insert_point_prev_point_select)
 inoremap ] <C-n>
 inoremap <expr>} getline('.')[0:col('.')] =~# '\s*' ? "}" : "\<C-p>"
 
@@ -473,6 +479,15 @@ endif
 highlight MbSpace cterm=underline ctermfg=lightblue guibg=darkgray
 match MbSpace /　/
 
+" define pair.
+let g:pair = {
+      \ '(': ')',
+      \ '[': ']',
+      \ '{': '}',
+      \ '"': '"',
+      \ "'": "'"
+      \ }
+
 " enter pair.
 function! g:my_pair_enter()
   if g:my_pair_is_between()
@@ -519,15 +534,16 @@ endfunction
 " ---------------------------------------------------------
 " Plugin Settings.
 " ---------------------------------------------------------
-" syntastic
-let g:syntastic_enable_signs=1
-let g:syntastic_auto_loc_list=0
-if filereadable($HOME . '/.jshintrc')
-  let g:syntastic_javascript_jshint_conf=$HOME. '/.jshintrc'
-endif
-
 " echodoc
 let g:echodoc_enable_at_startup=1
+
+" Watchdogs.
+let g:quickrun_config={}
+let g:quickrun_config['watchdogs_checker/_'] = {
+      \ 'hook/close_quickfix/enable_exit': 1
+      \ }
+let g:watchdogs_check_BufWritePost_enable=1
+call watchdogs#setup(g:quickrun_config)
 
 " VimFiler
 let g:my_vimfiler_explorer_name='explorer'
@@ -640,7 +656,6 @@ function! my_filter.filter(candidates, context)
   endfor
   return candidates
 endfunction
-call unite#filters#matcher_default#use(['matcher_context'])
 call unite#define_filter(my_filter)
 call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
 
@@ -733,7 +748,7 @@ let g:neocomplcache_member_patterns.javascript = '\(\h\|\$\)\w*\%(()\|\[\h\w*\]\
 
 " VimShell
 let g:vimshell_popup_height=40
-let g:vimshell_popup_command='topleft sp | execute "resize " . g:my_vimshell_popup()'
+let g:vimshell_popup_command='topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
 let g:vimshell_prompt='$ '
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
