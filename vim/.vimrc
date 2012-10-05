@@ -24,8 +24,8 @@ endif
 " setting neobundle.
 if has('vim_starting')
   filetype plugin indent off
-  exec 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim/')
-  call neobundle#rc(expand('$MYVIMRUNTIME/bundle/'))
+  exec 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim')
+  call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
 endif
 
 NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
@@ -44,12 +44,15 @@ NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
 NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
+NeoBundle 'git://github.com/jceb/vim-hier.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
+NeoBundle 'git://github.com/kana/vim-smartinput.git'
 NeoBundle 'git://github.com/kien/rainbow_parentheses.vim.git'
 NeoBundle 'git://github.com/mattn/webapi-vim.git'
 NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-NeoBundle 'git://github.com/mbbill/undotree.git'
+NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
 NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
 NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
 NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
@@ -59,6 +62,7 @@ NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+NeoBundle 'git://github.com/tmhedberg/matchit.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
@@ -210,7 +214,7 @@ set cmdheight=2
 set laststatus=2
 
 " diffopts.
-"set diffopt=iwhite
+set diffopt=filler,iwhite
 
 " no wrap.
 set nowrap
@@ -234,7 +238,7 @@ set nofoldenable
 
 " show special chars.
 set list
-set listchars=trail:^
+set listchars=tab:\|\ ,trail:^
 
 " show ruler.
 set ruler
@@ -250,7 +254,7 @@ set number
 " set relativenumber
 
 " cui colorscheme.
-colorscheme ron
+colorscheme jellybeans
 
 " ---------------------------------------------------------
 " GUI Settings.
@@ -280,7 +284,8 @@ if has('gui_running')
   elseif s:is_mac
     set guifont=Menlo:h9
   elseif s:is_linux
-    set guifont=Menlo:h9
+    set guifont="VL ゴシック":h8:b
+    set guifontwide="VL ゴシック":h8:b
   endif
 
   " no mouse focus.
@@ -339,7 +344,10 @@ inoremap <C-h> <C-o>h
 nnoremap : q:
 xnoremap : q:
 
+" using unite line.
 nnoremap / :<C-u>Unite -buffer-name=line_fast -start-insert line/fast<CR>
+nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line_fast -no-start-insert line/fast<CR>
+nnoremap n :<C-u>UniteResume -no-start-insert line_fast<CR>
 
 " enter pair.
 inoremap <expr><CR> g:my_pair_enter()
@@ -362,7 +370,7 @@ nnoremap <F5>  :VimShell<Cr>
 
 " Unite
 nnoremap m                :Unite resume<Cr>
-nnoremap <expr><Leader>f ":Unite -silent -immediately -input=" . tolower(expand('<cword>')) . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
+nnoremap <expr>gf        ":Unite -silent -input=" . g:get_cursor_path() . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
 nnoremap <expr><F3>      ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
 nnoremap <F6>             :Unite -buffer-name=vcs_status vcs/status<Cr>
 nnoremap <F7>             :Unite -buffer-name=vcs_log vcs/log<Cr>
@@ -417,7 +425,6 @@ command! -bar -nargs=1 CodingStyle exec get(g:my_coding_style, <f-args>, '')
 autocmd! BufRead,BufNewFile *.ejs set filetype=html
 
 " for filetype.
-autocmd! FileType * setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
 autocmd! Filetype diff setlocal nofoldenable
 autocmd! Filetype js set filetype=javascript
 autocmd! Filetype as set filetype=actionscript
@@ -429,6 +436,12 @@ autocmd! Filetype php exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype html exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype css exec get(g:my_coding_style, 's2', '')
 autocmd! Filetype scss exec get(g:my_coding_style, 's2', '')
+autocmd! FileType * call g:my_all_filetype_settings()
+function! g:my_all_filetype_settings()
+  setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
+endfunction
+
+" shadow.
 autocmd! BufWinLeave *.shd call g:my_shd_settings()
 function! g:my_shd_settings()
   enew
@@ -531,6 +544,17 @@ function! g:my_surround_detect(key)
   endif
 endfunction
 
+function! g:get_cursor_path()
+  let saved_iskeyword = &iskeyword
+  set iskeyword+=.,/
+  let word = expand('<cword>')
+  execute 'set iskeyword=' . saved_iskeyword
+  if len(filter(matchlist(word, '\.'), 'strlen(v:val)')) > 1
+    let word = substitute(word, '\.\|\\', '/', 'g')
+  endif
+  return word
+endfunction
+
 " ---------------------------------------------------------
 " Plugin Settings.
 " ---------------------------------------------------------
@@ -597,6 +621,7 @@ let g:unite_enable_start_insert=0
 exec 'let g:unite_data_directory=expand("~/.unite")'
 let g:unite_split_rule="botright"
 let g:unite_source_grep_default_opts='-Hni'
+let g:unite_source_file_mru_filename_format=''
 let g:unite_source_file_rec_min_cache_files=0
 let g:unite_source_file_rec_ignore_pattern=".sass-cache"
 let g:unite_update_time=100
@@ -640,8 +665,6 @@ let g:unite_source_menu_menus.global.candidates = {
       \ 'set filetype=': 'execute "set filetype=" . input("filetype: ")',
       \ 'e $MYVIMRC': 'e $MYVIMRC',
       \ 'Unite neobundle/update': 'Unite neobundle/update',
-      \ 'UndotreeToggle': 'UndotreeToggle',
-      \ 'UndotreeUpdate': 'UndotreeUpdate'
       \ }
 function! g:unite_source_menu_menus.global.map(key, value)
   return { 'word': a:key, 'kind': 'command', 'action__command': a:value }
@@ -717,9 +740,7 @@ endfunction
 " Neocomplcache
 let g:neocomplcache_enable_at_startup=1
 let g:neocomplcache_enable_camel_case_completion=1
-let g:neocomplcache_enable_underbar_completion=1
 let g:neocomplcache_tags_caching_limit_file_size=1
-let g:neocomplcache_enable_prefetch=1
 let g:neocomplcache_min_keyword_length=4
 if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
   let g:neocomplcache_snippets_dir=$MYVIMRUNTIME. '/bundle/vim-neco-snippets'
@@ -733,23 +754,20 @@ if !exists('g:neocomplcache_keyword_patterns')
   let g:neocomplcache_keyword_patterns={}
 endif
 let g:neocomplcache_keyword_patterns['default']='\h\w*'
-if !exists('g:neocomplcache_omni_patterns')
-  let g:neocomplcache_omni_patterns={}
+if !exists('g:neocomplcache_source_disable')
+  let g:neocomplcache_source_disable = {}
 endif
-let g:neocomplcache_omni_patterns.javascript = ''
-if !exists('g:neocomplcache_omni_functions')
-  let g:neocomplcache_omni_functions={}
-endif
-let g:neocomplcache_omni_functions={}
-if !exists('g:neocomplcache_member_patterns')
-  let g:neocomplcache_member_patterns={}
-endif
-let g:neocomplcache_member_patterns.javascript = '\(\h\|\$\)\w*\%(()\|\[\h\w*\]\)\?'
+let g:neocomplcache_source_disable.include_complete=1
+let g:neocomplcache_source_disable.omni_complete=1
+let g:neocomplcache_source_disable.tags_complete=1
+let g:neocomplcache_source_disable.syntax_complete=1
+let g:neocomplcache_source_disable.dictionary_complete=1
 
 " VimShell
 let g:vimshell_popup_height=40
 let g:vimshell_popup_command='topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
-let g:vimshell_prompt='$ '
+let g:vimshell_prompt='> '
+let g:vimshell_user_prompt='fnamemodify(getcwd(), ":~")'
 let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
 let g:vimshell_disable_escape_highlight=1
 autocmd! FileType vimshell call g:my_vimshell_settings()
@@ -789,6 +807,11 @@ let g:user_zen_settings = {}
 let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
 let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
 let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
+
+" trailing-whitespace
+let g:trailing_whitespace_fix_events = {
+      \ 'BufWritePost': 1,
+      \ }
 
 " shadow
 let g:shadow_debug=1
