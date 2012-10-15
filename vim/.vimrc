@@ -34,9 +34,11 @@ NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
+NeoBundle 'git://github.com/Shougo/vesting.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
 NeoBundle 'git://github.com/Shougo/vimproc.git'
 NeoBundle 'git://github.com/Shougo/vimshell.git'
+NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
 NeoBundle 'git://github.com/h1mesuke/unite-outline.git'
 NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
 NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
@@ -46,6 +48,7 @@ NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
 NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
+NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
 NeoBundle 'git://github.com/jceb/vim-hier.git'
 NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
 NeoBundle 'git://github.com/kana/vim-smartinput.git'
@@ -55,6 +58,7 @@ NeoBundle 'git://github.com/mattn/zencoding-vim.git'
 NeoBundle 'git://github.com/nanotech/jellybeans.vim.git'
 NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
 NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
+NeoBundle 'git://github.com/pangloss/vim-javascript.git'
 NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
 NeoBundle 'git://github.com/t9md/vim-quickhl.git'
 NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
@@ -62,11 +66,12 @@ NeoBundle 'git://github.com/thinca/vim-openbuf.git'
 NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
 NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
 NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-NeoBundle 'git://github.com/tmhedberg/matchit.git'
 NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundle 'git://github.com/vim-jp/vital.vim.git'
+NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
 " set terminal color.
@@ -220,21 +225,18 @@ set diffopt=filler,iwhite
 set nowrap
 
 " fold settings.
-" function! MyFoldtext()
-"   let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
-"   let num = winwidth('.')
-"   while num > 0
-"     let txt = txt. ' '
-"     let num = num - 1
-"   endwhile
-"   return txt
-" endfunction
-" set foldmethod=indent
-" set foldminlines=3
-" set foldlevel=1
-" set foldnestmax=2
-" set foldtext=MyFoldtext()
-set nofoldenable
+function! MyFoldtext()
+  let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
+  let num = winwidth('.')
+  while num > 0
+    let txt = txt. ' '
+    let num = num - 1
+  endwhile
+  return txt
+endfunction
+set foldmethod=indent
+set foldminlines=3
+set foldtext=MyFoldtext()
 
 " show special chars.
 set list
@@ -330,6 +332,10 @@ vnoremap <S-h> 15h
 vnoremap <S-k> 8k
 vnoremap <S-j> 8j
 
+" for us key.
+nnoremap - ^
+vnoremap - ^
+
 " quick replace.
 nnoremap <Leader>* *:%s/<C-r>///g<Left><Left>
 
@@ -371,7 +377,7 @@ nnoremap <F5>  :VimShell<Cr>
 " Unite
 nnoremap m                :Unite resume<Cr>
 nnoremap <expr>gf        ":Unite -silent -input=" . g:get_cursor_path() . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
-nnoremap <expr><F3>      ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
+nnoremap <expr><F3>      ":Unite -buffer-name=file_rec/async -hide-source-names -silent file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
 nnoremap <F6>             :Unite -buffer-name=vcs_status vcs/status<Cr>
 nnoremap <F7>             :Unite -buffer-name=vcs_log vcs/log<Cr>
 nnoremap <F8>             :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
@@ -768,7 +774,7 @@ let g:vimshell_popup_height=40
 let g:vimshell_popup_command='topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
 let g:vimshell_prompt='> '
 let g:vimshell_user_prompt='fnamemodify(getcwd(), ":~")'
-let g:vimshell_right_prompt='"[". fnamemodify(getcwd(), ":~"). "]"'
+let g:vimshell_right_prompt='"[" . g:my_vimshell_right_prompt() . "]"'
 let g:vimshell_disable_escape_highlight=1
 autocmd! FileType vimshell call g:my_vimshell_settings()
 function! g:my_vimshell_settings()
@@ -778,11 +784,18 @@ function! g:my_vimshell_settings()
         \ 'default_action': 'insert',
         \ 'input' : vimshell#get_cur_text(),
         \ })
-
   call vimshell#altercmd#define('ls', 'ls -al')
   call vimshell#altercmd#define('ll', 'ls -al')
   call vimshell#altercmd#define('l', 'll')
   call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
+endfunction
+function! g:my_vimshell_right_prompt()
+  let p = vimproc#popen3('git symbolic-ref --short HEAD')
+  let res = ''
+  while !p.stdout.eof
+    let res .= p.stdout.read()
+  endwhile
+  return '% ' . substitute(res, '\n', '', 'g') . ' %'
 endfunction
 function! g:my_vimshell_hook_chpwd(args, context)
   call vimshell#execute('ls -al')
