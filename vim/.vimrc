@@ -5,8 +5,8 @@
 set nocompatible
 
 " set environment.
-let s:is_win   = has('win32') || has('win64')
-let s:is_mac   = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
+let s:is_win = has('win32') || has('win64')
+let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
 let s:is_linux = !s:is_win && !s:is_mac
 
 " set $MYVIMRUNTIME.
@@ -23,8 +23,9 @@ endif
 
 " setting neobundle.
 if has('vim_starting')
-  filetype plugin indent off
-  exec 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim')
+  filetype plugin off
+  filetype indent off
+  execute 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim')
   call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
 endif
 
@@ -46,6 +47,7 @@ NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
 NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
 NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+NeoBundle 'git://github.com/kien/ctrlp.vim.git'
 NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
 NeoBundle 'git://github.com/hrsh7th/vim-unite-vcs.git'
 NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
@@ -70,7 +72,9 @@ NeoBundle 'git://github.com/tpope/vim-surround.git'
 NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
 NeoBundle 'git://github.com/tyru/caw.vim.git'
 NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
+NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
 NeoBundle 'git://github.com/vim-jp/vital.vim.git'
+NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
 NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
 NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
@@ -226,7 +230,7 @@ set nowrap
 
 " fold settings.
 function! MyFoldtext()
-  let txt = matchlist(getline(v:foldstart), '^\(\s\+\)')[1] . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
+  let txt = matchstr(getline(v:foldstart+1), '^\([\s\t]\+\)') . '>>>>>>>>> ' . (v:foldend - v:foldstart) . ' <<<<<<<<'
   let num = winwidth('.')
   while num > 0
     let txt = txt. ' '
@@ -235,6 +239,8 @@ function! MyFoldtext()
   return txt
 endfunction
 set foldmethod=indent
+set foldnestmax=3
+set foldlevelstart=1
 set foldminlines=3
 set foldtext=MyFoldtext()
 
@@ -376,8 +382,8 @@ nnoremap <F5>  :VimShell<Cr>
 
 " Unite
 nnoremap m                :Unite resume<Cr>
-nnoremap <expr>gf        ":Unite -silent -input=" . g:get_cursor_path() . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
-nnoremap <expr><F3>      ":Unite -buffer-name=file_rec/async -hide-source-names -silent file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
+nnoremap <expr>gf        ":Unite -input=^.*" . g:my_get_cursor_path() . " file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!") . "<Cr>"
+nnoremap <expr><F3>      ":Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:". (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"). "<Cr>"
 nnoremap <F6>             :Unite -buffer-name=vcs_status vcs/status<Cr>
 nnoremap <F7>             :Unite -buffer-name=vcs_log vcs/log<Cr>
 nnoremap <F8>             :Unite -buffer-name=outline -vertical -winwidth=45 outline<Cr>
@@ -433,15 +439,16 @@ autocmd! BufRead,BufNewFile *.ejs set filetype=html
 " for filetype.
 autocmd! Filetype diff setlocal nofoldenable
 autocmd! Filetype js set filetype=javascript
-autocmd! Filetype as set filetype=actionscript
-autocmd! Filetype javascript exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype actionscript exec get(g:my_coding_style, 't2', '')
-autocmd! Filetype coffee exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype vim exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype php exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype html exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype css exec get(g:my_coding_style, 's2', '')
-autocmd! Filetype scss exec get(g:my_coding_style, 's2', '')
+autocmd! Filetype javascript execute get(g:my_coding_style, 's2', '')
+autocmd! BufNewFile,BufRead *.as set filetype=actionscript
+autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
+autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
+autocmd! Filetype smarty set filetype=html
+autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
+autocmd! Filetype php execute get(g:my_coding_style, 's2', '')
+autocmd! Filetype html execute get(g:my_coding_style, 's2', '')
+autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
+autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
 autocmd! FileType * call g:my_all_filetype_settings()
 function! g:my_all_filetype_settings()
   setlocal includeexpr=substitute(v:fname,'^\\/','','') | setlocal path+=./;/
@@ -550,7 +557,7 @@ function! g:my_surround_detect(key)
   endif
 endfunction
 
-function! g:get_cursor_path()
+function! g:my_get_cursor_path()
   let saved_iskeyword = &iskeyword
   set iskeyword+=.,/
   let word = expand('<cword>')
@@ -632,6 +639,9 @@ let g:unite_source_file_rec_min_cache_files=0
 let g:unite_source_file_rec_ignore_pattern=".sass-cache"
 let g:unite_update_time=100
 let g:unite_winheight=15
+call unite#set_profile('action', 'context', {
+      \   'start_insert': 0
+      \ })
 augroup my-unite
   autocmd!
   autocmd FileType unite call g:my_unite_settings()
@@ -876,3 +886,4 @@ catch
 endtry
 
 let g:versions#debug = 1
+
