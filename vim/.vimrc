@@ -31,8 +31,8 @@ endif
 NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
 NeoBundle 'git://github.com/Shougo/echodoc.git'
 NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
-NeoBundle 'git://github.com/Shougo/neocomplcache-snippets-complete.git'
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+NeoBundle 'git://github.com/Shougo/neosnippet.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 NeoBundle 'git://github.com/Shougo/vesting.git'
 NeoBundle 'git://github.com/Shougo/vimfiler.git'
@@ -725,33 +725,49 @@ call unite#custom_action('file', 'my_project_cd', my_action)
 
 function! g:get_prev_winnr()
   let ftypes = ['unite', 'vimshell', 'vimfiler']
+
+  " vimfiler or unite has prev_winnr?
   if exists('b:vimfiler.prev_winnr')
     let nr = b:vimfiler.prev_winnr
   endif
   if exists('b:unite.prev_winnr')
     let nr = b:unite.prev_winnr
   endif
+
+  " return b:{vimfiler,unite}.prev_winnr if don't match ftypes.
   if exists('nr') && (index(ftypes, getwinvar(nr, '&filetype')) < 0)
     return nr
   endif
 
-  let winnrs = filter(range(1, winnr('$')), 'index(ftypes, getwinvar(v:val, "&filetype")) < 0')
+  " auto detect.
+  let winnrs = range(1, winnr('$'))
+  if len(winnrs) == 1
+    return winnrs[0]
+  endif
+  if len(winnrs) <= 2
+    return filter(winnrs, 'getwinvar(v:val, "&filetype") != "vimfiler"')[0]
+  endif
+  let winnrs = filter(winnrs, 'index(ftypes, getwinvar(v:val, "&filetype")) < 0')
   if empty(winnrs)
     return winnr()
   endif
-
   return winnrs[0]
 endfunction
 
-" Neocomplcache
+" neosnippet
+if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
+  let g:neosnippet#snippets_directory =$MYVIMRUNTIME. '/bundle/vim-neco-snippets'
+  let g:neosnippet#disable_runtime_snippets={}
+  let g:neosnippet#disable_runtime_snippets['_']=1
+endif
+
+" neocomplcache
 let g:neocomplcache_enable_at_startup=1
 let g:neocomplcache_enable_camel_case_completion=1
+let g:neocomplcache_enable_underbar_completion=1
+let g:neocomplcache_enable_wildcard=1
 let g:neocomplcache_tags_caching_limit_file_size=1
 let g:neocomplcache_min_keyword_length=4
-if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
-  let g:neocomplcache_snippets_dir=$MYVIMRUNTIME. '/bundle/vim-neco-snippets'
-  let g:neocomplcache_snippets_disable_runtime_snippets=1
-endif
 let g:neocomplcache_dictionary_filetype_lists={}
 let g:neocomplcache_dictionary_filetype_lists['default']=''
 let g:neocomplcache_dictionary_filetype_lists['vimshell']=$HOME. '/.vimshell/command-history'
@@ -859,3 +875,4 @@ try
 catch
 endtry
 
+let g:versions#debug = 1
