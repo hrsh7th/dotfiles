@@ -51,6 +51,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
+  NeoBundle 'git://github.com/kana/vim-smartword.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
@@ -163,7 +164,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <LEADER>w :<C-u>w<CR>
   nnoremap j gj
   nnoremap k gk
-  nmap <LEADER><ESC> <PLUG>(quickhl-reset):<C-u>nohlsearch<CR>
+  nmap <LEADER><ESC> <PLUG>(quickhl-reset):<C-u>nohlsearch<CR>:<C-u>HierClear<CR>
 
   " rough move.
   nnoremap H 15h
@@ -188,6 +189,12 @@ let s:is_linux = !s:is_win && !s:is_mac
   " compatible ^ for us key.
   nnoremap = ^
   vnoremap = ^
+  nnoremap + =
+  vnoremap + =
+
+  " handy %.
+  nnoremap <TAB> %
+  vnoremap <TAB> %
 
   " quick replace all.
   nnoremap <LEADER>* *:<C-u>%s/<C-r>///g<LEFT><LEFT>
@@ -207,6 +214,10 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap / :<C-u>Unite -buffer-name=line_fast -start-insert line/fast<CR>
   nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line_fast -no-start-insert line/fast<CR>
   nnoremap n :<C-u>UniteResume -no-start-insert line_fast<CR>
+
+  " smartword.
+  nmap w <Plug>(smartword-w)
+  nmap e <Plug>(smartword-e)
 
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
@@ -234,6 +245,12 @@ let s:is_linux = !s:is_win && !s:is_mac
       if getline('.')[col('.') - 1] == g:my_pairs[getline('.')[col('.') - 2]]
         return 1
       endif
+    endif
+    return 0
+  endfunction
+  function! g:my_pair_is_next_pair()
+    if exists("g:my_pairs[getline('.')[col('.') - 1]]") || len(filter(deepcopy(g:my_pairs), "v:val == getline('.')[col('.') - 1]")) > 0
+      return 1
     endif
     return 0
   endfunction
@@ -292,17 +309,20 @@ let s:is_linux = !s:is_win && !s:is_mac
     if neocomplcache#sources#snippets_complete#expandable()
       return "\<PLUG>(neocomplcache_snippets_expand)"
     endif
-    if getline('.')[0:col('.')] =~# '^\s\*$'
+    if getline('.')[0:col('.')-1] =~# '^\(\t\|\s\)*$'
       return "\<TAB>"
     endif
-    return "\<PLUG>(insert_point_next_point)"
+    if g:my_pair_is_next_pair()
+      return "\<RIGHT>"
+    endif
+    return "\<C-o>e\<C-o>l"
   endfunction
-  imap <S-TAB> <PLUG>(insert_point_prev_point)
-  smap <TAB> <PLUG>(insert_point_next_point_select)
-  smap <S-TAB> <PLUG>(insert_point_prev_point_select)
 
   " quickrun.
   nnoremap <LEADER>r :<C-u>QuickRun<CR>
+
+  " neosnippet.
+  xmap <C-l> <PLUG>(neosnippet_start_unite_snippet_target)
 
   " caw.
   nmap <LEADER><LEADER> <PLUG>(caw:i:toggle)
@@ -362,16 +382,19 @@ augroup my-vimrc
 
   " filetype.
   autocmd! BufNewFile,BufRead *.ejs setlocal filetype=html
+  autocmd! Filetype ejs setlocal filetype=html
   autocmd! BufNewFile,BufRead *.as setlocal filetype=actionscript
+  autocmd! Filetype as setlocal filetype=actionscript
   autocmd! BufNewFile,BufRead *.js setlocal filetype=javascript
+  autocmd! Filetype js setlocal filetype=javascript
   autocmd! Filetype smarty setlocal filetype=html
   autocmd! Filetype javascript execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype php execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype html execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype xhtml execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
+  autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
 
