@@ -164,7 +164,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <LEADER>w :<C-u>w<CR>
   nnoremap j gj
   nnoremap k gk
-  nmap <LEADER><ESC> <PLUG>(quickhl-reset):<C-u>nohlsearch<CR>:<C-u>HierClear<CR>
+  nnoremap <LEADER><ESC> :<C-u>nohlsearch<CR>
 
   " rough move.
   nnoremap H 15h
@@ -193,8 +193,8 @@ let s:is_linux = !s:is_win && !s:is_mac
   vnoremap + =
 
   " handy %.
-  nnoremap <TAB> %
-  vnoremap <TAB> %
+  nmap <TAB> %
+  vmap <TAB> %
 
   " quick replace all.
   nnoremap <LEADER>* *:<C-u>%s/<C-r>///g<LEFT><LEFT>
@@ -332,10 +332,13 @@ let s:is_linux = !s:is_win && !s:is_mac
   nmap <LEADER>m <PLUG>(quickhl-toggle)
   vmap <LEADER>m <PLUG>(quickhl-toggle)
 
+  " replace word by register.
+  nnoremap cir ciw<C-r>0<ESC>:let@/=@1<CR>:noh<CR>
+
   " auto surround.
-  nnoremap <expr>cis g:my_surround_detect('ci')
-  nnoremap <expr>dis g:my_surround_detect('di')
-  nnoremap <expr>vis g:my_surround_detect('vi')
+  nnoremap <expr>cis g:my_surround_command('ci')
+  nnoremap <expr>dis g:my_surround_command('di')
+  nnoremap <expr>vis g:my_surround_command('vi')
   function! g:my_surround_command(key)
     let pattern = "'\"{[("
     let front = strpart(getline("."), 0, col("."))
@@ -562,7 +565,7 @@ augroup END
 " }}}
 
 " ----------
-" custom unite cction. {{{
+" custom unite action. {{{
 " ----------
   " nicely_open.
   let action = { 'is_selectable' : 1 }
