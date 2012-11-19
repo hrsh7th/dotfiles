@@ -8,13 +8,13 @@ let s:is_linux = !s:is_win && !s:is_mac
 " ----------
   if s:is_win
     set shellslash
-    let $MYVIMRUNTIME=expand('~/vimfiles')
+    let $MYVIMRUNTIME = expand('~/vimfiles')
   endif
   if s:is_linux
-    let $MYVIMRUNTIME=expand('~/.vim')
+    let $MYVIMRUNTIME = expand('~/.vim')
   endif
   if s:is_mac
-    let $MYVIMRUNTIME=expand('~/.vim')
+    let $MYVIMRUNTIME = expand('~/.vim')
   endif
 " }}}"
 
@@ -39,24 +39,19 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-  NeoBundle 'git://github.com/hrsh7th/jellybeans.vim.git'
   NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-ft-svn_diff.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-powerline.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
-  NeoBundle 'git://github.com/jelera/vim-javascript-syntax.git'
-  NeoBundle 'git://github.com/kana/vim-smartword.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
-  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
@@ -72,6 +67,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
   NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+  NeoBundle 'git://github.com/w0ng/vim-hybrid.git'
 
   syntax on
   filetype plugin on
@@ -123,7 +119,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   set number
   set list
   set listchars=tab:\|\ ,trail:^
-  colorscheme jellybeans
+  colorscheme hybrid
 " }}}
 
 " ----------
@@ -164,7 +160,11 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <LEADER>w :<C-u>w<CR>
   nnoremap j gj
   nnoremap k gk
-  nnoremap <LEADER><ESC> :<C-u>nohlsearch<CR>
+  nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
+        \ 'HierClear',
+        \ 'nohlsearch',
+        \ 'call feedkeys("\<PLUG>(quickhl-reset)")'
+        \ )
 
   " rough move.
   nnoremap H 15h
@@ -215,10 +215,6 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line_fast -no-start-insert line/fast<CR>
   nnoremap n :<C-u>UniteResume -no-start-insert line_fast<CR>
 
-  " smartword.
-  nmap w <Plug>(smartword-w)
-  nmap e <Plug>(smartword-e)
-
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
   inoremap <expr><BS> g:my_pair_delete()
@@ -227,7 +223,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   inoremap { {}<LEFT>
   inoremap ' ''<LEFT>
   inoremap " ""<LEFT>
-  let g:my_pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'" }
+  let g:my_pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<': '>' }
   function! g:my_pair_enter()
     if g:my_pair_is_between()
       return "\<CR>\<UP>\<END>\<CR>"
@@ -259,9 +255,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <expr>gf g:my_cursor_word_search_command()
   function! g:my_cursor_word_search_command()
     " TODO: search path and classname
-    " ex) <script type="text/javascript" src="../../js/app.js"></script>
-    " ex) new App.test.TestClass
-    return printf(":\<C-u>Unite -buffer-name=file_rec/async -input=%s file_rec/async:%s",
+    " ex) <script type="text/javascript" src="../../js/app.js"></script> => js.*app.js
+    " ex) new App.test.TestClass => testclass
+    return printf(":\<C-u>Unite -buffer-name=file_rec/async -input=%s file_rec/async:%s\<CR>",
           \ expand('<cword>'),
           \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
   endfunction
@@ -301,13 +297,13 @@ let s:is_linux = !s:is_win && !s:is_mac
 
   " autocomple.
   inoremap ] <C-n>
-  inoremap <expr>} getline('.')[0:col('.')] =~# '\s*' ? "}" : "\<C-p>"
+  inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 
   " move cursor.
   imap <expr><TAB> g:my_cursor_move_or_snippet_expand_command()
   function! g:my_cursor_move_or_snippet_expand_command()
-    if neocomplcache#sources#snippets_complete#expandable()
-      return "\<PLUG>(neocomplcache_snippets_expand)"
+    if neosnippet#expandable()
+      return "\<PLUG>(neosnippet_expand_or_jump)"
     endif
     if getline('.')[0:col('.')-1] =~# '^\(\t\|\s\)*$'
       return "\<TAB>"
@@ -337,6 +333,7 @@ let s:is_linux = !s:is_win && !s:is_mac
 
   " auto surround.
   nnoremap <expr>cis g:my_surround_command('ci')
+  nnoremap <expr>yis g:my_surround_command('yi')
   nnoremap <expr>dis g:my_surround_command('di')
   nnoremap <expr>vis g:my_surround_command('vi')
   function! g:my_surround_command(key)
@@ -379,8 +376,10 @@ augroup my-vimrc
   " starting.
   autocmd! VimEnter * call g:my_vimenter_setting()
   function! g:my_vimenter_setting()
-    edit $MYVIMRC
-    setlocal ft=vim
+    if !filereadable(bufname('%'))
+      edit $MYVIMRC
+      setlocal ft=vim
+    endif
   endfunction
 
   " filetype.
@@ -408,6 +407,17 @@ augroup my-vimrc
     startinsert!
   endfunction
 
+  " save previous window.
+  autocmd! WinEnter * call g:my_save_previous_window_settings()
+  function! g:my_save_previous_window_settings()
+    if exists('b:unite')
+      let b:unite.prev_winnr = winnr('#')
+    endif
+    if exists('b:vimfiler')
+      let b:vimfiler.prev_winnr = winnr('#')
+    endif
+  endfunction
+
   " shadow.
   autocmd! BufWinLeave *.shd call g:my_shd_settings()
   function! g:my_shd_settings()
@@ -432,13 +442,7 @@ augroup my-vimrc
     nnoremap <buffer><expr>v unite#do_action('vsplit')
     let unite = unite#get_current_unite()
     if unite.profile_name == 'todo'
-      nnoremap <buffer><S-n> :UniteTodoAddSimple<CR>
-    endif
-  endfunction
-  autocmd! WinEnter * call g:my_unite_winenter_settings()
-  function! g:my_unite_winenter_settings()
-    if exists('b:unite')
-      let b:unite.prev_winnr = winnr('#')
+      nnoremap <buffer>N :UniteTodoAddSimple<CR>
     endif
   endfunction
 
@@ -463,17 +467,13 @@ augroup my-vimrc
     nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
     setlocal winfixwidth
   endfunction
-  autocmd! WinEnter * call g:my_vimfiler_winenter_settings()
-  function! g:my_vimfiler_winenter_settings()
-    if exists('b:vimfiler')
-      let b:vimfiler.prev_winnr = winnr('#')
-    endif
-  endfunction
 
   " vimshell.
   autocmd! FileType vimshell call g:my_vimshell_settings()
   function! g:my_vimshell_settings()
-    nnoremap <buffer>a           G$a
+    nnoremap <buffer>a G$a
+    inoremap <buffer><TAB> <NOP>
+    inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
     inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
           \ 'no_start_insert' : 1,
           \ 'default_action': 'insert',
@@ -483,6 +483,19 @@ augroup my-vimrc
     call vimshell#altercmd#define('ll', 'ls -al')
     call vimshell#altercmd#define('l', 'll')
     call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
+  endfunction
+
+  " vimshell int-*.
+  autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
+  function! g:my_vimshell_interactive_settings()
+    nnoremap <buffer>a G$a
+    inoremap <buffer><TAB> <NOP>
+    inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
+    inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
+          \ 'no_start_insert' : 1,
+          \ 'default_action': 'insert',
+          \ 'input' : vimshell#get_cur_text(),
+          \ })
   endfunction
 augroup END
 " }}}
@@ -538,10 +551,10 @@ augroup END
 " ----------
 " unite menu source. {{{
 " ----------
-  let g:unite_source_menu_menus={}
+  let g:unite_source_menu_menus = {}
   let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
   let g:unite_source_menu_menus.global.candidates = {
-        \ 'NeoComplCacheEditSnippets': 'NeoComplCacheEditSnippets',
+        \ 'NeoSnippetEdit': 'NeoSnippetEdit',
         \ 'Unite neobundle/update': 'Unite neobundle/update',
         \ }
   function! g:unite_source_menu_menus.global.map(key, value)
@@ -644,21 +657,26 @@ augroup END
 " neocomplcache setting. {{[
 " ----------
   let g:neocomplcache_enable_at_startup = 1
+  let g:neocomplcache_enable_smart_case = 1
   let g:neocomplcache_enable_camel_case_completion = 1
   let g:neocomplcache_enable_underbar_completion = 1
+  let g:neocomplcache_enable_fuzzy_completion = 0 " なぜか動かないので OFF
   let g:neocomplcache_enable_wildcard = 1
-  let g:neocomplcache_tags_caching_limit_file_size = 1
-  let g:neocomplcache_min_keyword_length = 4
-  let g:neocomplcache_dictionary_filetype_lists = {}
-  let g:neocomplcache_dictionary_filetype_lists['default'] = ''
-  let g:neocomplcache_dictionary_filetype_lists['vimshell'] = $HOME . '/.vimshell/command-history'
+  let g:neocomplcache_fuzzy_completion_start_length = 2
   let g:neocomplcache_auto_completion_start_length = 2
+  let g:neocomplcache_dictionary_filetype_lists = {}
+  let g:neocomplcache_dictionary_filetype_lists.default = ''
+  let g:neocomplcache_dictionary_filetype_lists.vimshell = $HOME . '/.vimshell/command-history'
+  if !exists('g:neocomplcache_wildcard_characters')
+    let g:neocomplcache_wildcard_characters = {}
+  endif
+  let g:neocomplcache_wildcard_characters._ = '-'
   if !exists('g:neocomplcache_keyword_patterns')
     let g:neocomplcache_keyword_patterns = {}
   endif
-  let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
+  let g:neocomplcache_keyword_patterns.default = '\h\w*'
   if !exists('g:neocomplcache_source_disable')
-    let g:neocomplcache_source_disable  =  {}
+    let g:neocomplcache_source_disable = {}
   endif
   let g:neocomplcache_source_disable.include_complete = 1
   let g:neocomplcache_source_disable.omni_complete = 1
@@ -671,15 +689,10 @@ augroup END
 " vimshell setting. {{{
 " ----------
   let g:vimshell_popup_height = 40
-  let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
   let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
-  let g:vimshell_right_prompt = '"[" . g:my_vimshell_right_prompt() . "]"'
   let g:vimshell_disable_escape_highlight = 1
-  if s:is_win
-    let g:vimshell_prompt = $USERNAME . ' > '
-  else
-    let g:vimshell_prompt = $USER . ' > '
-  endif
+  let g:vimshell_prompt = s:is_win ? ($USERNAME . ' > ') : ($USER . ' > ')
+  let g:vimshell_right_prompt = '"[" . g:my_vimshell_right_prompt() . "]"'
   function! g:my_vimshell_right_prompt()
     let p = vimproc#popen3('git symbolic-ref --short HEAD')
     let res = ''
@@ -688,31 +701,27 @@ augroup END
     endwhile
     return '% ' . substitute(res, '\n', '', 'g') . ' %'
   endfunction
-  function! g:my_vimshell_hook_chpwd(args, context)
-    call vimshell#execute('ls -al')
-  endfunction
-  autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
-  function! g:my_vimshell_interactive_settings()
-    inoremap <buffer><TAB>       <NOP>
-    imap <buffer><expr><TAB> neocomplcache#sources#snippets_complete#expandable() ? "\<PLUG>(neocomplcache_snippets_expand)" : g:my_pair_skippable() ? g:my_pair_skip() : pumvisible() ? "\<C-n>" : g:my_pair_skip()
-  endfunction
+  let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
   function! g:my_vimshell_popup()
     return winheight(0) * g:vimshell_popup_height / 100
+  endfunction
+  function! g:my_vimshell_hook_chpwd(args, context)
+    call vimshell#execute('ls -al')
   endfunction
 " }}}
 
 " ----------
 " prettyprint setting. {{{
 " ----------
-  let g:prettyprint_indent=2
-  let g:prettyprint_width=50
+  let g:prettyprint_indent = 2
+  let g:prettyprint_width = 50
 " }}}
 
 " ----------
 " zencoding setting. {{{
 " ----------
-  let g:user_zen_expandabbr_key='<C-k>'
-  let g:user_zen_complete_tag=1
+  let g:user_zen_expandabbr_key = '<C-k>'
+  let g:user_zen_complete_tag = 1
   let g:user_zen_settings = {}
   let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
   let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
@@ -730,13 +739,13 @@ augroup END
 " ----------
 " shadow setting. {{{
 " ----------
-  let g:shadow_debug=1
+  let g:shadow_debug = 1
 " }}}
 
 " ----------
 " powerline. {{{
 " ----------
-  let g:Powerline_symbols='compatible'
+  let g:Powerline_symbols = 'compatible'
 " }}}
 
 " ----------
