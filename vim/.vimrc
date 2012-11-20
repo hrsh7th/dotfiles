@@ -1,3 +1,4 @@
+scriptencoding utf-8
 set nocompatible
 let s:is_win = has('win32') || has('win64')
 let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
@@ -545,7 +546,7 @@ augroup END
   let g:unite_update_time = 100
   let g:unite_winheight = 15
   execute 'let g:unite_data_directory=expand("~/.unite")'
-  call unite#set_profile('action', 'context', { 'start_insert': 0 })
+  call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
 " }}}
 
 " ----------
@@ -731,9 +732,7 @@ augroup END
 " ----------
 " trailingwhitespace setting. {{{
 " ----------
-  let g:trailing_whitespace_fix_events = {
-        \ 'BufWritePost': 1,
-        \ }
+  let g:trailing_whitespace_fix_events = {}
 " }}}
 
 " ----------
@@ -746,36 +745,6 @@ augroup END
 " powerline. {{{
 " ----------
   let g:Powerline_symbols = 'compatible'
-" }}}
-
-" ----------
-" rainbow_parentheses. {{{
-" ----------
-  let g:rbpt_colorpairs = [
-        \ ['brown',       'RoyalBlue3'],
-        \ ['Darkblue',    'SeaGreen3'],
-        \ ['darkgray',    'DarkOrchid3'],
-        \ ['darkgreen',   'firebrick3'],
-        \ ['darkcyan',    'RoyalBlue3'],
-        \ ['darkred',     'SeaGreen3'],
-        \ ['darkmagenta', 'DarkOrchid3'],
-        \ ['brown',       'firebrick3'],
-        \ ['gray',        'RoyalBlue3'],
-        \ ['darkmagenta', 'DarkOrchid3'],
-        \ ['Darkblue',    'firebrick3'],
-        \ ['darkgreen',   'RoyalBlue3'],
-        \ ['darkcyan',    'SeaGreen3'],
-        \ ['darkred',     'DarkOrchid3'],
-        \ ['red',         'firebrick3'],
-        \ ]
-  try
-    call rainbow_parentheses#load(0)
-    autocmd VimEnter * RainbowParenthesesToggle
-    autocmd Syntax * RainbowParenthesesLoadRound
-    autocmd Syntax * RainbowParenthesesLoadSquare
-    autocmd Syntax * RainbowParenthesesLoadBraces
-  catch
-  endtry
 " }}}
 
 " ----------
