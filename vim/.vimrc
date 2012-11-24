@@ -25,7 +25,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   if has('vim_starting')
     filetype plugin off
     filetype indent off
-    execute 'set runtimepath+='. expand('$MYVIMRUNTIME/bundle/neobundle.vim')
+    execute 'set runtimepath+=' . expand('$MYVIMRUNTIME/bundle/neobundle.vim')
     call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
   endif
 
@@ -279,6 +279,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   endfunction
 
   " versions command.
+  nnoremap <LEADER><LEADER> :<C-u>UniteVersions<CR>
   nnoremap <F6> :<C-u>UniteVersions status:!<CR>
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 
@@ -319,11 +320,11 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <LEADER>r :<C-u>QuickRun<CR>
 
   " neosnippet.
-  xmap <C-l> <PLUG>(neosnippet_start_unite_snippet_target)
+  xmap <C-k> <PLUG>(neosnippet_expand_target)
 
   " caw.
-  nmap <LEADER><LEADER> <PLUG>(caw:i:toggle)
-  vmap <LEADER><LEADER> <PLUG>(caw:i:toggle)
+  nmap <CR> <PLUG>(caw:i:toggle)
+  vmap <CR> <PLUG>(caw:i:toggle)
 
   " quickhl.
   nmap <LEADER>m <PLUG>(quickhl-toggle)
@@ -377,7 +378,7 @@ augroup my-vimrc
   " starting.
   autocmd! VimEnter * call g:my_vimenter_setting()
   function! g:my_vimenter_setting()
-    if !filereadable(bufname('%'))
+    if !argc()
       edit $MYVIMRC
       setlocal ft=vim
     endif
@@ -576,6 +577,25 @@ augroup END
   endfunction
   call unite#define_filter(filter)
   call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+  let filter = { 'name' : 'matcher_unique' }
+  function! filter.filter(candidates, context)
+    let i = 0
+    let candidates = []
+    for candidate1 in a:candidates
+      let found = 0
+      for candidate2 in a:candidates
+        if !(candidate1 is candidate2) && candidate1.action__path == candidate2.action__path
+          let found = 1
+        endif
+      endfor
+      if !found
+        call add(candidates, candidate1)
+      endif
+    endfor
+    return candidates
+  endfunction
+  call unite#define_filter(filter)
+  call unite#custom_filters('vimfiler/history', ['matcher_unique', 'matcher_glob', 'converter_default', 'sorter_default'])
 " }}}
 
 " ----------
@@ -584,24 +604,24 @@ augroup END
   " nicely_open.
   let action = { 'is_selectable' : 1 }
   function! action.func(candidates)
-    execute g:my_unite_get_prev_winnr(). 'wincmd w'
-    execute 'edit '. a:candidates[0].action__path
+    execute g:my_unite_get_prev_winnr() . 'wincmd w'
+    execute 'edit ' . a:candidates[0].action__path
   endfunction
   call unite#custom_action('file', 'nicely_open', action)
 
   " nicely_split.
   let action = { 'is_selectable' : 1 }
   function! action.func(candidates)
-    execute g:my_unite_get_prev_winnr(). 'wincmd w'
-    execute 'split '. a:candidates[0].action__path
+    execute g:my_unite_get_prev_winnr() . 'wincmd w'
+    execute 'split ' . a:candidates[0].action__path
   endfunction
   call unite#custom_action('file', 'nicely_split', action)
 
   " nicely_vsplit.
   let action = { 'is_selectable' : 1 }
   function! action.func(candidates)
-    execute g:my_unite_get_prev_winnr(). 'wincmd w'
-    execute 'vsplit '. a:candidates[0].action__path
+    execute g:my_unite_get_prev_winnr() . 'wincmd w'
+    execute 'vsplit ' . a:candidates[0].action__path
   endfunction
   call unite#custom_action('file', 'nicely_vsplit', action)
 
