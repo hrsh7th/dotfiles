@@ -786,6 +786,8 @@ augroup END
   let g:Powerline_symbols = 'compatible'
   let g:Powerline_stl_path_style = 'filename'
   let g:Powerline#Functions#versions#GetBranchLifeTime = 5
+  call Pl#Theme#RemoveSegment('lineinfo')
+  call Pl#Theme#RemoveSegment('scrollpercent')
   call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
 " }}}
 
