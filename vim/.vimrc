@@ -29,6 +29,7 @@ let s:is_linux = !s:is_win && !s:is_mac
     call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
   endif
 
+  NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
   NeoBundle 'git://github.com/Shougo/neocomplcache.git'
   NeoBundle 'git://github.com/Shougo/neosnippet.git'
@@ -43,9 +44,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-ft-svn_diff.git'
+  NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-powerline.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
@@ -68,7 +69,6 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
   NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-  NeoBundle 'git://github.com/w0ng/vim-hybrid.git'
 
   syntax on
   filetype plugin on
@@ -113,6 +113,8 @@ let s:is_linux = !s:is_win && !s:is_mac
   set wildmode=longest:list,list
   set notitle
   set showcmd
+  set showtabline=2
+  set tabline=%!g:my_tabline()
   set cmdheight=2
   set laststatus=2
   set nowrap
@@ -121,6 +123,25 @@ let s:is_linux = !s:is_win && !s:is_mac
   set list
   set listchars=tab:\|\ ,trail:^
   colorscheme hybrid
+  function! g:my_tabline()
+    let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
+    let tabpages = join(titles, '').  '%#TabLineFill#%T'
+    let info = '[' . (g:my_unite_project_dir == '' ? 'not project detect' : g:my_unite_project_dir) . ']'
+    return tabpages . '%=' . info  " タブリストを左に、情報を右に表示
+  endfunction
+  function! g:my_tabtitle(tabnr)
+    let bufnrs = tabpagebuflist(a:tabnr)
+    let highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
+    let curbufnr = bufnrs[tabpagewinnr(a:tabnr) - 1]
+    let max_length = 30
+    let _title = a:tabnr . ': ' . fnamemodify(bufname(curbufnr), ':t')
+    let title = ' ' . _title . repeat(' ', max_length)
+    let title = strpart(title, 0, max_length)
+    if strlen(_title) > max_length
+      let title = strpart(title, 0, max_length - 4) . '... '
+    endif
+    return '%' . a:tabnr . 'T' . highlight . title . '%T%#TabLineFill#'
+  endfunction
 " }}}
 
 " ----------
@@ -761,5 +782,8 @@ augroup END
 " powerline. {{{
 " ----------
   let g:Powerline_symbols = 'compatible'
+  let g:Powerline_stl_path_style = 'filename'
+  let g:Powerline#Functions#versions#GetBranchLifeTime = 5
+  call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
 " }}}
 
