@@ -17,7 +17,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   if s:is_mac
     let $MYVIMRUNTIME = expand('~/.vim')
   endif
-" }}}"
+" }}}
 
 " ----------
 " Bundle Plugin. {{{
@@ -296,7 +296,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap <LEADER>u :<C-u>Unite -buffer-name=source -no-start-insert source<CR>
   nnoremap <LEADER>0 :<C-u>Unite -buffer-name=menu -no-start-insert menu:global<CR>
 
-  " autocomple.
+  " complete.
   inoremap ] <C-n>
   inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 
@@ -330,7 +330,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   vmap <LEADER>m <PLUG>(quickhl-toggle)
 
   " replace word by register.
-  nnoremap cir ciw<C-r>0<ESC>:let@/=@1<CR>:noh<CR>
+  nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
 
   " auto surround.
   nnoremap <expr>cis g:my_surround_command('ci')
@@ -443,14 +443,14 @@ augroup my-vimrc
     nnoremap <buffer><expr>v unite#do_action('vsplit')
     let unite = unite#get_current_unite()
     if unite.profile_name == 'todo'
-      nnoremap <buffer>N :UniteTodoAddSimple<CR>
+      nnoremap <buffer>N :<C-u>UniteTodoAddSimple<CR>
     endif
   endfunction
 
   " vimfiler.
   autocmd! FileType vimfiler call g:my_vimfiler_settings()
   function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><F11> ":new \| VimFilerCreate -winwidth=". g:my_vimfiler_winwidth. " -no-quit<CR>"
+    nmap     <buffer><expr><F11> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -no-quit<CR>'
     nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
     nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
     nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
@@ -499,12 +499,6 @@ augroup my-vimrc
           \ })
   endfunction
 augroup END
-" }}}
-
-" ----------
-" echodoc setting. {{{
-" ----------
-  let g:echodoc_enable_at_startup = 1
 " }}}
 
 " ----------
@@ -692,16 +686,8 @@ augroup END
   let g:vimshell_popup_height = 40
   let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
   let g:vimshell_disable_escape_highlight = 1
-  let g:vimshell_prompt = s:is_win ? ($USERNAME . ' > ') : ($USER . ' > ')
-  let g:vimshell_right_prompt = '"[" . g:my_vimshell_right_prompt() . "]"'
-  function! g:my_vimshell_right_prompt()
-    let p = vimproc#popen3('git symbolic-ref --short HEAD')
-    let res = ''
-    while !p.stdout.eof
-      let res .= p.stdout.read()
-    endwhile
-    return '% ' . substitute(res, '\n', '', 'g') . ' %'
-  endfunction
+  let g:vimshell_prompt = (s:is_win ? $USERNAME : $USER) . ' > '
+	let g:vimshell_right_prompt = 'versions#info()'
   let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
   function! g:my_vimshell_popup()
     return winheight(0) * g:vimshell_popup_height / 100
@@ -709,6 +695,16 @@ augroup END
   function! g:my_vimshell_hook_chpwd(args, context)
     call vimshell#execute('ls -al')
   endfunction
+" }}}
+
+" ----------
+" versions. {{{
+" ----------
+  if !exists('g:versions#info')
+    let g:versions#info = {}
+  endif
+  let g:versions#info.git = '(%s) - (%b)'
+  let g:versions#info.svn = '(%s) - (%R)'
 " }}}
 
 " ----------
@@ -745,11 +741,5 @@ augroup END
 " powerline. {{{
 " ----------
   let g:Powerline_symbols = 'compatible'
-" }}}
-
-" ----------
-" versions. {{{
-" ----------
-  let g:versions#debug = 0
 " }}}
 
