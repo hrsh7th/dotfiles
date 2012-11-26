@@ -344,8 +344,8 @@ let s:is_linux = !s:is_win && !s:is_mac
   xmap <C-k> <PLUG>(neosnippet_expand_target)
 
   " caw.
-  nmap <CR> <PLUG>(caw:i:toggle)
-  vmap <CR> <PLUG>(caw:i:toggle)
+  nmap <LEADER><CR> <PLUG>(caw:i:toggle)
+  vmap <LEADER><CR> <PLUG>(caw:i:toggle)
 
   " quickhl.
   nmap <LEADER>m <PLUG>(quickhl-toggle)
