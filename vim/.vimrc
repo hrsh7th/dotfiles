@@ -126,18 +126,20 @@ let s:is_linux = !s:is_win && !s:is_mac
   function! g:my_tabline()
     let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
     let tabpages = join(titles, '').  '%#TabLineFill#%T'
-    let info = '[' . (g:my_unite_project_dir == '' ? 'not project detect' : g:my_unite_project_dir) . ']'
-    return tabpages . '%=' . info  " タブリストを左に、情報を右に表示
+    let info = '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : g:my_unite_project_dir) . ']'
+    return tabpages . '%=' . info
   endfunction
   function! g:my_tabtitle(tabnr)
     let bufnrs = tabpagebuflist(a:tabnr)
     let highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
     let curbufnr = bufnrs[tabpagewinnr(a:tabnr) - 1]
     let max_length = 30
-    let _title = a:tabnr . ': ' . fnamemodify(bufname(curbufnr), ':t')
-    let title = ' ' . _title . repeat(' ', max_length)
+
+    " タイトル文字列の作成
+    let fname = a:tabnr . ': ' . fnamemodify(bufname(curbufnr), ':t')
+    let title = ' ' . fname . repeat(' ', max_length)
     let title = strpart(title, 0, max_length)
-    if strlen(_title) > max_length
+    if strlen(fname) > max_length
       let title = strpart(title, 0, max_length - 4) . '... '
     endif
     return '%' . a:tabnr . 'T' . highlight . title . '%T%#TabLineFill#'
@@ -786,4 +788,12 @@ augroup END
   let g:Powerline#Functions#versions#GetBranchLifeTime = 5
   call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
 " }}}
+
+" ----------
+" memo. {{{
+" ----------
+" 2012-11-27:
+" 人生もっと楽しく生きたい。
+" vim をいじっている時はたのし～。
+" 人生もっと遊びたい。
 
