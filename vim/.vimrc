@@ -748,6 +748,7 @@ augroup END
   endif
   let g:versions#info.git = '(%s) - (%b)'
   let g:versions#info.svn = '(%s) - (%R)'
+  let g:versions#type#svn#status#ignore_status = ['X']
 " }}}
 
 " ----------
