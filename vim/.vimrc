@@ -49,6 +49,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
+  NeoBundle 'git://github.com/hrsh7th/unite-mark.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
@@ -189,6 +190,9 @@ let s:is_linux = !s:is_win && !s:is_mac
         \ 'nohlsearch',
         \ 'call feedkeys("\<PLUG>(quickhl-reset)")'
         \ )
+
+  " marking.
+  nnoremap <CR> :<C-u>UniteMarkAdd<CR>
 
   " rough move.
   nnoremap H 15h
@@ -575,6 +579,8 @@ augroup END
   let g:unite_source_menu_menus.global.candidates = {
         \ 'NeoSnippetEdit': 'NeoSnippetEdit',
         \ 'Unite neobundle/update': 'Unite neobundle/update',
+        \ 'Unite mark': 'Unite mark -buffer-name=mark',
+        \ 'Unite todo': 'Unite todo -buffer-name=todo',
         \ }
   function! g:unite_source_menu_menus.global.map(key, value)
     return { 'word': a:key, 'kind': 'command', 'action__command': a:value }
