@@ -57,6 +57,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+  NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
@@ -127,7 +128,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   function! g:my_tabline()
     let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
     let tabpages = join(titles, '').  '%#TabLineFill#%T'
-    let info = '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : g:my_unite_project_dir) . ']'
+    let info = '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)) . ' : ' . versions#info({ 'path': g:my_unite_project_dir }) . ']'
     return tabpages . '%=' . info
   endfunction
   function! g:my_tabtitle(tabnr)
@@ -186,11 +187,10 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap j gj
   nnoremap k gk
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
-        \ 'HierClear',
+        \ 'QuickhlReset',
         \ 'nohlsearch',
-        \ 'call feedkeys("\<PLUG>(quickhl-reset)")'
+        \ 'HierClear',
         \ )
-
   " marking.
   nnoremap <CR> :<C-u>UniteMarkAdd<CR>
 
@@ -226,6 +226,7 @@ let s:is_linux = !s:is_win && !s:is_mac
 
   " quick replace all.
   nnoremap <LEADER>* *:<C-u>%s/<C-r>///g<LEFT><LEFT>
+  vnoremap <LEADER>* y:<C-u>%s/<C-r>"//g<LEFT><LEFT>
 
   " join line.
   nnoremap <C-j> Jx
@@ -242,6 +243,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   nnoremap / :<C-u>Unite -buffer-name=line_fast -start-insert line/fast<CR>
   nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line_fast -no-start-insert line/fast<CR>
   nnoremap n :<C-u>UniteResume -no-start-insert line_fast<CR>
+
+  " register history.
+  inoremap <expr> <C-p> unite#start_complete('register')
 
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
@@ -545,7 +549,7 @@ augroup END
 " vimfiler setting. {{{
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
-  let g:my_vimfiler_winwidth = 35
+  let g:my_vimfiler_winwidth = 25
   let g:vimfiler_edit_action = 'nicely_open'
   let g:vimfiler_safe_mode_by_default = 0
   let g:vimfiler_as_default_explorer = 1
@@ -564,12 +568,16 @@ augroup END
   let g:unite_source_grep_default_opts = '-Hni'
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
-  let g:unite_source_file_rec_ignore_pattern = ".sass-cache"
+  let g:unite_source_file_rec_ignore_pattern = ""
   let g:unite_update_time = 100
   let g:unite_winheight = 15
   execute 'let g:unite_data_directory=expand("~/.unite")'
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-" }}}
+  call unite#custom_source('file_rec/async', 'ignore_pattern', join([
+        \ 'tplc',
+        \ '.sass-cache',
+        \ ], '\|'))
+  " }}}
 
 " ----------
 " unite menu source. {{{
@@ -651,7 +659,7 @@ augroup END
   " my_project_cd.
   let action = { 'is_selectable' : 1 }
   function! action.func(candidates)
-    let g:my_unite_project_dir = a:candidates[0].action__directory
+    let g:my_unite_project_dir = substitute(a:candidates[0].action__directory, '\/$', '', 'g')
   endfunction
   call unite#custom_action('file', 'my_project_cd', action)
 
@@ -749,6 +757,7 @@ augroup END
 " ----------
 " versions. {{{
 " ----------
+  let g:versions#type#svn#log#stop_on_copy=0
   if !exists('g:versions#info')
     let g:versions#info = {}
   endif
