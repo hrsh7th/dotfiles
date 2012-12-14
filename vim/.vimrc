@@ -4,6 +4,7 @@ let s:is_win = has('win32') || has('win64')
 let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
 let s:is_linux = !s:is_win && !s:is_mac
 
+
 " ----------
 " Environment. {{{
 " ----------
@@ -41,6 +42,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
+  NeoBundle 'git://github.com/hrsh7th/unite-mark.git'
   NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-ft-svn_diff.git'
@@ -49,19 +51,17 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
-  NeoBundle 'git://github.com/hrsh7th/unite-mark.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
-  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+  NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-  NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+  NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
@@ -124,6 +124,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   set number
   set list
   set listchars=tab:\|\ ,trail:^
+  set pumheight=20
   colorscheme hybrid
   function! g:my_tabline()
     let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
@@ -290,7 +291,7 @@ let s:is_linux = !s:is_win && !s:is_mac
     " ex) <script type="text/javascript" src="../../js/app.js"></script> => js.*app.js
     " ex) new App.test.TestClass => testclass
     return printf(":\<C-u>Unite -buffer-name=file_rec/async -input=%s file_rec/async:%s\<CR>",
-          \ expand('<cword>'),
+          \ tolower(expand('<cword>')),
           \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
   endfunction
 
@@ -530,19 +531,23 @@ augroup my-vimrc
           \ 'input' : vimshell#get_cur_text(),
           \ })
   endfunction
+
+  " neocomplcache.
+  autocmd! BufRead * call g:my_neocomplcache_settings()
+  function! g:my_neocomplcache_settings()
+    echomsg expand('<afile>:t')
+    if !index(g:my_neocomplcache_ignore_filenames, expand('<abuf>:t'))
+      NeoComplCacheCachingBuffer
+    endif
+  endfunction
 augroup END
 " }}}
 
 " ----------
-" watchdogs setting. {{{
+" syntastic setting. {{{
 " ----------
-  let g:watchdogs_check_BufWritePost_enable = 1
-  let g:quickrun_config = {
-        \   'watchdogs_checker/_': {
-        \     'hook/close_quickfix/enable_exit': 1,
-        \   },
-        \ }
-  call watchdogs#setup(g:quickrun_config)
+  let g:syntastic_error_symbol = '!'
+  let g:syntastic_error_symbol = '?'
 " }}}
 
 " ----------
@@ -562,7 +567,9 @@ augroup END
 " ----------
 " unite setting. {{{
 " ----------
-  let g:my_unite_project_dir = ""
+  if !exists('g:my_unite_project_dir')
+    let g:my_unite_project_dir = ""
+  endif
   let g:unite_enable_start_insert = 0
   let g:unite_split_rule = "botright"
   let g:unite_source_grep_default_opts = '-Hni'
@@ -708,14 +715,15 @@ augroup END
 " ----------
 " neocomplcache setting. {{[
 " ----------
+  let g:my_neocomplcache_ignore_filenames = ['.vimrc']
   let g:neocomplcache_enable_at_startup = 1
-  let g:neocomplcache_enable_smart_case = 1
-  let g:neocomplcache_enable_camel_case_completion = 1
-  let g:neocomplcache_enable_underbar_completion = 1
-  let g:neocomplcache_enable_fuzzy_completion = 0 " なぜか動かないので OFF
-  let g:neocomplcache_enable_wildcard = 1
-  let g:neocomplcache_fuzzy_completion_start_length = 2
-  let g:neocomplcache_auto_completion_start_length = 2
+  let g:neocomplcache_enable_ignore_case = 1
+  let g:neocomplcache_enable_camel_case_completion = 0
+  let g:neocomplcache_enable_underbar_completion = 0
+  let g:neocomplcache_enable_fuzzy_completion = 1 " なぜか動かないので OFF
+  let g:neocomplcache_enable_wildcard = 0
+  let g:neocomplcache_fuzzy_completion_start_length = 1
+  let g:neocomplcache_auto_completion_start_length = 1
   let g:neocomplcache_dictionary_filetype_lists = {}
   let g:neocomplcache_dictionary_filetype_lists.default = ''
   let g:neocomplcache_dictionary_filetype_lists.vimshell = $HOME . '/.vimshell/command-history'
@@ -743,7 +751,7 @@ augroup END
   let g:vimshell_popup_height = 40
   let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
   let g:vimshell_disable_escape_highlight = 1
-  let g:vimshell_prompt = (s:is_win ? $USERNAME : $USER) . ' > '
+  let g:vimshell_prompt = '$ '
 	let g:vimshell_right_prompt = 'versions#info()'
   let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
   function! g:my_vimshell_popup()
@@ -757,7 +765,7 @@ augroup END
 " ----------
 " versions. {{{
 " ----------
-  let g:versions#type#svn#log#stop_on_copy=0
+  let g:versions#type#svn#log#stop_on_copy = 0
   if !exists('g:versions#info')
     let g:versions#info = {}
   endif
