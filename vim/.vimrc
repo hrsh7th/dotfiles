@@ -4,7 +4,6 @@ let s:is_win = has('win32') || has('win64')
 let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
 let s:is_linux = !s:is_win && !s:is_mac
 
-
 " ----------
 " Environment. {{{
 " ----------
@@ -52,10 +51,12 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
+  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
+  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  NeoBundle 'git://github.com/scrooloose/syntastic.git'
+  "NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
@@ -129,7 +130,10 @@ let s:is_linux = !s:is_win && !s:is_mac
   function! g:my_tabline()
     let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
     let tabpages = join(titles, '').  '%#TabLineFill#%T'
-    let info = '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)) . ' : ' . versions#info({ 'path': g:my_unite_project_dir }) . ']'
+    let info = ''
+    if neobundle#is_installed('vim-versions')
+      let info .= '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)) . ' : ' . versions#info({ 'path': g:my_unite_project_dir }) . ']'
+    endif
     return tabpages . '%=' . info
   endfunction
   function! g:my_tabtitle(tabnr)
@@ -551,6 +555,18 @@ augroup END
 " }}}
 
 " ----------
+" watchdogs setting. {{{
+" ----------
+  let g:watchdogs_check_BufWritePost_enable = 1
+  let g:quickrun_config = {
+        \   'watchdogs_checker/_': {
+        \     'hook/close_quickfix/enable_exit': 1,
+        \   },
+        \ }
+  call watchdogs#setup(g:quickrun_config)
+" }}}
+
+" ----------
 " vimfiler setting. {{{
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
@@ -579,11 +595,13 @@ augroup END
   let g:unite_update_time = 100
   let g:unite_winheight = 15
   execute 'let g:unite_data_directory=expand("~/.unite")'
+  call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
   call unite#custom_source('file_rec/async', 'ignore_pattern', join([
         \ 'tplc',
         \ '.sass-cache',
         \ ], '\|'))
+  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_relative_abbr', 'sorter_default'])
   " }}}
 
 " ----------
@@ -605,6 +623,7 @@ augroup END
 " ----------
 " custom unite filter. {{{
 " ----------
+  " matcher_remove.
   let filter = { 'name' : 'matcher_remove' }
   function! filter.filter(candidates, context)
     let candidates = a:candidates
@@ -615,6 +634,8 @@ augroup END
   endfunction
   call unite#define_filter(filter)
   call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+
+  " matcher_unique.
   let filter = { 'name' : 'matcher_unique' }
   function! filter.filter(candidates, context)
     let i = 0
@@ -808,11 +829,14 @@ augroup END
 " powerline. {{{
 " ----------
   let g:Powerline_symbols = 'compatible'
+  let g:Powerline_cache_enabled = 0
   let g:Powerline_stl_path_style = 'filename'
   let g:Powerline#Functions#versions#GetBranchLifeTime = 5
   call Pl#Theme#RemoveSegment('lineinfo')
   call Pl#Theme#RemoveSegment('scrollpercent')
-  call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
+  if neobundle#is_installed('vim-versions')
+    call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
+  endif
 " }}}
 
 " ----------
@@ -822,4 +846,5 @@ augroup END
 " 人生もっと楽しく生きたい。
 " vim をいじっている時はたのし～。
 " 人生もっと遊びたい。
+
 
