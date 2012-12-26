@@ -56,7 +56,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  "NeoBundle 'git://github.com/scrooloose/syntastic.git'
+  NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
@@ -96,7 +96,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   set t_vb=
   set clipboard+=unnamed
   set diffopt=filler,iwhite
+  set wildchar=]
   set tags=./.tags;
+  set mouse=n
   if has('persistent_undo')
     set undodir=~/.vimundo
     set undofile
@@ -230,11 +232,15 @@ let s:is_linux = !s:is_win && !s:is_mac
   vmap <TAB> %
 
   " quick replace all.
-  nnoremap <LEADER>* *:<C-u>%s/<C-r>///g<LEFT><LEFT>
-  vnoremap <LEADER>* y:<C-u>%s/<C-r>"//g<LEFT><LEFT>
+  nnoremap <LEADER>* *:<C-u>%s/<C-r>///g<C-f><LEFT><LEFT>
+  vnoremap <LEADER>* y:<C-u>%s/<C-r>"//g<C-f><LEFT><LEFT>
 
   " join line.
   nnoremap <C-j> Jx
+
+  " <C-i>.
+  nnoremap <C-m> <C-i>
+  nnoremap <C-n> <C-o>
 
   " move in insert-mode.
   inoremap <C-l> <C-o>l
@@ -442,6 +448,7 @@ augroup my-vimrc
   autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
   function! g:my_cmdwinenter_settings()
     nnoremap <buffer><ESC> :<C-u>q<CR>
+    imap <expr><TAB> g:my_cursor_move_or_snippet_expand_command()
     startinsert!
   endfunction
 
@@ -551,7 +558,7 @@ augroup END
 " syntastic setting. {{{
 " ----------
   let g:syntastic_error_symbol = '!'
-  let g:syntastic_error_symbol = '?'
+  let g:syntastic_warning_symbol = '?'
 " }}}
 
 " ----------
@@ -838,13 +845,4 @@ augroup END
     call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
   endif
 " }}}
-
-" ----------
-" memo. {{{
-" ----------
-" 2012-11-27:
-" 人生もっと楽しく生きたい。
-" vim をいじっている時はたのし～。
-" 人生もっと遊びたい。
-
 
