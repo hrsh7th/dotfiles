@@ -1,20 +1,21 @@
 scriptencoding utf-8
 set nocompatible
-let s:is_win = has('win32') || has('win64')
-let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
-let s:is_linux = !s:is_win && !s:is_mac
 
 " ----------
 " Environment. {{{
 " ----------
+  let s:is_win = has('win32') || has('win64')
+  let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
+  let s:is_linux = !s:is_win && !s:is_mac
+
   if s:is_win
     set shellslash
     let $MYVIMRUNTIME = expand('~/vimfiles')
   endif
-  if s:is_linux
+  if s:is_mac
     let $MYVIMRUNTIME = expand('~/.vim')
   endif
-  if s:is_mac
+  if s:is_linux
     let $MYVIMRUNTIME = expand('~/.vim')
   endif
 " }}}
@@ -44,20 +45,20 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/hrsh7th/unite-mark.git'
   NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
-  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
-  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
+  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+  NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
@@ -70,8 +71,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
-  NeoBundle 'git://github.com/vim-scripts/matchit.zip.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+
+  runtime macros/matchit.vim
 
   syntax on
   filetype plugin on
@@ -134,7 +136,13 @@ let s:is_linux = !s:is_win && !s:is_mac
     let tabpages = join(titles, '').  '%#TabLineFill#%T'
     let info = ''
     if neobundle#is_installed('vim-versions')
-      let info .= '[' . (g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)) . ' : ' . versions#info({ 'path': g:my_unite_project_dir }) . ']'
+      let info .= '['
+      let info .= g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)
+      let vcs = versions#info({ 'path': g:my_unite_project_dir })
+      if strlen(vcs) > 0
+        let info .= ' : ' . vcs
+      endif
+      let info .= ']'
     endif
     return tabpages . '%=' . info
   endfunction
@@ -144,7 +152,6 @@ let s:is_linux = !s:is_win && !s:is_mac
     let curbufnr = bufnrs[tabpagewinnr(a:tabnr) - 1]
     let max_length = 30
 
-    " タイトル文字列の作成
     let fname = a:tabnr . ': ' . fnamemodify(bufname(curbufnr), ':t')
     let title = ' ' . fname . repeat(' ', max_length)
     let title = strpart(title, 0, max_length)
@@ -198,8 +205,9 @@ let s:is_linux = !s:is_win && !s:is_mac
         \ 'nohlsearch',
         \ 'HierClear',
         \ )
+
   " marking.
-  nnoremap <CR> :<C-u>UniteMarkAdd<CR>
+  nnoremap <SPACE>- :<C-u>UniteMarkAdd<CR>
 
   " rough move.
   nnoremap H 15h
@@ -238,7 +246,7 @@ let s:is_linux = !s:is_win && !s:is_mac
   " join line.
   nnoremap <C-j> Jx
 
-  " <C-i>.
+  " <C-i> <C-o>.
   nnoremap <C-m> <C-i>
   nnoremap <C-n> <C-o>
 
@@ -251,9 +259,9 @@ let s:is_linux = !s:is_win && !s:is_mac
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line_fast -start-insert line/fast<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line_fast -no-start-insert line/fast<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert line_fast<CR>
+  nnoremap / :<C-u>Unite -buffer-name=line -start-insert line<CR>
+  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -no-start-insert line<CR>
+  nnoremap n :<C-u>UniteResume -no-start-insert line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -546,7 +554,6 @@ augroup my-vimrc
   " neocomplcache.
   autocmd! BufRead * call g:my_neocomplcache_settings()
   function! g:my_neocomplcache_settings()
-    echomsg expand('<afile>:t')
     if !index(g:my_neocomplcache_ignore_filenames, expand('<abuf>:t'))
       NeoComplCacheCachingBuffer
     endif
@@ -631,7 +638,7 @@ augroup END
 " custom unite filter. {{{
 " ----------
   " matcher_remove.
-  let filter = { 'name' : 'matcher_remove' }
+  let filter = { 'name' : 'matcher_my_remove' }
   function! filter.filter(candidates, context)
     let candidates = a:candidates
     for regex in ['*vimfiler*', '*vimshell*']
@@ -640,10 +647,10 @@ augroup END
     return candidates
   endfunction
   call unite#define_filter(filter)
-  call unite#custom_filters('buffer_tab', ['matcher_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+  call unite#custom_filters('buffer_tab', ['matcher_my_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
 
   " matcher_unique.
-  let filter = { 'name' : 'matcher_unique' }
+  let filter = { 'name' : 'matcher_my_unique' }
   function! filter.filter(candidates, context)
     let i = 0
     let candidates = []
@@ -661,7 +668,7 @@ augroup END
     return candidates
   endfunction
   call unite#define_filter(filter)
-  call unite#custom_filters('vimfiler/history', ['matcher_unique', 'matcher_glob', 'converter_default', 'sorter_default'])
+  call unite#custom_filters('vimfiler/history', ['matcher_my_unique', 'matcher_glob', 'converter_default', 'sorter_default'])
 " }}}
 
 " ----------
