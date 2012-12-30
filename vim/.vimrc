@@ -56,10 +56,9 @@ set nocompatible
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  NeoBundle 'git://github.com/scrooloose/syntastic.git'
+  " NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
-  NeoBundle 'git://github.com/thinca/vim-openbuf.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
@@ -84,7 +83,7 @@ set nocompatible
 " General Setting  {{{
 " ----------
   set encoding=utf-8
-  set updatetime=100
+  set updatetime=300
   set autoread
   set hidden
   set nobackup
@@ -191,7 +190,7 @@ set nocompatible
 " ----------
 " Key Mapping. {{{
 " ----------
-  let mapleader="\<Space>"
+  let mapleader="\<SPACE>"
 
   " general.
   nnoremap <LEADER>q :<C-u>q<CR>
@@ -207,7 +206,7 @@ set nocompatible
         \ )
 
   " marking.
-  nnoremap <SPACE>- :<C-u>UniteMarkAdd<CR>
+  nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
 
   " rough move.
   nnoremap H 15h
@@ -244,7 +243,7 @@ set nocompatible
   vnoremap <LEADER>* y:<C-u>%s/<C-r>"//g<C-f><LEFT><LEFT>
 
   " join line.
-  nnoremap <C-j> Jx
+  nnoremap <C-j> gJ
 
   " <C-i> <C-o>.
   nnoremap <C-m> <C-i>
@@ -366,9 +365,6 @@ set nocompatible
     return "\<C-o>e\<C-o>l"
   endfunction
 
-  " quickrun.
-  nnoremap <LEADER>r :<C-u>QuickRun<CR>
-
   " neosnippet.
   xmap <C-k> <PLUG>(neosnippet_expand_target)
 
@@ -471,14 +467,6 @@ augroup my-vimrc
     endif
   endfunction
 
-  " shadow.
-  autocmd! BufWinLeave *.shd call g:my_shd_settings()
-  function! g:my_shd_settings()
-    enew
-    setlocal nobuflisted buftype=nofile bufhidden=hide noswapfile
-    execute printf('bdelete! %s', expand('<abuf>'))
-  endfunction
-
   " unite.
   autocmd! FileType unite call g:my_unite_settings()
   function! g:my_unite_settings()
@@ -524,7 +512,7 @@ augroup my-vimrc
   " vimshell.
   autocmd! FileType vimshell call g:my_vimshell_settings()
   function! g:my_vimshell_settings()
-    nnoremap <buffer>a G$a
+    nnoremap <buffer>a GA
     inoremap <buffer><TAB> <NOP>
     inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
     inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
@@ -541,7 +529,7 @@ augroup my-vimrc
   " vimshell int-*.
   autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
   function! g:my_vimshell_interactive_settings()
-    nnoremap <buffer>a G$a
+    nnoremap <buffer>a GA
     inoremap <buffer><TAB> <NOP>
     inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
     inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
@@ -606,9 +594,9 @@ augroup END
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
   let g:unite_source_file_rec_ignore_pattern = ""
-  let g:unite_update_time = 100
+  let g:unite_update_time = 300
   let g:unite_winheight = 15
-  execute 'let g:unite_data_directory=expand("~/.unite")'
+  let g:unite_data_directory=expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
   call unite#custom_source('file_rec/async', 'ignore_pattern', join([
@@ -652,7 +640,6 @@ augroup END
   " matcher_unique.
   let filter = { 'name' : 'matcher_my_unique' }
   function! filter.filter(candidates, context)
-    let i = 0
     let candidates = []
     for candidate1 in a:candidates
       let found = 0
@@ -755,8 +742,8 @@ augroup END
   let g:neocomplcache_enable_ignore_case = 1
   let g:neocomplcache_enable_camel_case_completion = 0
   let g:neocomplcache_enable_underbar_completion = 0
-  let g:neocomplcache_enable_fuzzy_completion = 1 " なぜか動かないので OFF
-  let g:neocomplcache_enable_wildcard = 0
+  let g:neocomplcache_enable_fuzzy_completion = 1 " もう動いたので ON
+  let g:neocomplcache_enable_wildcard = 1
   let g:neocomplcache_fuzzy_completion_start_length = 1
   let g:neocomplcache_auto_completion_start_length = 1
   let g:neocomplcache_dictionary_filetype_lists = {}
@@ -787,7 +774,7 @@ augroup END
   let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
   let g:vimshell_disable_escape_highlight = 1
   let g:vimshell_prompt = '$ '
-	let g:vimshell_right_prompt = 'versions#info()'
+  let g:vimshell_right_prompt = 'versions#info()'
   let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
   function! g:my_vimshell_popup()
     return winheight(0) * g:vimshell_popup_height / 100
@@ -831,12 +818,6 @@ augroup END
 " trailingwhitespace setting. {{{
 " ----------
   let g:trailing_whitespace_fix_events = {}
-" }}}
-
-" ----------
-" shadow setting. {{{
-" ----------
-  let g:shadow_debug = 1
 " }}}
 
 " ----------
