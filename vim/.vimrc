@@ -38,7 +38,12 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/unite.vim.git'
   NeoBundle 'git://github.com/Shougo/vesting.git'
   NeoBundle 'git://github.com/Shougo/vimfiler.git'
-  NeoBundle 'git://github.com/Shougo/vimproc.git'
+  NeoBundle 'Shougo/vimproc', { 'build' : {
+        \   'windows' : 'make -f make_mingw32.mak',
+        \   'cygwin' : 'make -f make_cygwin.mak',
+        \   'mac' : 'make -f make_mac.mak',
+        \   'unix' : 'make -f make_unix.mak',
+        \ } }
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
@@ -51,12 +56,12 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
+  NeoBundle 'git://github.com/mbbill/undotree.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  " NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
@@ -101,8 +106,8 @@ set nocompatible
   set tags=./.tags;
   set mouse=n
   if has('persistent_undo')
-    set undodir=~/.vimundo
     set undofile
+    set undodir=~/.vimundo
   endif
   set pastetoggle=<F9>
 " }}}
@@ -131,33 +136,33 @@ set nocompatible
   set pumheight=20
   colorscheme hybrid
   function! g:my_tabline()
-    let titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
-    let tabpages = join(titles, '').  '%#TabLineFill#%T'
-    let info = ''
+    let s:titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
+    let s:tabpages = join(s:titles, '').  '%#TabLineFill#%T'
+    let s:info = ''
     if neobundle#is_installed('vim-versions')
-      let info .= '['
-      let info .= g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)
-      let vcs = versions#info({ 'path': g:my_unite_project_dir })
-      if strlen(vcs) > 0
-        let info .= ' : ' . vcs
+      let s:info .= '['
+      let s:info .= g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)
+      let s:vcs = versions#info({ 'path': g:my_unite_project_dir })
+      if strlen(s:vcs) > 0
+        let s:info .= ' : ' . s:vcs
       endif
-      let info .= ']'
+      let s:info .= ']'
     endif
-    return tabpages . '%=' . info
+    return s:tabpages . '%=' . s:info
   endfunction
   function! g:my_tabtitle(tabnr)
-    let bufnrs = tabpagebuflist(a:tabnr)
-    let highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
-    let curbufnr = bufnrs[tabpagewinnr(a:tabnr) - 1]
-    let max_length = 30
+    let s:bufnrs = tabpagebuflist(a:tabnr)
+    let s:highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
+    let s:curbufnr = s:bufnrs[tabpagewinnr(a:tabnr) - 1]
+    let s:max_length = 30
 
-    let fname = a:tabnr . ': ' . fnamemodify(bufname(curbufnr), ':t')
-    let title = ' ' . fname . repeat(' ', max_length)
-    let title = strpart(title, 0, max_length)
-    if strlen(fname) > max_length
-      let title = strpart(title, 0, max_length - 4) . '... '
+    let s:fname = a:tabnr . ': ' . fnamemodify(bufname(s:curbufnr), ':t')
+    let s:title = ' ' . s:fname . repeat(' ', s:max_length)
+    let s:title = strpart(s:title, 0, s:max_length)
+    if strlen(s:fname) > s:max_length
+      let s:title = strpart(s:title, 0, s:max_length - 4) . '... '
     endif
-    return '%' . a:tabnr . 'T' . highlight . title . '%T%#TabLineFill#'
+    return '%' . a:tabnr . 'T' . s:highlight . s:title . '%T%#TabLineFill#'
   endfunction
 " }}}
 
@@ -197,13 +202,17 @@ set nocompatible
   nnoremap <LEADER>t :<C-u>tabclose<CR>
   nnoremap <LEADER>! :<C-u>q!<CR>
   nnoremap <LEADER>w :<C-u>w<CR>
+  nnoremap Q <NOP>
   nnoremap j gj
   nnoremap k gk
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
         \ 'QuickhlReset',
         \ 'nohlsearch',
-        \ 'HierClear',
-        \ )
+        \ 'HierClear' )
+  nnoremap < <<
+  nnoremap > >>
+  vnoremap < <<
+  vnoremap > >>
 
   " marking.
   nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
@@ -385,18 +394,18 @@ set nocompatible
   nnoremap <expr>dis g:my_surround_command('di')
   nnoremap <expr>vis g:my_surround_command('vi')
   function! g:my_surround_command(key)
-    let pattern = "'\"{[("
-    let front = strpart(getline("."), 0, col("."))
-    let max = -1
-    for pat in split(pattern, '.\zs')
-      let pos = strridx(front, pat)
-      if pos > max
-        let max = pos
+    let s:pattern = "'\"{[("
+    let s:front = strpart(getline("."), 0, col("."))
+    let s:max = -1
+    for s:pat in split(s:pattern, '.\zs')
+      let s:pos = strridx(s:front, s:pat)
+      if s:pos > s:max
+        let s:max = s:pos
       endif
     endfor
-    if max >= 0
-      let surround = strpart(front, max, 1)
-      return a:key . surround
+    if s:max >= 0
+      let s:surround = strpart(s:front, s:max, 1)
+      return a:key . s:surround
     endif
   endfunction
 " }}}
@@ -428,6 +437,12 @@ augroup my-vimrc
       edit $MYVIMRC
       setlocal ft=vim
     endif
+  endfunction
+
+  " insert leave.
+  autocmd! InsertLeave * call g:my_insertleave_setting()
+  function! g:my_insertleave_setting()
+    set nopaste
   endfunction
 
   " filetype.
@@ -481,8 +496,8 @@ augroup my-vimrc
     imap <buffer><C-n>       <PLUG>(unite_insert_leave)
     nnoremap <buffer><expr>s unite#do_action('split')
     nnoremap <buffer><expr>v unite#do_action('vsplit')
-    let unite = unite#get_current_unite()
-    if unite.profile_name == 'todo'
+    let s:unite = unite#get_current_unite()
+    if s:unite.profile_name == 'todo'
       nnoremap <buffer>N :<C-u>UniteTodoAddSimple<CR>
     endif
   endfunction
@@ -611,50 +626,47 @@ augroup END
 " ----------
   let g:unite_source_menu_menus = {}
   let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
-  let g:unite_source_menu_menus.global.candidates = {
-        \ 'NeoSnippetEdit': 'NeoSnippetEdit',
-        \ 'Unite neobundle/update': 'Unite neobundle/update',
-        \ 'Unite mark': 'Unite mark -buffer-name=mark',
-        \ 'Unite todo': 'Unite todo -buffer-name=todo',
-        \ }
-  function! g:unite_source_menu_menus.global.map(key, value)
-    return { 'word': a:key, 'kind': 'command', 'action__command': a:value }
-  endfunction
+  let g:unite_source_menu_menus.global.command_candidates = [
+        \ [ 'NeoSnippetEdit', 'NeoSnippetEdit' ],
+        \ [ 'Unite neobundle/update', 'Unite neobundle/update' ],
+        \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
+        \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
+        \ ]
 " }}}
 
 " ----------
 " custom unite filter. {{{
 " ----------
   " matcher_remove.
-  let filter = { 'name' : 'matcher_my_remove' }
-  function! filter.filter(candidates, context)
+  let s:filter = { 'name' : 'matcher_my_remove' }
+  function! s:filter.filter(candidates, context)
     let candidates = a:candidates
-    for regex in ['*vimfiler*', '*vimshell*']
-      let candidates = filter(a:candidates, 'v:val.word !~# "'. regex. '"')
+    for s:regex in ['*vimfiler*', '*vimshell*']
+      let s:candidates = filter(a:candidates, 'v:val.word !~# "'. s:regex. '"')
     endfor
-    return candidates
+    return s:candidates
   endfunction
-  call unite#define_filter(filter)
+  call unite#define_filter(s:filter)
   call unite#custom_filters('buffer_tab', ['matcher_my_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
 
   " matcher_unique.
-  let filter = { 'name' : 'matcher_my_unique' }
-  function! filter.filter(candidates, context)
-    let candidates = []
-    for candidate1 in a:candidates
-      let found = 0
-      for candidate2 in a:candidates
-        if !(candidate1 is candidate2) && candidate1.action__path == candidate2.action__path
-          let found = 1
+  let s:filter = { 'name' : 'matcher_my_unique' }
+  function! s:filter.filter(candidates, context)
+    let s:candidates = []
+    for s:candidate1 in a:candidates
+      let s:found = 0
+      for s:candidate2 in a:candidates
+        if !(s:candidate1 is s:candidate2) && s:candidate1.action__path == s:candidate2.action__path
+          let s:found = 1
         endif
       endfor
-      if !found
-        call add(candidates, candidate1)
+      if !s:found
+        call add(s:candidates, s:candidate1)
       endif
     endfor
-    return candidates
+    return s:candidates
   endfunction
-  call unite#define_filter(filter)
+  call unite#define_filter(s:filter)
   call unite#custom_filters('vimfiler/history', ['matcher_my_unique', 'matcher_glob', 'converter_default', 'sorter_default'])
 " }}}
 
@@ -662,66 +674,66 @@ augroup END
 " custom unite action. {{{
 " ----------
   " nicely_open.
-  let action = { 'is_selectable' : 1 }
-  function! action.func(candidates)
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
     execute g:my_unite_get_prev_winnr() . 'wincmd w'
     execute 'edit ' . a:candidates[0].action__path
   endfunction
-  call unite#custom_action('file', 'nicely_open', action)
+  call unite#custom_action('file', 'nicely_open', s:action)
 
   " nicely_split.
-  let action = { 'is_selectable' : 1 }
-  function! action.func(candidates)
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
     execute g:my_unite_get_prev_winnr() . 'wincmd w'
     execute 'split ' . a:candidates[0].action__path
   endfunction
-  call unite#custom_action('file', 'nicely_split', action)
+  call unite#custom_action('file', 'nicely_split', s:action)
 
   " nicely_vsplit.
-  let action = { 'is_selectable' : 1 }
-  function! action.func(candidates)
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
     execute g:my_unite_get_prev_winnr() . 'wincmd w'
     execute 'vsplit ' . a:candidates[0].action__path
   endfunction
-  call unite#custom_action('file', 'nicely_vsplit', action)
+  call unite#custom_action('file', 'nicely_vsplit', s:action)
 
   " my_project_cd.
-  let action = { 'is_selectable' : 1 }
-  function! action.func(candidates)
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
     let g:my_unite_project_dir = substitute(a:candidates[0].action__directory, '\/$', '', 'g')
   endfunction
-  call unite#custom_action('file', 'my_project_cd', action)
+  call unite#custom_action('file', 'my_project_cd', s:action)
 
   " get previous winnr for unite custom action.
   function! g:my_unite_get_prev_winnr()
-    let ftypes = ['unite', 'vimshell', 'vimfiler']
+    let s:ftypes = ['unite', 'vimshell', 'vimfiler']
 
     " vimfiler or unite has prev_winnr?
     if exists('b:vimfiler.prev_winnr')
-      let nr = b:vimfiler.prev_winnr
+      let s:nr = b:vimfiler.prev_winnr
     endif
     if exists('b:unite.prev_winnr')
-      let nr = b:unite.prev_winnr
+      let s:nr = b:unite.prev_winnr
     endif
 
     " return b:{vimfiler,unite}.prev_winnr if don't match ftypes.
-    if exists('nr') && (index(ftypes, getwinvar(nr, '&filetype')) < 0)
-      return nr
+    if exists('s:nr') && (index(s:ftypes, getwinvar(s:nr, '&filetype')) < 0)
+      return s:nr
     endif
 
     " auto detect.
-    let winnrs = range(1, winnr('$'))
-    if len(winnrs) == 1
-      return winnrs[0]
+    let s:winnrs = range(1, winnr('$'))
+    if len(s:winnrs) == 1
+      return s:winnrs[0]
     endif
-    if len(winnrs) <= 2
-      return filter(winnrs, 'getwinvar(v:val, "&filetype") != "vimfiler"')[0]
+    if len(s:winnrs) <= 2
+      return filter(s:winnrs, 'getwinvar(v:val, "&filetype") != "vimfiler"')[0]
     endif
-    let winnrs = filter(winnrs, 'index(ftypes, getwinvar(v:val, "&filetype")) < 0')
-    if empty(winnrs)
+    let s:winnrs = filter(s:winnrs, 'index(s:ftypes, getwinvar(v:val, "&filetype")) < 0')
+    if empty(s:winnrs)
       return winnr()
     endif
-    return winnrs[0]
+    return s:winnrs[0]
   endfunction
 " }}}
 
