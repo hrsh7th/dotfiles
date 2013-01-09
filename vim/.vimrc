@@ -353,7 +353,7 @@ set nocompatible
   " move cursor.
   imap <expr><TAB> g:my_cursor_move_or_snippet_expand_command()
   function! g:my_cursor_move_or_snippet_expand_command()
-    if neosnippet#expandable()
+    if neosnippet#expandable() || neosnippet#jumpable()
       return "\<PLUG>(neosnippet_expand_or_jump)"
     endif
     if getline('.')[0:col('.')-1] =~# '^\(\t\|\s\)*$'
@@ -540,7 +540,7 @@ augroup my-vimrc
   endfunction
 
   " neocomplcache.
-  autocmd! BufRead * call g:my_neocomplcache_settings()
+  autocmd! BufRead,BufWritePost * call g:my_neocomplcache_settings()
   function! g:my_neocomplcache_settings()
     if !index(g:my_neocomplcache_ignore_filenames, expand('<abuf>:t'))
       NeoComplCacheCachingBuffer
