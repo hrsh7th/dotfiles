@@ -38,11 +38,11 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/unite.vim.git'
   NeoBundle 'git://github.com/Shougo/vesting.git'
   NeoBundle 'git://github.com/Shougo/vimfiler.git'
-  NeoBundle 'Shougo/vimproc', { 'build' : {
-        \   'windows' : 'make -f make_mingw32.mak',
-        \   'cygwin' : 'make -f make_cygwin.mak',
-        \   'mac' : 'make -f make_mac.mak',
-        \   'unix' : 'make -f make_unix.mak',
+  NeoBundle 'Shougo/vimproc', { 'build': {
+        \   'windows': 'make -f make_mingw32.mak',
+        \   'cygwin': 'make -f make_cygwin.mak',
+        \   'mac': 'make -f make_mac.mak',
+        \   'unix': 'make -f make_unix.mak',
         \ } }
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
@@ -205,14 +205,14 @@ set nocompatible
   nnoremap Q <NOP>
   nnoremap j gj
   nnoremap k gk
+  nnoremap < <<<ESC>
+  nnoremap > >><ESC>
+  vnoremap < <<<ESC>
+  vnoremap > >><ESC>
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
         \ 'QuickhlReset',
         \ 'nohlsearch',
-        \ 'HierClear' )
-  nnoremap < <<
-  nnoremap > >>
-  vnoremap < <<
-  vnoremap > >>
+        \ 'HierClear')
 
   " marking.
   nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
@@ -267,9 +267,9 @@ set nocompatible
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line -start-insert line<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -no-start-insert line<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert line<CR>
+  nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -start-insert line<CR>
+  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-start-insert line<CR>
+  nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -608,17 +608,18 @@ augroup END
   let g:unite_source_grep_default_opts = '-Hni'
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
-  let g:unite_source_file_rec_ignore_pattern = ""
   let g:unite_update_time = 300
   let g:unite_winheight = 15
-  let g:unite_data_directory=expand("~/.unite")
+  let g:unite_data_directory = expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
+  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_relative_word', 'sorter_default'])
   call unite#custom_source('file_rec/async', 'ignore_pattern', join([
-        \ 'tplc',
-        \ '.sass-cache',
+        \ '\/\..*\/',
+        \ '\.git\/',
+        \ '\.svn\/',
+        \ '\/\(image\|img\)\/',
         \ ], '\|'))
-  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_relative_abbr', 'sorter_default'])
   " }}}
 
 " ----------
@@ -627,7 +628,7 @@ augroup END
   let g:unite_source_menu_menus = {}
   let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
   let g:unite_source_menu_menus.global.command_candidates = [
-        \ [ 'NeoSnippetEdit', 'NeoSnippetEdit' ],
+        \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
         \ [ 'Unite neobundle/update', 'Unite neobundle/update' ],
         \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
         \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
@@ -637,6 +638,7 @@ augroup END
 " ----------
 " custom unite filter. {{{
 " ----------
+
   " matcher_remove.
   let s:filter = { 'name' : 'matcher_my_remove' }
   function! s:filter.filter(candidates, context)
@@ -839,10 +841,13 @@ augroup END
   let g:Powerline_cache_enabled = 0
   let g:Powerline_stl_path_style = 'filename'
   let g:Powerline#Functions#versions#GetBranchLifeTime = 5
-  call Pl#Theme#RemoveSegment('lineinfo')
   call Pl#Theme#RemoveSegment('scrollpercent')
   if neobundle#is_installed('vim-versions')
     call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
   endif
 " }}}
+
+if filereadable(expand('$HOME/.vimrc.local'))
+  execute 'source ' . expand('$HOME/.vimrc.local')
+endif
 
