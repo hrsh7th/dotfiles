@@ -130,6 +130,7 @@ set nocompatible
   set list
   set listchars=tab:\|\ ,trail:^
   set pumheight=20
+  set previewheight=20
   colorscheme hybrid
   function! g:my_tabline()
     let s:titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
@@ -268,9 +269,9 @@ set nocompatible
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -start-insert line<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-start-insert line<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview line<CR>
+  nnoremap / :<C-u>Unite -buffer-name=line -no-split -auto-preview -start-insert line<CR>
+  nnoremap * :<C-u>UniteWithCursorWord -no-split -buffer-name=line -auto-preview -no-start-insert line<CR>
+  nnoremap n :<C-u>UniteResume -no-start-insert -no-split -auto-preview line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
