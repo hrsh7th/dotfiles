@@ -38,12 +38,7 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/unite.vim.git'
   NeoBundle 'git://github.com/Shougo/vesting.git'
   NeoBundle 'git://github.com/Shougo/vimfiler.git'
-  NeoBundle 'Shougo/vimproc', { 'build': {
-        \   'windows': 'make -f make_mingw32.mak',
-        \   'cygwin': 'make -f make_cygwin.mak',
-        \   'mac': 'make -f make_mac.mak',
-        \   'unix': 'make -f make_unix.mak',
-        \ } }
+  NeoBundle 'git://github.com/Shougo/vimproc', { 'build': { 'windows': 'make -f make_mingw32.mak', 'cygwin': 'make -f make_cygwin.mak', 'mac': 'make -f make_mac.mak', 'unix': 'make -f make_unix.mak', } }
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
@@ -56,9 +51,10 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
-  NeoBundle 'git://github.com/mbbill/undotree.git'
+  NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
+  NeoBundle 'git://github.com/mbbill/undotree.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
@@ -173,6 +169,8 @@ set nocompatible
   set hlsearch
   set ignorecase
   set smartcase
+  set includeexpr=substitute(v:fname,'^\\/','','')
+  set path+=./;/
 " }}}
 
 " ----------
@@ -226,6 +224,9 @@ set nocompatible
   vnoremap J 8j
   vnoremap K 8k
   vnoremap L 15l
+
+  " esc.
+  imap jj <ESC>
 
   " move window.
   nnoremap <LEADER>h <C-w>h
@@ -311,7 +312,7 @@ set nocompatible
   endfunction
 
   " search cursor_word.
-  nnoremap <expr>gf g:my_cursor_word_search_command()
+  nnoremap <expr><LEADER>gf g:my_cursor_word_search_command()
   function! g:my_cursor_word_search_command()
     " TODO: search path and classname
     " ex) <script type="text/javascript" src="../../js/app.js"></script> => js.*app.js
@@ -613,7 +614,7 @@ augroup END
   let g:unite_data_directory = expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_relative_word', 'sorter_default'])
+  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
   call unite#custom_source('file_rec/async', 'ignore_pattern', join([
         \ '\/\..*\/',
         \ '\.git\/',
@@ -835,7 +836,7 @@ augroup END
 " }}}
 
 " ----------
-" powerline. {{{
+" powerline setting. {{{
 " ----------
   let g:Powerline_symbols = 'compatible'
   let g:Powerline_cache_enabled = 0
@@ -845,6 +846,19 @@ augroup END
   if neobundle#is_installed('vim-versions')
     call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
   endif
+" }}}
+
+" ----------
+" submode setting. {{{
+" ----------
+  call submode#enter_with('winsize', 'n', '', '<C-w>>', '<C-w>>')
+  call submode#enter_with('winsize', 'n', '', '<C-w><', '<C-w><')
+  call submode#enter_with('winsize', 'n', '', '<C-w>+', '<C-w>-')
+  call submode#enter_with('winsize', 'n', '', '<C-w>-', '<C-w>+')
+  call submode#map('winsize', 'n', '', '>', '<C-w>>')
+  call submode#map('winsize', 'n', '', '<', '<C-w><')
+  call submode#map('winsize', 'n', '', '+', '<C-w>-')
+  call submode#map('winsize', 'n', '', '-', '<C-w>+')
 " }}}
 
 if filereadable(expand('$HOME/.vimrc.local'))
