@@ -257,8 +257,8 @@ set nocompatible
   nnoremap <C-j> gJ
 
   " <C-i> <C-o>.
-  nnoremap <C-m> <C-i>
-  nnoremap <C-n> <C-o>
+  map <C-m> <C-o>
+  map <C-n> <C-i>
 
   " move in insert-mode.
   inoremap <C-l> <C-o>l
@@ -269,9 +269,9 @@ set nocompatible
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line -no-split -auto-preview -start-insert line<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -no-split -buffer-name=line -auto-preview -no-start-insert line<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert -no-split -auto-preview line<CR>
+  nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -no-split -start-insert line<CR>
+  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-split -no-start-insert line<CR>
+  nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview -no-split line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -380,8 +380,8 @@ set nocompatible
   xmap <C-k> <PLUG>(neosnippet_expand_target)
 
   " caw.
-  nmap <LEADER><CR> <PLUG>(caw:i:toggle)
-  vmap <LEADER><CR> <PLUG>(caw:i:toggle)
+  nmap <LEADER>/ <PLUG>(caw:i:toggle)
+  vmap <LEADER>/ <PLUG>(caw:i:toggle)
 
   " quickhl.
   nmap <LEADER>m <PLUG>(quickhl-toggle)
@@ -612,6 +612,7 @@ augroup END
   let g:unite_source_file_rec_min_cache_files = 0
   let g:unite_update_time = 300
   let g:unite_winheight = 15
+  let g:unite_source_line_enable_highlight = 1
   let g:unite_data_directory = expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
