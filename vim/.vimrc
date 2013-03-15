@@ -52,7 +52,6 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
-  NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/mbbill/undotree.git'
@@ -66,14 +65,12 @@ set nocompatible
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
   NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
-  NeoBundle 'git://github.com/trapd00r/neverland-vim-theme.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
-  NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
   runtime macros/matchit.vim
@@ -134,7 +131,7 @@ set nocompatible
   set listchars=tab:\|\ ,trail:^
   set pumheight=20
   set previewheight=20
-  colorscheme neverland2-darker
+  colorscheme hybrid
   function! g:my_tabline()
     let s:titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
     let s:tabpages = join(s:titles, '').  '%#TabLineFill#%T'
@@ -260,8 +257,8 @@ set nocompatible
   nnoremap <C-j> gJ
 
   " <C-i> <C-o>.
-  map <C-m> <C-o>
-  map <C-n> <C-i>
+  nnoremap <C-m> <C-i>
+  nnoremap <C-n> <C-o>
 
   " move in insert-mode.
   inoremap <C-l> <C-o>l
@@ -272,9 +269,9 @@ set nocompatible
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -no-split -start-insert line<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-split -no-start-insert line<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview -no-split line<CR>
+  nnoremap / :<C-u>Unite -buffer-name=line -no-split -auto-preview -start-insert line<CR>
+  nnoremap * :<C-u>UniteWithCursorWord -no-split -buffer-name=line -auto-preview -no-start-insert line<CR>
+  nnoremap n :<C-u>UniteResume -no-start-insert -no-split -auto-preview line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -329,8 +326,9 @@ set nocompatible
   " open explorer.
   nnoremap <expr><F2> g:my_open_explorer_command()
   function! g:my_open_explorer_command()
-    return printf(":\<C-u>VimFilerBufferDir -buffer-name=%s -split -simple -auto-cd -no-quit \<CR>",
-          \ g:my_vimfiler_explorer_name)
+    return printf(":\<C-u>VimFilerBufferDir -buffer-name=%s -split -auto-cd -toggle -no-quit -winwidth=%s\<CR>",
+          \ g:my_vimfiler_explorer_name,
+          \ g:my_vimfiler_winwidth)
   endfunction
 
   " show project file.
@@ -382,8 +380,8 @@ set nocompatible
   xmap <C-k> <PLUG>(neosnippet_expand_target)
 
   " caw.
-  nmap <LEADER>/ <PLUG>(caw:i:toggle)
-  vmap <LEADER>/ <PLUG>(caw:i:toggle)
+  nmap <LEADER><CR> <PLUG>(caw:i:toggle)
+  vmap <LEADER><CR> <PLUG>(caw:i:toggle)
 
   " quickhl.
   nmap <LEADER>m <PLUG>(quickhl-toggle)
@@ -458,12 +456,11 @@ augroup my-vimrc
   autocmd! Filetype js setlocal filetype=javascript
   autocmd! Filetype smarty setlocal filetype=html
   autocmd! Filetype javascript execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype typescript execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype php execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype html execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
@@ -480,10 +477,10 @@ augroup my-vimrc
   autocmd! WinEnter * call g:my_save_previous_window_settings()
   function! g:my_save_previous_window_settings()
     if exists('b:unite')
-      let b:unite.__prev_winnr = winnr('#')
+      let b:unite.prev_winnr = winnr('#')
     endif
     if exists('b:vimfiler')
-      let b:vimfiler.__prev_winnr = winnr('#')
+      let b:vimfiler.prev_winnr = winnr('#')
     endif
   endfunction
 
@@ -526,7 +523,7 @@ augroup my-vimrc
     nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('nicely_split')<CR>
     nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
     nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
-    " "setlocal winfixwidth
+    setlocal winfixwidth
   endfunction
 
   " vimshell.
@@ -563,7 +560,7 @@ augroup my-vimrc
   autocmd! BufRead,BufWritePost * call g:my_neocomplcache_settings()
   function! g:my_neocomplcache_settings()
     if !index(g:my_neocomplcache_ignore_filenames, expand('<abuf>:t'))
-      " "NeoComplCacheCachingBuffer
+      NeoComplCacheCachingBuffer
     endif
   endfunction
 augroup END
@@ -609,13 +606,12 @@ augroup END
     let g:my_unite_project_dir = ""
   endif
   let g:unite_enable_start_insert = 0
-  ""let g:unite_split_rule = "botright"
+  let g:unite_split_rule = "botright"
   let g:unite_source_grep_default_opts = '-Hni'
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
-  let g:unite_update_time = 200
+  let g:unite_update_time = 300
   let g:unite_winheight = 15
-  let g:unite_source_line_enable_highlight = 1
   let g:unite_data_directory = expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
