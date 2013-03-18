@@ -52,12 +52,12 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
+  NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/mbbill/undotree.git'
-  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
-  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
+  NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
@@ -65,12 +65,14 @@ set nocompatible
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
   NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
+  NeoBundle 'git://github.com/trapd00r/neverland-vim-theme.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
+  NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
   runtime macros/matchit.vim
@@ -201,6 +203,8 @@ set nocompatible
   nnoremap <LEADER>t :<C-u>tabclose<CR>
   nnoremap <LEADER>! :<C-u>q!<CR>
   nnoremap <LEADER>w :<C-u>w<CR>
+  nmap ; :
+  nmap : ;
   nnoremap Q <NOP>
   nnoremap j gj
   nnoremap k gk
@@ -269,9 +273,9 @@ set nocompatible
   xnoremap : q:
 
   " / -> Unite line.
-  nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -no-split -start-insert line<CR>
-  nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-split -no-start-insert line<CR>
-  nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview -no-split line<CR>
+  " nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -no-split -start-insert line<CR>
+  " nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-split -no-start-insert line<CR>
+  " nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview -no-split line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -326,7 +330,7 @@ set nocompatible
   " open explorer.
   nnoremap <expr><F2> g:my_open_explorer_command()
   function! g:my_open_explorer_command()
-    return printf(":\<C-u>VimFilerBufferDir -buffer-name=%s -split -auto-cd -toggle -no-quit -winwidth=%s\<CR>",
+    return printf(":\<C-u>VimFilerBufferDir -simple -buffer-name=%s -split -auto-cd -toggle -no-quit -winwidth=%s\<CR>",
           \ g:my_vimfiler_explorer_name,
           \ g:my_vimfiler_winwidth)
   endfunction
@@ -477,10 +481,10 @@ augroup my-vimrc
   autocmd! WinEnter * call g:my_save_previous_window_settings()
   function! g:my_save_previous_window_settings()
     if exists('b:unite')
-      let b:unite.prev_winnr = winnr('#')
+      let b:unite.__prev_winnr = winnr('#')
     endif
     if exists('b:vimfiler')
-      let b:vimfiler.prev_winnr = winnr('#')
+      let b:vimfiler.__prev_winnr = winnr('#')
     endif
   endfunction
 
@@ -574,18 +578,6 @@ augroup END
 " }}}
 
 " ----------
-" watchdogs setting. {{{
-" ----------
-  let g:watchdogs_check_BufWritePost_enable = 1
-  let g:quickrun_config = {
-        \   'watchdogs_checker/_': {
-        \     'hook/close_quickfix/enable_exit': 1,
-        \   },
-        \ }
-  call watchdogs#setup(g:quickrun_config)
-" }}}
-
-" ----------
 " vimfiler setting. {{{
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
@@ -610,7 +602,7 @@ augroup END
   let g:unite_source_grep_default_opts = '-Hni'
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
-  let g:unite_update_time = 300
+  let g:unite_update_time = 200
   let g:unite_winheight = 15
   let g:unite_source_line_enable_highlight = 1
   let g:unite_data_directory = expand("~/.unite")
@@ -714,11 +706,11 @@ augroup END
     let s:ftypes = ['unite', 'vimshell', 'vimfiler']
 
     " vimfiler or unite has prev_winnr?
-    if exists('b:vimfiler.prev_winnr')
-      let s:nr = b:vimfiler.prev_winnr
+    if exists('b:vimfiler.__prev_winnr')
+      let s:nr = b:vimfiler.__prev_winnr
     endif
-    if exists('b:unite.prev_winnr')
-      let s:nr = b:unite.prev_winnr
+    if exists('b:unite.__prev_winnr')
+      let s:nr = b:unite.__prev_winnr
     endif
 
     " return b:{vimfiler,unite}.prev_winnr if don't match ftypes.
