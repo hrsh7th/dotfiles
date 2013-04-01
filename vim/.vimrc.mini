@@ -30,8 +30,8 @@ set nocompatible
     call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
   endif
 
-  execute 'source ' . expand("$HOME/.vimrc.mini.unite.vim")
-  execute 'source ' . expand("$HOME/.vimrc.mini.vimfiler")
+  execute 'source ' . expand("$HOME/dotfiles/vim/.vimrc.mini.unite.vim")
+  execute 'source ' . expand("$HOME/dotfiles/vim/.vimrc.mini.vimfiler")
 
   syntax on
   filetype plugin on
@@ -43,9 +43,7 @@ set nocompatible
 " ----------
 let mapleader = "\<SPACE>"
 
-nnoremap <LEADER>u :Unite file_rec:~<CR>
+nnoremap <LEADER>u :Unite 
 nnoremap <LEADER>v :VimFilerBufferDir -simple -toggle -split -winwidth=35 -no-quit -auto-cd<CR>
-
-let g:unite_split_rule="botright"
 
 " }}}

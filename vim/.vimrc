@@ -194,6 +194,42 @@ set nocompatible
 " }}}
 
 " ----------
+" GUI Setting. {{{
+" ----------
+set mouse=n
+if has('gui_running')
+  " line height.
+  set linespace=0
+
+  " disable ime.
+  set iminsert=0
+  set imsearch=0
+
+  " ime color.
+  highlight CursorIM guibg=#ff0000 guifg=NONE
+
+  " visible gui parts.
+  set guioptions-=m guioptions-=T guioptions+=b
+
+  " multibyte characters.
+  set ambiwidth=double
+
+  " font.
+  if s:is_win
+    set guifont=Consolas:h10:b
+    set guifontwide=MigMix_1m:h9:b
+  elseif s:is_mac
+    set guifont=Menlo:h9
+  elseif s:is_linux
+    set guifont=Menlo:h9
+  endif
+
+  " no mouse focus.
+  set nomousefocus
+endif
+" }}}
+
+" ----------
 " Key Mapping. {{{
 " ----------
   let mapleader="\<SPACE>"
@@ -624,7 +660,7 @@ augroup END
   let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
   let g:unite_source_menu_menus.global.command_candidates = [
         \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
-        \ [ 'Unite neobundle/update', 'Unite neobundle/update' ],
+        \ [ 'NeoBundleUpdate!', 'NeoBundleUpdate!' ],
         \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
         \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
         \ ]
@@ -803,6 +839,7 @@ augroup END
   let g:versions#info.git = '(%s) - (%b)'
   let g:versions#info.svn = '(%s) - (%R)'
   let g:versions#type#svn#status#ignore_status = ['X']
+  let g:versions#type#git#log#append_is_pushed = 1
 " }}}
 
 " ----------
