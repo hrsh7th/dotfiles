@@ -59,6 +59,7 @@ set nocompatible
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+  NeoBundle 'git://github.com/terryma/vim-expand-region.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
@@ -407,7 +408,7 @@ endif
     if neosnippet#expandable() || neosnippet#jumpable()
       return "\<PLUG>(neosnippet_expand_or_jump)"
     endif
-    if getline('.')[0:col('.')-1] =~# '^\(\t\|\s\)*$'
+    if getline('.')[0:col('.')-2] =~# '^\(\t\|\s\)*$'
       return "\<TAB>"
     endif
     if g:my_pair_is_next_pair()
