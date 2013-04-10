@@ -317,6 +317,10 @@ endif
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
 
+  " expand region
+  nmap <CR> <PLUG>(expand_region_expand)
+  vmap <CR> <PLUG>(expand_region_expand)
+
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
   inoremap <expr><BS> g:my_pair_delete()
@@ -645,8 +649,8 @@ augroup END
   let g:unite_data_directory = expand("~/.unite")
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('file_rec/async', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
-  call unite#custom_source('file_rec/async', 'ignore_pattern', join([
+  call unite#custom_filters('file_rec/async,file_rec', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
+  call unite#custom_source('file_rec/async,file_rec', 'ignore_pattern', join([
         \ '\/\..*\/',
         \ '\.git\/',
         \ '\.svn\/',
