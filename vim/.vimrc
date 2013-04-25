@@ -52,10 +52,13 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
+  NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/mbbill/undotree.git'
+  NeoBundle 'git://github.com/mhinz/vim-signify.git'
+  NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
@@ -66,7 +69,6 @@ set nocompatible
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
   NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
-  NeoBundle 'git://github.com/trapd00r/neverland-vim-theme.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
@@ -436,25 +438,10 @@ endif
   nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
 
   " auto surround.
-  nnoremap <expr>cis g:my_surround_command('ci')
-  nnoremap <expr>yis g:my_surround_command('yi')
-  nnoremap <expr>dis g:my_surround_command('di')
-  nnoremap <expr>vis g:my_surround_command('vi')
-  function! g:my_surround_command(key)
-    let s:pattern = "'\"{[("
-    let s:front = strpart(getline("."), 0, col("."))
-    let s:max = -1
-    for s:pat in split(s:pattern, '.\zs')
-      let s:pos = strridx(s:front, s:pat)
-      if s:pos > s:max
-        let s:max = s:pos
-      endif
-    endfor
-    if s:max >= 0
-      let s:surround = strpart(s:front, s:max, 1)
-      return a:key . s:surround
-    endif
-  endfunction
+  omap i<LEADER> <PLUG>(textobj-multiblock-i)
+  omap a<LEADER> <PLUG>(textobj-multiblock-a)
+  vmap i<LEADER> <PLUG>(textobj-multiblock-i)
+  vmap a<LEADER> <PLUG>(textobj-multiblock-a)
 " }}}
 
 " ----------
@@ -882,6 +869,16 @@ augroup END
   if neobundle#is_installed('vim-versions')
     call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
   endif
+" }}}
+
+" ----------
+" signify setting. {{{
+" ----------
+  let g:signify_sign_add               = '+'
+  let g:signify_sign_delete            = '-'
+  let g:signify_sign_change            = '*'
+  let g:signify_sign_change_delete     = '*'
+  let g:signify_sign_delete_first_line = '-'
 " }}}
 
 " ----------
