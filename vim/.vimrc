@@ -57,7 +57,6 @@ set nocompatible
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/mbbill/undotree.git'
-  NeoBundle 'git://github.com/mhinz/vim-signify.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/scrooloose/syntastic.git'
@@ -726,6 +725,25 @@ augroup END
   let s:action = { 'is_selectable' : 1 }
   function! s:action.func(candidates)
     let g:my_unite_project_dir = substitute(a:candidates[0].action__directory, '\/$', '', 'g')
+    let winnr = bufwinnr(bufnr('%'))
+    for bufnr in range(1, bufnr('$'))
+      if stridx(fnamemodify(bufname(bufnr), ':p'), fnamemodify(g:my_unite_project_dir, ':p')) == -1
+        continue
+      endif
+
+      let bufwinnr = bufwinnr(bufnr)
+
+      " remove.
+      if bufwinnr == -1
+        execute 'bdelete! ' . bufnr
+
+      " hidden.
+      else
+        execute bufwinnr . 'wincmd w'
+        setlocal bufhidden=delete nobuflisted
+      endif
+    endfor
+    execute winnr . 'wincmd w'
   endfunction
   call unite#custom_action('file', 'my_project_cd', s:action)
 
@@ -869,16 +887,6 @@ augroup END
   if neobundle#is_installed('vim-versions')
     call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
   endif
-" }}}
-
-" ----------
-" signify setting. {{{
-" ----------
-  let g:signify_sign_add               = '+'
-  let g:signify_sign_delete            = '-'
-  let g:signify_sign_change            = '*'
-  let g:signify_sign_change_delete     = '*'
-  let g:signify_sign_delete_first_line = '-'
 " }}}
 
 " ----------
