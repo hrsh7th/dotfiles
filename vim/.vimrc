@@ -50,7 +50,6 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
-  NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
@@ -75,6 +74,7 @@ set nocompatible
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
+  NeoBundle 'git://github.com/vim-scripts/smarty.vim.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
   runtime macros/matchit.vim
@@ -267,9 +267,6 @@ endif
   vnoremap J 8j
   vnoremap K 8k
   vnoremap L 15l
-
-  " esc.
-  imap jj <ESC>
 
   " move window.
   nnoremap <LEADER>h <C-w>h
@@ -554,7 +551,8 @@ augroup my-vimrc
     nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('nicely_split')<CR>
     nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
     nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
-    setlocal winfixwidth
+    nnoremap <buffer><BS>        :<C-u>VimFilerTab -double<CR>
+    nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
   endfunction
 
   " vimshell.
@@ -734,8 +732,11 @@ augroup END
       let bufwinnr = bufwinnr(bufnr)
 
       " remove.
-      if bufwinnr == -1
-        execute 'bdelete! ' . bufnr
+      if bufwinnr == -1 && bufexists(bufnr)
+        try
+          execute 'bdelete ' . bufnr
+        catch
+        endtry
 
       " hidden.
       else
@@ -746,6 +747,18 @@ augroup END
     execute winnr . 'wincmd w'
   endfunction
   call unite#custom_action('file', 'my_project_cd', s:action)
+
+  " my_project_root_cd.
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
+    if versions#get_type(a:candidates[0].action__directory) == ''
+      echomsg 'current dir is not version control.'
+    else
+      let a:candidates[0].action__directory = versions#get_root_dir(a:candidates[0].action__directory)
+      call unite#take_action('cd', a:candidates[0])
+    endif
+  endfunction
+  call unite#custom_action('file', 'my_project_root_cd', s:action)
 
   " get previous winnr for unite custom action.
   function! g:my_unite_get_prev_winnr()
@@ -797,7 +810,7 @@ augroup END
   let g:neocomplcache_enable_ignore_case = 1
   let g:neocomplcache_enable_camel_case_completion = 0
   let g:neocomplcache_enable_underbar_completion = 0
-  let g:neocomplcache_enable_fuzzy_completion = 1 " もう動いたので ON
+  let g:neocomplcache_enable_fuzzy_completion = 1
   let g:neocomplcache_enable_wildcard = 1
   let g:neocomplcache_fuzzy_completion_start_length = 1
   let g:neocomplcache_auto_completion_start_length = 1
@@ -850,6 +863,7 @@ augroup END
   let g:versions#info.svn = '(%s) - (%R)'
   let g:versions#type#svn#status#ignore_status = ['X']
   let g:versions#type#git#log#append_is_pushed = 1
+  let g:versions#type#git#log#first_parent = 1
 " }}}
 
 " ----------
