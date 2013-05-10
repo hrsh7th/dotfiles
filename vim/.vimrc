@@ -316,8 +316,7 @@ endif
   inoremap <expr> <C-p> unite#start_complete('register')
 
   " expand region
-  nmap <CR> <PLUG>(expand_region_expand)
-  vmap <CR> <PLUG>(expand_region_expand)
+  nnoremap <CR> :<C-u>Unite jump -no-split -auto-preview -select=0<CR>
 
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
@@ -564,6 +563,7 @@ augroup my-vimrc
     inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
           \ 'no_start_insert' : 1,
           \ 'default_action': 'insert',
+          \ 'select': 0,
           \ 'input' : vimshell#get_cur_text(),
           \ })
     call vimshell#altercmd#define('ls', 'ls -al')
@@ -580,6 +580,7 @@ augroup my-vimrc
     inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
     inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
           \ 'no_start_insert' : 1,
+          \ 'select': 0,
           \ 'default_action': 'insert',
           \ 'input' : vimshell#get_cur_text(),
           \ })
@@ -635,7 +636,6 @@ augroup END
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
   call unite#custom_filters('file_rec/async,file_rec', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
   call unite#custom_source('file_rec/async,file_rec', 'ignore_pattern', join([
-        \ '\/\..*\/',
         \ '\.git\/',
         \ '\.svn\/',
         \ '\/\(image\|img\)\/',
@@ -652,24 +652,24 @@ augroup END
         \ [ 'NeoBundleUpdate!', 'NeoBundleUpdate!' ],
         \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
         \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
+        \ [ 'Reverse Line Order', 'g/^/m0' ],
         \ ]
 " }}}
 
 " ----------
 " custom unite filter. {{{
 " ----------
-
   " matcher_remove.
   let s:filter = { 'name' : 'matcher_my_remove' }
   function! s:filter.filter(candidates, context)
     let candidates = a:candidates
-    for s:regex in ['*vimfiler*', '*vimshell*']
+    for s:regex in ['*vimfiler*', '*vimshell*', '.vimrc']
       let s:candidates = filter(a:candidates, 'v:val.word !~# "'. s:regex. '"')
     endfor
     return s:candidates
   endfunction
   call unite#define_filter(s:filter)
-  call unite#custom_filters('buffer_tab', ['matcher_my_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+  call unite#custom_filters('buffer_tab,jump', ['matcher_my_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
 
   " matcher_unique.
   let s:filter = { 'name' : 'matcher_my_unique' }
