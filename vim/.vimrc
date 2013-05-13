@@ -27,8 +27,8 @@ set nocompatible
     filetype plugin off
     filetype indent off
     execute 'set runtimepath+=' . expand('$MYVIMRUNTIME/bundle/neobundle.vim')
-    call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
   endif
+  call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
 
   NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
@@ -74,7 +74,7 @@ set nocompatible
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
-  NeoBundle 'git://github.com/vim-scripts/smarty.vim.git'
+  NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
   runtime macros/matchit.vim
@@ -237,7 +237,7 @@ endif
   let mapleader="\<SPACE>"
 
   " general.
-  nnoremap <LEADER>q :<C-u>q<CR>
+  nnoremap q :<C-u>q<CR>
   nnoremap <LEADER>t :<C-u>tabclose<CR>
   nnoremap <LEADER>! :<C-u>q!<CR>
   nnoremap <LEADER>w :<C-u>w<CR>
@@ -253,7 +253,7 @@ endif
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
         \ 'QuickhlReset',
         \ 'nohlsearch',
-        \ 'HierClear')
+        \ 'redraw!')
 
   " marking.
   nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
@@ -296,8 +296,8 @@ endif
   nnoremap <C-j> gJ
 
   " <C-i> <C-o>.
-  map <C-m> <C-o>
-  map <C-n> <C-i>
+  noremap <C-h> <C-o>
+  noremap <C-l> <C-i>
 
   " move in insert-mode.
   inoremap <C-l> <C-o>l
@@ -306,11 +306,6 @@ endif
   " use command line window.
   nnoremap : q:
   xnoremap : q:
-
-  " / -> Unite line.
-  " nnoremap / :<C-u>Unite -buffer-name=line -auto-preview -no-split -start-insert line<CR>
-  " nnoremap * :<C-u>UniteWithCursorWord -buffer-name=line -auto-preview -no-split -no-start-insert line<CR>
-  " nnoremap n :<C-u>UniteResume -no-start-insert -auto-preview -no-split line<CR>
 
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
@@ -475,6 +470,8 @@ augroup my-vimrc
   endfunction
 
   " filetype.
+  autocmd! BufNewFile,BufRead *.tpl setlocal filetype=html
+  autocmd! Filetype tpl setlocal filetype=html
   autocmd! BufNewFile,BufRead *.ejs setlocal filetype=html
   autocmd! Filetype ejs setlocal filetype=html
   autocmd! BufNewFile,BufRead *.as setlocal filetype=actionscript
@@ -511,6 +508,22 @@ augroup my-vimrc
     endif
   endfunction
 
+  autocmd! WinLeave * call g:my_window_layout_fix()
+  function! g:my_window_layout_fix()
+    " window layout fix.
+    let current_winnr = bufwinnr(bufnr('%'))
+    for winnr in range(1, winnr('$'))
+      let bufnr = winbufnr(winnr)
+      if getbufvar(bufnr, '&filetype') == 'vimshell'
+        execute winnr . 'wincmd w'
+        if exists('b:vimshell')
+          execute 'wincmd K'
+          execute current_winnr . 'wincmd w'
+        endif
+      endif
+    endfor
+  endfunction
+
   " unite.
   autocmd! FileType unite call g:my_unite_settings()
   function! g:my_unite_settings()
@@ -534,7 +547,7 @@ augroup my-vimrc
   " vimfiler.
   autocmd! FileType vimfiler call g:my_vimfiler_settings()
   function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><F11> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -no-quit<CR>'
+    nmap     <buffer><expr><F11> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
     nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
     nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
     nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
@@ -544,7 +557,7 @@ augroup my-vimrc
     nmap     <buffer>;           <PLUG>(vimfiler_cd_input_directory)
     nmap     <buffer>j           j<PLUG>(vimfiler_print_filename)
     nmap     <buffer>k           k<PLUG>(vimfiler_print_filename)
-    nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark vimfiler/history<CR>
+    nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark directory_mru<CR>
     nnoremap <buffer>e           :<C-u>call vimfiler#mappings#do_action('nicely_open')<CR>
     nnoremap <buffer>v           :<C-u>call vimfiler#mappings#do_action('nicely_vsplit')<CR>
     nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('nicely_split')<CR>
@@ -649,7 +662,7 @@ augroup END
   let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
   let g:unite_source_menu_menus.global.command_candidates = [
         \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
-        \ [ 'NeoBundleUpdate!', 'NeoBundleUpdate!' ],
+        \ [ 'NeoBundleUpdate!', 'Unite neobundle/update:!' ],
         \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
         \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
         \ [ 'Reverse Line Order', 'g/^/m0' ],
@@ -828,7 +841,6 @@ augroup END
   if !exists('g:neocomplcache_source_disable')
     let g:neocomplcache_source_disable = {}
   endif
-  let g:neocomplcache_source_disable.include_complete = 1
   let g:neocomplcache_source_disable.omni_complete = 1
   let g:neocomplcache_source_disable.tags_complete = 1
   let g:neocomplcache_source_disable.syntax_complete = 1
@@ -839,6 +851,7 @@ augroup END
 " vimshell setting. {{{
 " ----------
   let g:vimshell_popup_height = 40
+  let g:vimshell_split_command = 'tabnew'
   let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
   let g:vimshell_disable_escape_highlight = 1
   let g:vimshell_prompt = '$ '
