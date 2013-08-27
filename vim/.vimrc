@@ -30,9 +30,8 @@ set nocompatible
   endif
   call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
 
-  NeoBundle 'git://github.com/Lokaltog/vim-powerline.git'
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
-  NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+  NeoBundle 'git://github.com/Shougo/neocomplete.git'
   NeoBundle 'git://github.com/Shougo/neosnippet.git'
   NeoBundle 'git://github.com/Shougo/unite-outline.git'
   NeoBundle 'git://github.com/Shougo/unite.vim.git'
@@ -40,32 +39,32 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/vimfiler.git'
   NeoBundle 'git://github.com/Shougo/vimproc', { 'build': { 'windows': 'make -f make_mingw32.mak', 'cygwin': 'make -f make_cygwin.mak', 'mac': 'make -f make_mac.mak', 'unix': 'make -f make_unix.mak', } }
   NeoBundle 'git://github.com/Shougo/vimshell.git'
+  NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
+  NeoBundle 'git://github.com/dhruvasagar/vim-markify.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-  NeoBundle 'git://github.com/hrsh7th/unite-mark.git'
-  NeoBundle 'git://github.com/hrsh7th/unite-todo.git'
+  NeoBundle 'git://github.com/hrsh7th/shabadou.vim.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-trailing-whitespace.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
+  NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/mattn/zencoding-vim.git'
-  NeoBundle 'git://github.com/mbbill/undotree.git'
+  NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
+  NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  NeoBundle 'git://github.com/scrooloose/syntastic.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-  NeoBundle 'git://github.com/terryma/vim-expand-region.git'
+  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-  NeoBundle 'git://github.com/thinca/vim-visualstar.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
@@ -103,7 +102,7 @@ set nocompatible
   set clipboard+=unnamed
   set diffopt=filler,iwhite
   set wildchar=]
-  set tags=./.tags;
+  set tags=./tags;,./.tags;
   set mouse=n
   if has('persistent_undo')
     set undofile
@@ -250,8 +249,9 @@ endif
   nnoremap > >><ESC>
   vnoremap < <<<ESC>
   vnoremap > >><ESC>
-  nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
+  nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
         \ 'QuickhlReset',
+        \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
 
@@ -392,7 +392,11 @@ endif
   " useful menus.
   nnoremap m :<C-u>Unite resume<CR>
   nnoremap <LEADER>u :<C-u>Unite -buffer-name=source -no-start-insert source<CR>
+
   nnoremap <LEADER>0 :<C-u>Unite -buffer-name=menu -no-start-insert menu:global<CR>
+
+  " tag jump.
+  noremap <C-]> :<C-u>Unite -immediately -no-start-insert -buffer-name=tag tag:<C-r>=expand('<cword>')<CR><CR>
 
   " complete.
   inoremap ] <C-n>
@@ -565,6 +569,7 @@ augroup my-vimrc
     nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
     nnoremap <buffer><BS>        :<C-u>VimFilerTab -double<CR>
     nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
+    nnoremap <buffer><Leader>    :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_tag_update')<CR>
   endfunction
 
   " vimshell.
@@ -599,28 +604,34 @@ augroup my-vimrc
           \ })
   endfunction
 
-  " neocomplcache.
-  autocmd! BufRead,BufWritePost * call g:my_neocomplcache_settings()
-  function! g:my_neocomplcache_settings()
-    if !index(g:my_neocomplcache_ignore_filenames, expand('<abuf>:t'))
-      NeoComplCacheCachingBuffer
+  " neocomplete.
+  autocmd! BufRead,BufWritePost * call g:my_neocomplete_settings()
+  function! g:my_neocomplete_settings()
+    if !index(g:my_neocomplete_ignore_filenames, expand('<abuf>:t'))
+      NeoCompleteBufferMakeCache
     endif
   endfunction
 augroup END
 " }}}
 
 " ----------
-" syntastic setting. {{{
+" watchdogs setting. {{{
 " ----------
-  let g:syntastic_error_symbol = '!'
-  let g:syntastic_warning_symbol = '?'
+  let g:watchdogs_check_BufWritePost_enable = 1
+  let g:quickrun_config = extend(get(g:, 'quickrun_config', {}), {
+        \   'watchdogs_checker/_': {
+        \     'outputter/quickfix/open_cmd': '',
+        \     'hook/markify_clear/enable_exit' : 1,
+        \     'hook/markify/enable_exit' : 1,
+        \   }
+        \ })
 " }}}
 
 " ----------
 " vimfiler setting. {{{
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
-  let g:my_vimfiler_winwidth = 25
+  let g:my_vimfiler_winwidth = 30
   let g:vimfiler_edit_action = 'nicely_open'
   let g:vimfiler_safe_mode_by_default = 0
   let g:vimfiler_as_default_explorer = 1
@@ -769,9 +780,31 @@ augroup END
     else
       let a:candidates[0].action__directory = versions#get_root_dir(a:candidates[0].action__directory)
       call unite#take_action('cd', a:candidates[0])
+      call feedkeys('hl')
     endif
   endfunction
   call unite#custom_action('file', 'my_project_root_cd', s:action)
+
+  " my_project_tag_update.
+  let s:action = { 'is_selectable' : 1 }
+  function! s:action.func(candidates)
+    if versions#get_type(a:candidates[0].action__directory) == ''
+      echomsg 'current dir is not version control.'
+    else
+      let s:filetype = getbufvar('#', '&filetype')
+      let s:root_dir = versions#get_root_dir(a:candidates[0].action__directory)
+      let s:ext_map = {
+            \ 'actionscript': 'as'
+            \ }
+      call unite#take_action('cd', a:candidates[0])
+      try
+        call vimproc#system(printf('ctags --recurse=yes -f %s/tags -h %s --languages=%s %s', s:root_dir, s:ext_map[s:filetype], s:filetype, s:root_dir))
+      catch
+        echomsg 'not supported filetype.'
+      endtry
+    endif
+  endfunction
+  call unite#custom_action('file', 'my_project_tag_update', s:action)
 
   " get previous winnr for unite custom action.
   function! g:my_unite_get_prev_winnr()
@@ -816,35 +849,11 @@ augroup END
 " }}}
 
 " ----------
-" neocomplcache setting. {{[
+" neocomplete setting. {{[
 " ----------
-  let g:my_neocomplcache_ignore_filenames = ['.vimrc']
-  let g:neocomplcache_enable_at_startup = 1
-  let g:neocomplcache_enable_ignore_case = 1
-  let g:neocomplcache_enable_camel_case_completion = 0
-  let g:neocomplcache_enable_underbar_completion = 0
-  let g:neocomplcache_enable_fuzzy_completion = 1
-  let g:neocomplcache_enable_wildcard = 1
-  let g:neocomplcache_fuzzy_completion_start_length = 1
-  let g:neocomplcache_auto_completion_start_length = 1
-  let g:neocomplcache_dictionary_filetype_lists = {}
-  let g:neocomplcache_dictionary_filetype_lists.default = ''
-  let g:neocomplcache_dictionary_filetype_lists.vimshell = $HOME . '/.vimshell/command-history'
-  if !exists('g:neocomplcache_wildcard_characters')
-    let g:neocomplcache_wildcard_characters = {}
-  endif
-  let g:neocomplcache_wildcard_characters._ = '-'
-  if !exists('g:neocomplcache_keyword_patterns')
-    let g:neocomplcache_keyword_patterns = {}
-  endif
-  let g:neocomplcache_keyword_patterns.default = '\h\w*'
-  if !exists('g:neocomplcache_source_disable')
-    let g:neocomplcache_source_disable = {}
-  endif
-  let g:neocomplcache_source_disable.omni_complete = 1
-  let g:neocomplcache_source_disable.tags_complete = 1
-  let g:neocomplcache_source_disable.syntax_complete = 1
-  let g:neocomplcache_source_disable.dictionary_complete = 1
+  let g:my_neocomplete_ignore_filenames = ['.vimrc']
+  let g:neocomplete#enable_at_startup = 1
+  let g:neocomplete#auto_completion_start_length = 1
 " }}}
 
 " ----------
@@ -904,16 +913,13 @@ augroup END
 " }}}
 
 " ----------
-" powerline setting. {{{
+" airline setting. {{{
 " ----------
-  let g:Powerline_symbols = 'compatible'
-  let g:Powerline_cache_enabled = 0
-  let g:Powerline_stl_path_style = 'filename'
-  let g:Powerline#Functions#versions#GetBranchLifeTime = 5
-  call Pl#Theme#RemoveSegment('scrollpercent')
-  if neobundle#is_installed('vim-versions')
-    call Pl#Theme#InsertSegment('versions:branch', 'after', 'filetype')
-  endif
+  let g:airline_detect_modified = 1
+  let g:airline_left_sep = ''
+  let g:airline_right_sep = ''
+  let g:airline_theme = 'badwolf'
+  let g:airline_detect_paste = 1
 " }}}
 
 " ----------
