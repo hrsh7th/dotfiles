@@ -75,6 +75,7 @@ set nocompatible
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
 
   runtime macros/matchit.vim
 
@@ -243,6 +244,8 @@ endif
   nmap ; :
   nmap : ;
   nnoremap Q <NOP>
+  nnoremap <Space>q qq
+  nnoremap @ @q
   nnoremap j gj
   nnoremap k gk
   nnoremap < <<<ESC>
@@ -775,12 +778,32 @@ augroup END
   " my_project_root_cd.
   let s:action = { 'is_selectable' : 1 }
   function! s:action.func(candidates)
-    if versions#get_type(a:candidates[0].action__directory) == ''
-      echomsg 'current dir is not version control.'
+    let s:project_dir = g:my_unite_project_dir
+    let s:action_dir = a:candidates[0].action__directory
+    let s:vcs_root_dir = versions#get_root_dir(s:action_dir)
+    let s:is_version_control = versions#get_type(s:action_dir) != ''
+
+    if len(s:project_dir) <= 0 && s:is_version_control
+      let s:dir = s:vcs_root_dir
+    endif
+    if len(s:project_dir) > 0 && !s:is_version_control
+      let s:dir = s:project_dir
+    endif
+    echomsg s:project_dir
+    echomsg s:action_dir
+    if len(s:project_dir) > 0 && s:is_version_control
+      if len(s:project_dir) > len(s:vcs_root_dir) && fnamemodify(s:project_dir, ':p') != fnamemodify(s:action_dir, ':p')
+        let s:dir = s:project_dir
+      else
+        let s:dir = s:vcs_root_dir
+      endif
+    endif
+
+    if exists('s:dir')
+      let a:candidates[0].action__directory = s:dir
+      call vimfiler#mappings#cd(s:dir)
     else
-      let a:candidates[0].action__directory = versions#get_root_dir(a:candidates[0].action__directory)
-      call unite#take_action('cd', a:candidates[0])
-      call feedkeys('hl')
+      echomsg 'can not found cdable directory.'
     endif
   endfunction
   call unite#custom_action('file', 'my_project_root_cd', s:action)
