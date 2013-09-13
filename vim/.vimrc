@@ -780,18 +780,16 @@ augroup END
   function! s:action.func(candidates)
     let s:project_dir = g:my_unite_project_dir
     let s:action_dir = a:candidates[0].action__directory
-    let s:vcs_root_dir = versions#get_root_dir(s:action_dir)
     let s:is_version_control = versions#get_type(s:action_dir) != ''
 
     if len(s:project_dir) <= 0 && s:is_version_control
-      let s:dir = s:vcs_root_dir
+      let s:dir = versions#get_root_dir(s:action_dir)
     endif
     if len(s:project_dir) > 0 && !s:is_version_control
       let s:dir = s:project_dir
     endif
-    echomsg s:project_dir
-    echomsg s:action_dir
     if len(s:project_dir) > 0 && s:is_version_control
+      let s:vcs_root_dir = versions#get_root_dir(s:action_dir)
       if len(s:project_dir) > len(s:vcs_root_dir) && fnamemodify(s:project_dir, ':p') != fnamemodify(s:action_dir, ':p')
         let s:dir = s:project_dir
       else
