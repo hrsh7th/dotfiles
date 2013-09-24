@@ -48,6 +48,7 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
+  NeoBundle 'git://github.com/hrsh7th/vim-requirejs_import.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
@@ -58,15 +59,16 @@ set nocompatible
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
+  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
+  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
@@ -75,7 +77,6 @@ set nocompatible
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
 
   runtime macros/matchit.vim
 
@@ -486,15 +487,21 @@ augroup my-vimrc
   autocmd! BufNewFile,BufRead *.js setlocal filetype=javascript
   autocmd! Filetype js setlocal filetype=javascript
   autocmd! Filetype smarty setlocal filetype=html
-  autocmd! Filetype javascript execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype php execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype php execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
+
+  " javascript.
+  autocmd! Filetype javascript call g:my_javascript_settings()
+  function! g:my_javascript_settings()
+    nnoremap <buffer><C-k> :<C-u>RequireJsImport<CR>
+    execute get(g:my_coding_style, 's2', '')
+  endfunction
 
   " command line window.
   autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
@@ -653,6 +660,7 @@ augroup END
   let g:unite_enable_start_insert = 0
   let g:unite_split_rule = "botright"
   let g:unite_source_grep_default_opts = '-Hni'
+  let g:unite_source_grep_max_candidates = 0
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
   let g:unite_update_time = 200
