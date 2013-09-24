@@ -642,7 +642,7 @@ augroup END
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
   let g:my_vimfiler_winwidth = 30
-  let g:vimfiler_edit_action = 'nicely_open'
+  let g:vimfiler_edit_action = ''
   let g:vimfiler_safe_mode_by_default = 0
   let g:vimfiler_as_default_explorer = 1
   let g:vimfiler_directory_display_top = 1
