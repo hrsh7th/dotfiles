@@ -45,6 +45,7 @@ set nocompatible
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
   NeoBundle 'git://github.com/hrsh7th/shabadou.vim.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
+  NeoBundle 'git://github.com/hrsh7th/unite-recording.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
@@ -629,6 +630,9 @@ augroup END
 " ----------
   let g:watchdogs_check_BufWritePost_enable = 1
   let g:quickrun_config = extend(get(g:, 'quickrun_config', {}), {
+        \   '_': {
+        \     'runner': 'vimproc'
+        \   },
         \   'watchdogs_checker/_': {
         \     'outputter/quickfix/open_cmd': '',
         \     'hook/markify_clear/enable_exit' : 1,
