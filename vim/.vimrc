@@ -223,7 +223,7 @@ if has('gui_running')
     set guifont=Consolas:h10:b
     set guifontwide=MigMix_1m:h9:b
   elseif s:is_mac
-    set guifont=Menlo:h9
+    set guifont=Menlo\ Bold:h10
   elseif s:is_linux
     set guifont=Menlo:h9
   endif
@@ -467,7 +467,11 @@ augroup my-vimrc
   autocmd! VimEnter * call g:my_vimenter_setting()
   function! g:my_vimenter_setting()
     if !argc()
-      edit $MYVIMRC
+      if filereadable(expand('$HOME/todo.txt'))
+        execute 'edit ' . expand('$HOME/todo.txt')
+      else
+        edit $MYVIMRC
+      endif
       setlocal ft=vim
     endif
   endfunction
@@ -562,7 +566,7 @@ augroup my-vimrc
   " vimfiler.
   autocmd! FileType vimfiler call g:my_vimfiler_settings()
   function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><F11> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
+    nmap     <buffer><expr><C-h> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
     nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
     nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
     nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
