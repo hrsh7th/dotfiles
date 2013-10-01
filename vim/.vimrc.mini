@@ -32,6 +32,7 @@ set nocompatible
 
   execute 'source ' . expand("$HOME/dotfiles/vim/.vimrc.mini.unite.vim")
   execute 'source ' . expand("$HOME/dotfiles/vim/.vimrc.mini.vimfiler")
+  execute 'source ' . expand("$HOME/dotfiles/vim/.vimrc.mini.vimshell")
 
   syntax on
   filetype plugin on
@@ -45,5 +46,18 @@ let mapleader = "\<SPACE>"
 
 nnoremap <LEADER>u :Unite 
 nnoremap <LEADER>v :VimFilerBufferDir -simple -toggle -split -winwidth=35 -no-quit -auto-cd<CR>
+
+nnoremap H 15h
+nnoremap J 8j
+nnoremap K 8k
+nnoremap L 15l
+vnoremap H 15h
+vnoremap J 8j
+vnoremap K 8k
+vnoremap L 15l
+nnoremap <LEADER>h <C-w>h
+nnoremap <LEADER>j <C-w>j
+nnoremap <LEADER>k <C-w>k
+nnoremap <LEADER>l <C-w>l
 
 " }}}
