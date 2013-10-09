@@ -44,19 +44,19 @@ set nocompatible
   NeoBundle 'git://github.com/dhruvasagar/vim-markify.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
   NeoBundle 'git://github.com/hrsh7th/shabadou.vim.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/unite-recording.git'
+  NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
-  NeoBundle 'git://github.com/hrsh7th/vim-requirejs_import.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
+  NeoBundle 'git://github.com/marijnh/tern_for_vim.git'
+  NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
-  NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
@@ -224,6 +224,7 @@ if has('gui_running')
     set guifontwide=MigMix_1m:h9:b
   elseif s:is_mac
     set guifont=Menlo\ Bold:h10
+    set transparency=25
   elseif s:is_linux
     set guifont=Menlo:h9
   endif
@@ -245,9 +246,9 @@ endif
   nnoremap <LEADER>w :<C-u>w<CR>
   nmap ; :
   nmap : ;
-  nnoremap Q <NOP>
-  nnoremap <Space>q qq
-  nnoremap @ @q
+  nnoremap <LEADER>q :<C-u>UniteRecordingBegin<CR>
+  nmap Q <Plug>(unite-recording-execute)
+  nnoremap @ q
   nnoremap j gj
   nnoremap k gk
   nnoremap < <<<ESC>
@@ -255,7 +256,7 @@ endif
   vnoremap < <<<ESC>
   vnoremap > >><ESC>
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
-        \ 'QuickhlReset',
+        \ 'QuickhlManualReset',
         \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
@@ -430,8 +431,8 @@ endif
   vmap <LEADER>/ <PLUG>(caw:i:toggle)
 
   " quickhl.
-  nmap <LEADER>m <PLUG>(quickhl-toggle)
-  vmap <LEADER>m <PLUG>(quickhl-toggle)
+  nmap <LEADER>m <PLUG>(quickhl-manual-toggle)
+  vmap <LEADER>m <PLUG>(quickhl-manual-toggle)
 
   " replace word by register.
   nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
@@ -504,7 +505,6 @@ augroup my-vimrc
   " javascript.
   autocmd! Filetype javascript call g:my_javascript_settings()
   function! g:my_javascript_settings()
-    nnoremap <buffer><C-k> :<C-u>RequireJsImport<CR>
     execute get(g:my_coding_style, 's2', '')
   endfunction
 
@@ -933,14 +933,14 @@ augroup END
 " }}}
 
 " ----------
-" zencoding setting. {{{
+" emmet setting. {{{
 " ----------
-  let g:user_zen_expandabbr_key = '<C-k>'
-  let g:user_zen_complete_tag = 1
-  let g:user_zen_settings = {}
-  let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
-  let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
-  let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
+  let g:user_emmet_expandabbr_key= '<C-k>'
+  let g:user_emmet_complete_tag = 1
+  let g:user_emmet_settings = {}
+  let g:user_emmet_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
+  let g:user_emmet_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
+  let g:user_emmet_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
 " }}}
 
 " ----------
