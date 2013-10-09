@@ -316,9 +316,6 @@ endif
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
 
-  " expand region
-  nnoremap <CR> :<C-u>Unite jump -no-split -auto-preview -select=0<CR>
-
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
   inoremap <expr><BS> g:my_pair_delete()
