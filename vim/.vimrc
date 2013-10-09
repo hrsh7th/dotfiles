@@ -58,6 +58,7 @@ set nocompatible
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
+  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/tsukkee/unite-tag.git'
@@ -75,7 +76,6 @@ set nocompatible
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-  NeoBundle 'git://github.com/pangloss/vim-javascript.git'
 
   runtime macros/matchit.vim
 
@@ -313,9 +313,6 @@ endif
   " register history.
   inoremap <expr> <C-p> unite#start_complete('register')
 
-  " expand region
-  nnoremap <CR> :<C-u>Unite jump -no-split -auto-preview -select=0<CR>
-
   " pairs mapping.
   inoremap <expr><CR> g:my_pair_enter()
   inoremap <expr><BS> g:my_pair_delete()
@@ -374,7 +371,7 @@ endif
   " show project file.
   nnoremap <expr><F3> g:my_project_file_command()
   function! g:my_project_file_command()
-    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async -hide-source-names -silent buffer_tab file_rec/async:%s\<CR>",
+    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async-file_mru -hide-source-names -silent buffer_tab file_rec/async:%s file_mru\<CR>",
           \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
   endfunction
 
@@ -395,7 +392,6 @@ endif
   " useful menus.
   nnoremap m :<C-u>Unite resume<CR>
   nnoremap <LEADER>u :<C-u>Unite -buffer-name=source -no-start-insert source<CR>
-
   nnoremap <LEADER>0 :<C-u>Unite -buffer-name=menu -no-start-insert menu:global<CR>
 
   " tag jump.
@@ -554,14 +550,13 @@ augroup my-vimrc
   " vimfiler.
   autocmd! FileType vimfiler call g:my_vimfiler_settings()
   function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><F11> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
+    nmap     <buffer><expr><C-h> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
     nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
     nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
     nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
     nmap     <buffer>m           <PLUG>(vimfiler_clipboard_move_file)
     nmap     <buffer>p           <PLUG>(vimfiler_clipboard_paste)
     nmap     <buffer>@           <PLUG>(vimfiler_toggle_mark_current_line)
-    nmap     <buffer>;           <PLUG>(vimfiler_cd_input_directory)
     nmap     <buffer>j           j<PLUG>(vimfiler_print_filename)
     nmap     <buffer>k           k<PLUG>(vimfiler_print_filename)
     nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark directory_mru<CR>
@@ -635,7 +630,7 @@ augroup END
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
   let g:my_vimfiler_winwidth = 30
-  let g:vimfiler_edit_action = 'nicely_open'
+  let g:vimfiler_edit_action = ''
   let g:vimfiler_safe_mode_by_default = 0
   let g:vimfiler_as_default_explorer = 1
   let g:vimfiler_directory_display_top = 1
