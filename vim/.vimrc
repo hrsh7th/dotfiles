@@ -44,6 +44,7 @@ set nocompatible
   NeoBundle 'git://github.com/dhruvasagar/vim-markify.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
   NeoBundle 'git://github.com/hrsh7th/shabadou.vim.git'
+  NeoBundle 'git://github.com/hrsh7th/unite-recording.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
@@ -53,21 +54,22 @@ set nocompatible
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
+  NeoBundle 'git://github.com/marijnh/tern_for_vim.git'
+  NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
-  NeoBundle 'git://github.com/mattn/zencoding-vim.git'
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
-  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
+  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
@@ -221,7 +223,8 @@ if has('gui_running')
     set guifont=Consolas:h10:b
     set guifontwide=MigMix_1m:h9:b
   elseif s:is_mac
-    set guifont=Menlo:h9
+    set guifont=Menlo\ Bold:h10
+    set transparency=25
   elseif s:is_linux
     set guifont=Menlo:h9
   endif
@@ -243,9 +246,9 @@ endif
   nnoremap <LEADER>w :<C-u>w<CR>
   nmap ; :
   nmap : ;
-  nnoremap Q <NOP>
-  nnoremap <Space>q qq
-  nnoremap @ @q
+  nnoremap <LEADER>q :<C-u>UniteRecordingBegin<CR>
+  nmap Q <Plug>(unite-recording-execute)
+  nnoremap @ q
   nnoremap j gj
   nnoremap k gk
   nnoremap < <<<ESC>
@@ -253,7 +256,7 @@ endif
   vnoremap < <<<ESC>
   vnoremap > >><ESC>
   nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
-        \ 'QuickhlReset',
+        \ 'QuickhlManualReset',
         \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
@@ -424,8 +427,8 @@ endif
   vmap <LEADER>/ <PLUG>(caw:i:toggle)
 
   " quickhl.
-  nmap <LEADER>m <PLUG>(quickhl-toggle)
-  vmap <LEADER>m <PLUG>(quickhl-toggle)
+  nmap <LEADER>m <PLUG>(quickhl-manual-toggle)
+  vmap <LEADER>m <PLUG>(quickhl-manual-toggle)
 
   " replace word by register.
   nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
@@ -461,7 +464,11 @@ augroup my-vimrc
   autocmd! VimEnter * call g:my_vimenter_setting()
   function! g:my_vimenter_setting()
     if !argc()
-      edit $MYVIMRC
+      if filereadable(expand('$HOME/todo.txt'))
+        execute 'edit ' . expand('$HOME/todo.txt')
+      else
+        edit $MYVIMRC
+      endif
       setlocal ft=vim
     endif
   endfunction
@@ -482,15 +489,20 @@ augroup my-vimrc
   autocmd! BufNewFile,BufRead *.js setlocal filetype=javascript
   autocmd! Filetype js setlocal filetype=javascript
   autocmd! Filetype smarty setlocal filetype=html
-  autocmd! Filetype javascript execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype php execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype php execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
+
+  " javascript.
+  autocmd! Filetype javascript call g:my_javascript_settings()
+  function! g:my_javascript_settings()
+    execute get(g:my_coding_style, 's2', '')
+  endfunction
 
   " command line window.
   autocmd! CmdwinEnter * call g:my_cmdwinenter_settings()
@@ -617,6 +629,9 @@ augroup END
 " ----------
   let g:watchdogs_check_BufWritePost_enable = 1
   let g:quickrun_config = extend(get(g:, 'quickrun_config', {}), {
+        \   '_': {
+        \     'runner': 'vimproc'
+        \   },
         \   'watchdogs_checker/_': {
         \     'outputter/quickfix/open_cmd': '',
         \     'hook/markify_clear/enable_exit' : 1,
@@ -648,6 +663,7 @@ augroup END
   let g:unite_enable_start_insert = 0
   let g:unite_split_rule = "botright"
   let g:unite_source_grep_default_opts = '-Hni'
+  let g:unite_source_grep_max_candidates = 0
   let g:unite_source_file_mru_filename_format = ''
   let g:unite_source_file_rec_min_cache_files = 0
   let g:unite_update_time = 200
@@ -912,14 +928,14 @@ augroup END
 " }}}
 
 " ----------
-" zencoding setting. {{{
+" emmet setting. {{{
 " ----------
-  let g:user_zen_expandabbr_key = '<C-k>'
-  let g:user_zen_complete_tag = 1
-  let g:user_zen_settings = {}
-  let g:user_zen_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
-  let g:user_zen_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
-  let g:user_zen_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
+  let g:user_emmet_expandabbr_key= '<C-k>'
+  let g:user_emmet_complete_tag = 1
+  let g:user_emmet_settings = {}
+  let g:user_emmet_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
+  let g:user_emmet_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
+  let g:user_emmet_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
 " }}}
 
 " ----------
