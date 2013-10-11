@@ -54,7 +54,6 @@ set nocompatible
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
-  NeoBundle 'git://github.com/marijnh/tern_for_vim.git'
   NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
