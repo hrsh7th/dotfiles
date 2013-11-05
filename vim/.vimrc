@@ -41,9 +41,7 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/vimshell.git'
   NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
-  NeoBundle 'git://github.com/dhruvasagar/vim-markify.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-  NeoBundle 'git://github.com/hrsh7th/shabadou.vim.git'
   NeoBundle 'git://github.com/hrsh7th/unite-recording.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
@@ -56,6 +54,7 @@ set nocompatible
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
+  NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
   NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
@@ -102,7 +101,7 @@ set nocompatible
   set novisualbell
   set t_vb=
   set clipboard+=unnamed
-  set diffopt=filler,iwhite
+  set diffopt=filler
   set wildchar=]
   set tags=./tags;,./.tags;
   set mouse=n
@@ -212,7 +211,7 @@ if has('gui_running')
   highlight CursorIM guibg=#ff0000 guifg=NONE
 
   " visible gui parts.
-  set guioptions-=m guioptions-=T guioptions+=b
+  set guioptions-=m guioptions-=T guioptions+=b guioptions-=e
 
   " multibyte characters.
   set ambiwidth=double
@@ -223,7 +222,7 @@ if has('gui_running')
     set guifontwide=MigMix_1m:h9:b
   elseif s:is_mac
     set guifont=Menlo\ Bold:h10
-    set transparency=25
+    set transparency=10
   elseif s:is_linux
     set guifont=Menlo:h9
   endif
@@ -239,6 +238,7 @@ endif
   let mapleader="\<SPACE>"
 
   " general.
+  nnoremap <CR> :<C-u>echomsg '  ' \| echomsg '  ' \| echomsg expand('%')<CR>
   nnoremap q :<C-u>q<CR>
   nnoremap <LEADER>t :<C-u>tabclose<CR>
   nnoremap <LEADER>! :<C-u>q!<CR>
@@ -254,8 +254,9 @@ endif
   nnoremap > >><ESC>
   vnoremap < <<<ESC>
   vnoremap > >><ESC>
-  nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
+  nnoremap <expr><silent><LEADER><ESC> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
         \ 'QuickhlManualReset',
+        \ 'QuickhlCwordDisable',
         \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
@@ -426,8 +427,9 @@ endif
   vmap <LEADER>/ <PLUG>(caw:i:toggle)
 
   " quickhl.
-  nmap <LEADER>m <PLUG>(quickhl-manual-toggle)
-  vmap <LEADER>m <PLUG>(quickhl-manual-toggle)
+  nmap <LEADER><LEADER>m <Plug>(quickhl-cword-toggle)
+  nmap <LEADER>m <Plug>(quickhl-manual-this)
+  vmap <LEADER>m <Plug>(quickhl-manual-this)
 
   " replace word by register.
   nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
@@ -486,6 +488,7 @@ augroup my-vimrc
   autocmd! BufNewFile,BufRead *.as setlocal filetype=actionscript
   autocmd! Filetype as setlocal filetype=actionscript
   autocmd! BufNewFile,BufRead *.js setlocal filetype=javascript
+  autocmd! BufNewFile,BufRead *.json setlocal filetype=javascript
   autocmd! Filetype js setlocal filetype=javascript
   autocmd! Filetype smarty setlocal filetype=html
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
@@ -632,9 +635,7 @@ augroup END
         \     'runner': 'vimproc'
         \   },
         \   'watchdogs_checker/_': {
-        \     'outputter/quickfix/open_cmd': '',
-        \     'hook/markify_clear/enable_exit' : 1,
-        \     'hook/markify/enable_exit' : 1,
+        \     'outputter/quickfix/open_cmd': ''
         \   }
         \ })
 " }}}
@@ -669,6 +670,7 @@ augroup END
   let g:unite_winheight = 15
   let g:unite_source_line_enable_highlight = 1
   let g:unite_data_directory = expand("~/.unite")
+  let g:unite_kind_openable_lcd_command = 'cd'
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
   call unite#custom_filters('file_rec/async,file_rec', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
