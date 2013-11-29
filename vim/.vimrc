@@ -42,20 +42,20 @@ set nocompatible
   NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-  NeoBundle 'git://github.com/hrsh7th/unite-recording.git'
+  NeoBundle 'git://github.com/haya14busa/vim-easymotion.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
+  NeoBundle 'git://github.com/kana/vim-operator-user.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
   NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
-  NeoBundle 'git://github.com/osyo-manga/unite-airline_themes.git'
   NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pangloss/vim-javascript.git'
@@ -74,6 +74,7 @@ set nocompatible
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
   NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
+  NeoBundle 'git://github.com/vim-scripts/operator-camelize.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
 
@@ -103,6 +104,7 @@ set nocompatible
   set clipboard+=unnamed
   set diffopt=filler
   set wildchar=]
+  set splitright
   set tags=./tags;,./.tags;
   set mouse=n
   if has('persistent_undo')
@@ -238,15 +240,12 @@ endif
   let mapleader="\<SPACE>"
 
   " general.
-  nnoremap <CR> :<C-u>echomsg '  ' \| echomsg '  ' \| echomsg expand('%')<CR>
   nnoremap q :<C-u>q<CR>
   nnoremap <LEADER>t :<C-u>tabclose<CR>
   nnoremap <LEADER>! :<C-u>q!<CR>
   nnoremap <LEADER>w :<C-u>w<CR>
   nmap ; :
   nmap : ;
-  nnoremap <LEADER>q :<C-u>UniteRecordingBegin<CR>
-  nmap Q <Plug>(unite-recording-execute)
   nnoremap @ q
   nnoremap j gj
   nnoremap k gk
@@ -260,6 +259,9 @@ endif
         \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
+
+  " easymotion.
+  nmap <CR> easymotionS
 
   " marking.
   nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
@@ -374,7 +376,7 @@ endif
   " show project file.
   nnoremap <expr><F3> g:my_project_file_command()
   function! g:my_project_file_command()
-    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async-file_mru -hide-source-names -silent buffer_tab file_rec/async:%s file_mru\<CR>",
+    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async-file_mru -silent buffer_tab file_rec/async:%s file_mru\<CR>",
           \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
   endfunction
 
@@ -384,7 +386,7 @@ endif
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 
   " show outline.
-  nnoremap <F8> :<C-u>Unite -buffer-name=outline -vertical -toggle -winwidth=45 outline<CR>
+  nnoremap <F8> :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<CR>
 
   " open vimshell.
   nnoremap <F10> :<C-u>VimShellTab<CR>
@@ -439,6 +441,8 @@ endif
   omap a<LEADER> <PLUG>(textobj-multiblock-a)
   vmap i<LEADER> <PLUG>(textobj-multiblock-i)
   vmap a<LEADER> <PLUG>(textobj-multiblock-a)
+  nmap c <Plug>(operator-camelize-toggle)
+  vmap c <Plug>(operator-camelize-toggle)
 " }}}
 
 " ----------
@@ -673,8 +677,8 @@ augroup END
   let g:unite_kind_openable_lcd_command = 'cd'
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('file_rec/async,file_rec', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
-  call unite#custom_source('file_rec/async,file_rec', 'ignore_pattern', join([
+  call unite#custom_filters('file_rec/async,file_rec,file_mru', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
+  call unite#custom_source('file_rec/async,file_rec,file_mru', 'ignore_pattern', join([
         \ '\.git\/',
         \ '\.svn\/',
         \ '\/\(image\|img\)\/',
@@ -689,8 +693,6 @@ augroup END
   let g:unite_source_menu_menus.global.command_candidates = [
         \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
         \ [ 'NeoBundleUpdate!', 'Unite neobundle/update:!' ],
-        \ [ 'Unite mark', 'Unite mark -buffer-name=mark' ],
-        \ [ 'Unite todo', 'Unite todo -buffer-name=todo' ],
         \ [ 'Reverse Line Order', 'g/^/m0' ],
         \ ]
 " }}}
@@ -956,16 +958,23 @@ augroup END
 " }}}
 
 " ----------
+" easymotion setting. {{{
+" ----------
+  let g:EasyMotion_leader_key = 'easymotion'
+  let g:EasyMotion_smartcase = 1
+" }}}
+
+" ----------
 " submode setting. {{{
 " ----------
-  call submode#enter_with('winsize', 'n', '', '<C-w>>', '<C-w>>')
-  call submode#enter_with('winsize', 'n', '', '<C-w><', '<C-w><')
-  call submode#enter_with('winsize', 'n', '', '<C-w>+', '<C-w>-')
-  call submode#enter_with('winsize', 'n', '', '<C-w>-', '<C-w>+')
-  call submode#map('winsize', 'n', '', '>', '<C-w>>')
-  call submode#map('winsize', 'n', '', '<', '<C-w><')
-  call submode#map('winsize', 'n', '', '+', '<C-w>-')
-  call submode#map('winsize', 'n', '', '-', '<C-w>+')
+  call submode#enter_with('winsize', 'n', '', '<C-w>>', '15<C-w>>')
+  call submode#enter_with('winsize', 'n', '', '<C-w><', '15<C-w><')
+  call submode#enter_with('winsize', 'n', '', '<C-w>+', '15<C-w>-')
+  call submode#enter_with('winsize', 'n', '', '<C-w>-', '15<C-w>+')
+  call submode#map('winsize', 'n', '', '>', '15<C-w>>')
+  call submode#map('winsize', 'n', '', '<', '15<C-w><')
+  call submode#map('winsize', 'n', '', '+', '15<C-w>-')
+  call submode#map('winsize', 'n', '', '-', '15<C-w>+')
 " }}}
 
 if filereadable(expand('$HOME/.vimrc.local'))
