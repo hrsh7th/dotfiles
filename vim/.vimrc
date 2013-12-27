@@ -679,7 +679,7 @@ augroup END
   let g:unite_kind_openable_lcd_command = 'cd'
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('buffer_tab,file_rec/async,file_rec,file_mru', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
+  call unite#custom_filters('buffer_tab,file_rec/async,file_rec,file_mru', ['matcher_file_name', 'converter_nothing', 'sorter_nothing'])
   call unite#custom_source('file_rec/async,file_rec,file_mru', 'ignore_pattern', join([
         \ '\.git\/',
         \ '\.svn\/',
