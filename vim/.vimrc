@@ -39,6 +39,7 @@ set nocompatible
   NeoBundle 'git://github.com/Shougo/vimfiler.git'
   NeoBundle 'git://github.com/Shougo/vimproc', { 'build': { 'windows': 'make -f make_mingw32.mak', 'cygwin': 'make -f make_cygwin.mak', 'mac': 'make -f make_mac.mak', 'unix': 'make -f make_unix.mak', } }
   NeoBundle 'git://github.com/Shougo/vimshell.git'
+  NeoBundle 'git://github.com/basyura/unite-matcher-file-name.git'
   NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
@@ -49,6 +50,7 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
+  NeoBundle 'git://github.com/juvenn/mustache.vim.git'
   NeoBundle 'git://github.com/kana/vim-operator-user.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
@@ -326,7 +328,7 @@ endif
   inoremap { {}<LEFT>
   inoremap ' ''<LEFT>
   inoremap " ""<LEFT>
-  let g:my_pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<': '>' }
+  let g:my_pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<': '>', '>': '<' }
   function! g:my_pair_enter()
     if g:my_pair_is_between()
       return "\<CR>\<UP>\<END>\<CR>"
@@ -386,7 +388,7 @@ endif
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 
   " show outline.
-  nnoremap <F8> :<C-u>Unite -buffer-name=outline -vertical -winwidth=45 outline<CR>
+  nnoremap <F8> :<C-u>Unite -buffer-name=outline -vertical -no-quit -winwidth=45 outline<CR>
 
   " open vimshell.
   nnoremap <F10> :<C-u>VimShellTab<CR>
@@ -677,11 +679,13 @@ augroup END
   let g:unite_kind_openable_lcd_command = 'cd'
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('file_rec/async,file_rec,file_mru', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
+  call unite#custom_filters('buffer_tab,file_rec/async,file_rec,file_mru', ['matcher_glob', 'converter_nothing', 'sorter_nothing'])
   call unite#custom_source('file_rec/async,file_rec,file_mru', 'ignore_pattern', join([
         \ '\.git\/',
         \ '\.svn\/',
         \ '\/\(image\|img\)\/',
+        \ 'node_modules',
+        \ 'vendor'
         \ ], '\|'))
   " }}}
 
