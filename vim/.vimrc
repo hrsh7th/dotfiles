@@ -43,7 +43,6 @@ set nocompatible
   NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
-  NeoBundle 'git://github.com/haya14busa/vim-easymotion.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
@@ -63,6 +62,7 @@ set nocompatible
   NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+  NeoBundle 'git://github.com/t9md/vim-choosewin.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
@@ -261,9 +261,6 @@ endif
         \ 'HierClear',
         \ 'nohlsearch',
         \ 'redraw!')
-
-  " easymotion.
-  nmap <CR> easymotionS
 
   " marking.
   nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
@@ -559,8 +556,9 @@ augroup my-vimrc
     nmap <buffer><C-n>       <PLUG>(unite_loop_cursor_down)
     imap <buffer><C-p>       <PLUG>(unite_insert_leave)
     imap <buffer><C-n>       <PLUG>(unite_insert_leave)
-    nnoremap <buffer><expr>s unite#do_action('split')
-    nnoremap <buffer><expr>v unite#do_action('vsplit')
+    nnoremap <buffer><expr>e unite#do_action('choosewin/open')
+    nnoremap <buffer><expr>s unite#do_action('choosewin/split')
+    nnoremap <buffer><expr>v unite#do_action('choosewin/vsplit')
     let s:unite = unite#get_current_unite()
     if s:unite.profile_name == 'todo'
       nnoremap <buffer>N :<C-u>UniteTodoAddSimple<CR>
@@ -580,14 +578,12 @@ augroup my-vimrc
     nmap     <buffer>j           j<PLUG>(vimfiler_print_filename)
     nmap     <buffer>k           k<PLUG>(vimfiler_print_filename)
     nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark directory_mru<CR>
-    nnoremap <buffer>e           :<C-u>call vimfiler#mappings#do_action('nicely_open')<CR>
-    nnoremap <buffer>v           :<C-u>call vimfiler#mappings#do_action('nicely_vsplit')<CR>
-    nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('nicely_split')<CR>
+    nnoremap <buffer>e           :<C-u>call vimfiler#mappings#do_action('choosewin/open')<CR>
+    nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('choosewin/split')<CR>
+    nnoremap <buffer>v           :<C-u>call vimfiler#mappings#do_action('choosewin/vsplit')<CR>
     nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
     nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
-    nnoremap <buffer><BS>        :<C-u>VimFilerTab -double<CR>
     nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
-    nnoremap <buffer><Leader>    :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_tag_update')<CR>
   endfunction
 
   " vimshell.
@@ -651,7 +647,6 @@ augroup END
 " ----------
   let g:my_vimfiler_explorer_name = 'explorer'
   let g:my_vimfiler_winwidth = 30
-  let g:vimfiler_edit_action = ''
   let g:vimfiler_safe_mode_by_default = 0
   let g:vimfiler_as_default_explorer = 1
   let g:vimfiler_directory_display_top = 1
@@ -680,6 +675,7 @@ augroup END
   call unite#filters#sorter_default#use(['sorter_rank'])
   call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
   call unite#custom_filters('buffer_tab,file_rec/async,file_rec,file_mru', ['matcher_file_name', 'converter_nothing', 'sorter_nothing'])
+  call unite#custom_default_action('file,jump_list', 'choosewin/open')
   call unite#custom_source('file_rec/async,file_rec,file_mru', 'ignore_pattern', join([
         \ '\.git\/',
         \ '\.svn\/',
@@ -740,29 +736,34 @@ augroup END
 " ----------
 " custom unite action. {{{
 " ----------
-  " nicely_open.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    execute g:my_unite_get_prev_winnr() . 'wincmd w'
-    execute 'edit ' . a:candidates[0].action__path
+  " choosewin/open.
+  let s:action = { 'is_selectable' : 0 }
+  function! s:action.func(candidate)
+    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    call unite#take_action('open', a:candidate)
   endfunction
-  call unite#custom_action('file', 'nicely_open', s:action)
+  call unite#custom_action('openable', 'choosewin/open', s:action)
 
-  " nicely_split.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    execute g:my_unite_get_prev_winnr() . 'wincmd w'
-    execute 'split ' . a:candidates[0].action__path
+  " choosewin/split.
+  let s:action = { 'is_selectable' : 0 }
+  function! s:action.func(candidate)
+    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    call unite#take_action('split', a:candidate)
   endfunction
-  call unite#custom_action('file', 'nicely_split', s:action)
+  call unite#custom_action('openable', 'choosewin/split', s:action)
 
-  " nicely_vsplit.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    execute g:my_unite_get_prev_winnr() . 'wincmd w'
-    execute 'vsplit ' . a:candidates[0].action__path
+  " choosewin/vsplit.
+  let s:action = { 'is_selectable' : 0 }
+  function! s:action.func(candidate)
+    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    call unite#take_action('vsplit', a:candidate)
   endfunction
-  call unite#custom_action('file', 'nicely_vsplit', s:action)
+  call unite#custom_action('openable', 'choosewin/vsplit', s:action)
+
+  " check ignore window by filetype."
+  function! s:is_ignore_window(winnr)
+    return index(["unite", "vimfiler", "vimshell"], getbufvar(winbufnr(a:winnr), "&filetype")) >= 0
+  endfunction
 
   " my_project_cd.
   let s:action = { 'is_selectable' : 1 }
@@ -823,59 +824,6 @@ augroup END
     endif
   endfunction
   call unite#custom_action('file', 'my_project_root_cd', s:action)
-
-  " my_project_tag_update.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    if versions#get_type(a:candidates[0].action__directory) == ''
-      echomsg 'current dir is not version control.'
-    else
-      let s:filetype = getbufvar('#', '&filetype')
-      let s:root_dir = versions#get_root_dir(a:candidates[0].action__directory)
-      let s:ext_map = {
-            \ 'actionscript': 'as'
-            \ }
-      call unite#take_action('cd', a:candidates[0])
-      try
-        call vimproc#system(printf('ctags --recurse=yes -f %s/tags -h %s --languages=%s %s', s:root_dir, s:ext_map[s:filetype], s:filetype, s:root_dir))
-      catch
-        echomsg 'not supported filetype.'
-      endtry
-    endif
-  endfunction
-  call unite#custom_action('file', 'my_project_tag_update', s:action)
-
-  " get previous winnr for unite custom action.
-  function! g:my_unite_get_prev_winnr()
-    let s:ftypes = ['unite', 'vimshell', 'vimfiler']
-
-    " vimfiler or unite has prev_winnr?
-    if exists('b:vimfiler.__prev_winnr')
-      let s:nr = b:vimfiler.__prev_winnr
-    endif
-    if exists('b:unite.__prev_winnr')
-      let s:nr = b:unite.__prev_winnr
-    endif
-
-    " return b:{vimfiler,unite}.prev_winnr if don't match ftypes.
-    if exists('s:nr') && (index(s:ftypes, getwinvar(s:nr, '&filetype')) < 0)
-      return s:nr
-    endif
-
-    " auto detect.
-    let s:winnrs = range(1, winnr('$'))
-    if len(s:winnrs) == 1
-      return s:winnrs[0]
-    endif
-    if len(s:winnrs) <= 2
-      return filter(s:winnrs, 'getwinvar(v:val, "&filetype") != "vimfiler"')[0]
-    endif
-    let s:winnrs = filter(s:winnrs, 'index(s:ftypes, getwinvar(v:val, "&filetype")) < 0')
-    if empty(s:winnrs)
-      return winnr()
-    endif
-    return s:winnrs[0]
-  endfunction
 " }}}
 
 " ----------
@@ -959,13 +907,6 @@ augroup END
   let g:airline_right_sep = ''
   let g:airline_theme = 'badwolf'
   let g:airline_detect_paste = 1
-" }}}
-
-" ----------
-" easymotion setting. {{{
-" ----------
-  let g:EasyMotion_leader_key = 'easymotion'
-  let g:EasyMotion_smartcase = 1
 " }}}
 
 " ----------
