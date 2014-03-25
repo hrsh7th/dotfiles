@@ -7,7 +7,6 @@ set nocompatible
   let s:is_win = has('win32') || has('win64')
   let s:is_mac = !s:is_win && (has('mac') || has('macunix') || has('gui_macvim') || system('uname') =~? '^darwin')
   let s:is_linux = !s:is_win && !s:is_mac
-
   if s:is_win
     set shellslash
     let $MYVIMRUNTIME = expand('~/vimfiles')
@@ -32,6 +31,7 @@ set nocompatible
 
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
   NeoBundle 'git://github.com/Shougo/neocomplete.git'
+  NeoBundle 'git://github.com/Shougo/neomru.vim.git'
   NeoBundle 'git://github.com/Shougo/neosnippet.git'
   NeoBundle 'git://github.com/Shougo/unite-outline.git'
   NeoBundle 'git://github.com/Shougo/unite.vim.git'
@@ -45,9 +45,11 @@ set nocompatible
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
+  NeoBundle 'git://github.com/hrsh7th/vim-insert-point.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
+  NeoBundle 'git://github.com/itchyny/calendar.vim.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/juvenn/mustache.vim.git'
   NeoBundle 'git://github.com/kana/vim-operator-user.git'
@@ -61,12 +63,14 @@ set nocompatible
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
   NeoBundle 'git://github.com/pangloss/vim-javascript.git'
   NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
-  NeoBundle 'git://github.com/t9md/vim-quickhl.git'
+  NeoBundle 'git://github.com/plasticboy/vim-markdown.git'
   NeoBundle 'git://github.com/t9md/vim-choosewin.git'
+  NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
+  NeoBundle 'git://github.com/todashuta/unite-transparency.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
   NeoBundle 'git://github.com/tsukkee/unite-tag.git'
@@ -226,7 +230,7 @@ if has('gui_running')
     set guifontwide=MigMix_1m:h9:b
   elseif s:is_mac
     set guifont=Menlo\ Bold:h10
-    set transparency=10
+    set transparency=40
   elseif s:is_linux
     set guifont=Menlo:h9
   endif
@@ -375,7 +379,7 @@ endif
   " show project file.
   nnoremap <expr><F3> g:my_project_file_command()
   function! g:my_project_file_command()
-    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async-file_mru -silent buffer_tab file_rec/async:%s file_mru\<CR>",
+    return printf(":\<C-u>Unite -buffer-name=buffer_tab-file_rec/async -silent buffer_tab file_rec/async:%s\<CR>",
           \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
   endfunction
 
@@ -401,9 +405,15 @@ endif
   " tag jump.
   noremap <C-]> :<C-u>Unite -immediately -no-start-insert -buffer-name=tag tag:<C-r>=expand('<cword>')<CR><CR>
 
+  " line.
+  noremap <LEADER>? :<C-u>Unite line<CR>
+
   " complete.
   inoremap ] <C-n>
   inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
+
+  " calendar.
+  nnoremap <LEADER><BS> :Calendar -position=tab<CR>
 
   " move cursor.
   imap <expr><TAB> g:my_cursor_move_or_snippet_expand_command()
@@ -468,12 +478,12 @@ augroup my-vimrc
   autocmd! VimEnter * call g:my_vimenter_setting()
   function! g:my_vimenter_setting()
     if !argc()
-      if filereadable(expand('$HOME/todo.txt'))
-        execute 'edit ' . expand('$HOME/todo.txt')
+      if filereadable(expand('$HOME/todo.md'))
+        execute 'edit ' . expand('$HOME/todo.md')
       else
         edit $MYVIMRC
       endif
-      setlocal ft=vim
+      set ft=markdown
     endif
   endfunction
 
@@ -502,6 +512,7 @@ augroup my-vimrc
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype markdown execute get(g:my_coding_style, 's2', '')
 
   " javascript.
   autocmd! Filetype javascript call g:my_javascript_settings()
@@ -739,7 +750,13 @@ augroup END
   " choosewin/open.
   let s:action = { 'is_selectable' : 0 }
   function! s:action.func(candidate)
-    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+    if !empty(choice)
+      let tab = choice[0]
+      let win = choice[1]
+      execute 'tabnext' tab
+      execute win 'wincmd w'
+    endif
     call unite#take_action('open', a:candidate)
   endfunction
   call unite#custom_action('openable', 'choosewin/open', s:action)
@@ -747,7 +764,13 @@ augroup END
   " choosewin/split.
   let s:action = { 'is_selectable' : 0 }
   function! s:action.func(candidate)
-    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+    if !empty(choice)
+      let tab = choice[0]
+      let win = choice[1]
+      execute 'tabnext' tab
+      execute win 'wincmd w'
+    endif
     call unite#take_action('split', a:candidate)
   endfunction
   call unite#custom_action('openable', 'choosewin/split', s:action)
@@ -755,7 +778,13 @@ augroup END
   " choosewin/vsplit.
   let s:action = { 'is_selectable' : 0 }
   function! s:action.func(candidate)
-    call choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), 1)
+    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+    if !empty(choice)
+      let tab = choice[0]
+      let win = choice[1]
+      execute 'tabnext' tab
+      execute win 'wincmd w'
+    endif
     call unite#take_action('vsplit', a:candidate)
   endfunction
   call unite#custom_action('openable', 'choosewin/vsplit', s:action)
@@ -907,6 +936,13 @@ augroup END
   let g:airline_right_sep = ''
   let g:airline_theme = 'badwolf'
   let g:airline_detect_paste = 1
+" }}}
+
+" ----------
+" choosewin setting. {{{
+" ----------
+  let g:choosewin_overlay_enable = 1
+  let g:choosewin_overlay_clear_multibyte = 1
 " }}}
 
 " ----------
