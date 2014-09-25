@@ -31,6 +31,7 @@ set nocompatible
 
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
   NeoBundle 'git://github.com/Shougo/neocomplete.git'
+  NeoBundle 'git://github.com/Shougo/neocomplcache.git'
   NeoBundle 'git://github.com/Shougo/neomru.vim.git'
   NeoBundle 'git://github.com/Shougo/neosnippet.git'
   NeoBundle 'git://github.com/Shougo/unite-outline.git'
@@ -593,11 +594,19 @@ augroup my-vimrc
   endif
 
   " neocomplete.
-  if neobundle#is_installed('neocomplete')
+  if neobundle#is_installed('neocomplete') && has('lua')
     autocmd! BufRead,BufWritePost * call g:my_neocomplete_settings()
     function! g:my_neocomplete_settings()
       if !index(g:my_neocomplete_ignore_filenames, expand('<abuf>:t'))
         NeoCompleteBufferMakeCache
+      endif
+    endfunction
+  endif
+  if neobundle#is_installed('neocomplcache') && !has('lua')
+    autocmd! BufRead,BufWritePost * call g:my_neocomplcache_settings()
+    function! g:my_neocomplcache_settings()
+      if !index(g:my_neocomplete_ignore_filenames, expand('<abuf>:t'))
+        NeoComplCacheCachingBuffer
       endif
     endfunction
   endif
@@ -858,10 +867,39 @@ augroup END
 " ----------
 " neocomplete setting. {{{
 " ----------
-  if neobundle#is_installed('neocomplete')
+  if neobundle#is_installed('neocomplete') && has('lua')
     let g:my_neocomplete_ignore_filenames = ['.vimrc']
     let g:neocomplete#enable_at_startup = 1
     let g:neocomplete#auto_completion_start_length = 1
+  endif
+  if neobundle#is_installed('neocomplcache') && !has('lua')
+    let g:neocomplcache_enable_at_startup = 1
+    let g:neocomplcache_enable_ignore_case = 1
+    let g:neocomplcache_enable_camel_case_completion = 0
+    let g:neocomplcache_enable_underbar_completion = 0
+    let g:neocomplcache_enable_fuzzy_completion = 1
+    let g:neocomplcache_enable_wildcard = 1
+    let g:neocomplcache_fuzzy_completion_start_length = 1
+    let g:neocomplcache_auto_completion_start_length = 1
+    let g:neocomplcache_dictionary_filetype_lists = {}
+    let g:neocomplcache_dictionary_filetype_lists.default = ''
+    let g:neocomplcache_dictionary_filetype_lists.vimshell = $HOME . '/.vimshell/command-history'
+    if !exists('g:neocomplcache_wildcard_characters')
+      let g:neocomplcache_wildcard_characters = {}
+    endif
+    let g:neocomplcache_wildcard_characters._ = '-'
+    if !exists('g:neocomplcache_keyword_patterns')
+      let g:neocomplcache_keyword_patterns = {}
+    endif
+    let g:neocomplcache_keyword_patterns.default = '\h\w*'
+    if !exists('g:neocomplcache_source_disable')
+      let g:neocomplcache_source_disable = {}
+    endif
+    let g:neocomplcache_source_disable.include_complete = 1
+    let g:neocomplcache_source_disable.omni_complete = 1
+    let g:neocomplcache_source_disable.tags_complete = 1
+    let g:neocomplcache_source_disable.syntax_complete = 1
+    let g:neocomplcache_source_disable.dictionary_complete = 1
   endif
 " }}}
 
