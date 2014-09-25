@@ -42,6 +42,7 @@ set nocompatible
   NeoBundle 'git://github.com/basyura/unite-matcher-file-name.git'
   NeoBundle 'git://github.com/bling/vim-airline.git'
   NeoBundle 'git://github.com/dannyob/quickfixstatus.git'
+  NeoBundle 'git://github.com/groenewege/vim-less.git'
   NeoBundle 'git://github.com/h1mesuke/vim-alignta.git'
   NeoBundle 'git://github.com/hrsh7th/vim-better-css-indent.git'
   NeoBundle 'git://github.com/hrsh7th/vim-hybrid.git'
@@ -67,6 +68,7 @@ set nocompatible
   NeoBundle 'git://github.com/t9md/vim-choosewin.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
+  NeoBundle 'git://github.com/thinca/vim-github.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
@@ -79,10 +81,11 @@ set nocompatible
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
-  NeoBundle 'git://github.com/vim-scripts/html-improved-indentation.git'
   NeoBundle 'git://github.com/vim-scripts/operator-camelize.git'
+  NeoBundle 'git://github.com/vim-scripts/pig.vim.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
+  NeoBundle 'git://github.com/jason0x43/vim-js-indent.git'
 
   runtime macros/matchit.vim
 
@@ -108,7 +111,7 @@ set nocompatible
   set novisualbell
   set t_vb=
   set clipboard+=unnamed
-  set diffopt=filler
+  set diffopt=filler,iwhite
   set wildchar=]
   set splitright
   set tags=./tags;,./.tags;
@@ -133,7 +136,6 @@ set nocompatible
   set notitle
   set showcmd
   set showtabline=2
-  set tabline=%!g:my_tabline()
   set cmdheight=2
   set laststatus=2
   set nowrap
@@ -144,35 +146,6 @@ set nocompatible
   set pumheight=20
   set previewheight=20
   colorscheme hybrid
-  function! g:my_tabline()
-    let s:titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
-    let s:tabpages = join(s:titles, '').  '%#TabLineFill#%T'
-    let s:info = ''
-    if neobundle#is_installed('vim-versions')
-      let s:info .= '['
-      let s:info .= g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)
-      let s:vcs = versions#info({ 'path': g:my_unite_project_dir })
-      if strlen(s:vcs) > 0
-        let s:info .= ' : ' . s:vcs
-      endif
-      let s:info .= ']'
-    endif
-    return s:tabpages . '%=' . s:info
-  endfunction
-  function! g:my_tabtitle(tabnr)
-    let s:bufnrs = tabpagebuflist(a:tabnr)
-    let s:highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
-    let s:curbufnr = s:bufnrs[tabpagewinnr(a:tabnr) - 1]
-    let s:max_length = 30
-
-    let s:fname = a:tabnr . ': ' . fnamemodify(bufname(s:curbufnr), ':t')
-    let s:title = ' ' . s:fname . repeat(' ', s:max_length)
-    let s:title = strpart(s:title, 0, s:max_length)
-    if strlen(s:fname) > s:max_length
-      let s:title = strpart(s:title, 0, s:max_length - 4) . '... '
-    endif
-    return '%' . a:tabnr . 'T' . s:highlight . s:title . '%T%#TabLineFill#'
-  endfunction
 " }}}
 
 " ----------
@@ -350,12 +323,6 @@ endif
     endif
     return 0
   endfunction
-  function! g:my_pair_is_next_pair()
-    if exists("g:my_pairs[getline('.')[col('.') - 1]]") || len(filter(deepcopy(g:my_pairs), "v:val == getline('.')[col('.') - 1]")) > 0
-      return 1
-    endif
-    return 0
-  endfunction
 
   " search cursor_word.
   nnoremap <expr><LEADER>gf g:my_cursor_word_search_command()
@@ -371,7 +338,7 @@ endif
   " open explorer.
   nnoremap <expr><F2> g:my_open_explorer_command()
   function! g:my_open_explorer_command()
-    return printf(":\<C-u>VimFilerBufferDir -simple -buffer-name=%s -split -auto-cd -toggle -no-quit -winwidth=%s\<CR>",
+    return printf(":\<C-u>VimFilerBufferDir -simple -buffer-name=%s -split -direction=topleft -auto-cd -toggle -no-quit -winwidth=%s\<CR>",
           \ g:my_vimfiler_explorer_name,
           \ g:my_vimfiler_winwidth)
   endfunction
@@ -424,10 +391,7 @@ endif
     if getline('.')[0:col('.')-2] =~# '^\(\t\|\s\)*$'
       return "\<TAB>"
     endif
-    if g:my_pair_is_next_pair()
-      return "\<RIGHT>"
-    endif
-    return "\<C-o>e\<C-o>l"
+    return "\<PLUG>(insert_point_next_point)"
   endfunction
 
   " neosnippet.
@@ -474,19 +438,6 @@ endif
 augroup my-vimrc
   autocmd!
 
-  " starting.
-  autocmd! VimEnter * call g:my_vimenter_setting()
-  function! g:my_vimenter_setting()
-    if !argc()
-      if filereadable(expand('$HOME/todo.md'))
-        execute 'edit ' . expand('$HOME/todo.md')
-      else
-        edit $MYVIMRC
-      endif
-      set ft=markdown
-    endif
-  endfunction
-
   " insert leave.
   autocmd! InsertLeave * call g:my_insertleave_setting()
   function! g:my_insertleave_setting()
@@ -499,6 +450,7 @@ augroup my-vimrc
   autocmd! BufNewFile,BufRead *.ejs setlocal filetype=html
   autocmd! Filetype ejs setlocal filetype=html
   autocmd! BufNewFile,BufRead *.as setlocal filetype=actionscript
+  autocmd! BufNewFile,BufRead *.pig setlocal filetype=pig
   autocmd! Filetype as setlocal filetype=actionscript
   autocmd! BufNewFile,BufRead *.js setlocal filetype=javascript
   autocmd! BufNewFile,BufRead *.json setlocal filetype=javascript
@@ -508,11 +460,12 @@ augroup my-vimrc
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype php execute get(g:my_coding_style, 't4', '')
+  autocmd! Filetype php setlocal iskeyword-=$
   autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype markdown execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype mkd execute get(g:my_coding_style, 's2', '')
 
   " javascript.
   autocmd! Filetype javascript call g:my_javascript_settings()
@@ -528,17 +481,19 @@ augroup my-vimrc
     startinsert!
   endfunction
 
-  " save previous window.
-  autocmd! WinEnter * call g:my_save_previous_window_settings()
-  function! g:my_save_previous_window_settings()
-    if exists('b:unite')
-      let b:unite.__prev_winnr = winnr('#')
-    endif
-    if exists('b:vimfiler')
-      let b:vimfiler.__prev_winnr = winnr('#')
+  " starting.
+  autocmd! VimEnter * call g:my_vimenter_setting()
+  function! g:my_vimenter_setting()
+    if !argc()
+      if filereadable(expand('$HOME/todo.md'))
+        call feedkeys("\<ESC>:edit " . expand("$HOME/todo.md") . "\<CR>zR")
+      else
+        edit $MYVIMRC
+      endif
     endif
   endfunction
 
+  " window layout.
   autocmd! WinLeave * call g:my_window_layout_fix()
   function! g:my_window_layout_fix()
     " window layout fix.
@@ -556,406 +511,490 @@ augroup my-vimrc
   endfunction
 
   " unite.
-  autocmd! FileType unite call g:my_unite_settings()
-  function! g:my_unite_settings()
-    nmap <buffer><ESC>       <PLUG>(unite_exit)
-    nmap <buffer>:q          <PLUG>(unite_exit)
-    nmap <buffer><LEADER>q   <PLUG>(unite_exit)
-    nmap <buffer>@           <PLUG>(unite_toggle_mark_current_candidate)
-    nmap <buffer>a           <PLUG>(unite_append_end)
-    nmap <buffer><C-p>       <PLUG>(unite_loop_cursor_up)
-    nmap <buffer><C-n>       <PLUG>(unite_loop_cursor_down)
-    imap <buffer><C-p>       <PLUG>(unite_insert_leave)
-    imap <buffer><C-n>       <PLUG>(unite_insert_leave)
-    nnoremap <buffer><expr>e unite#do_action('choosewin/open')
-    nnoremap <buffer><expr>s unite#do_action('choosewin/split')
-    nnoremap <buffer><expr>v unite#do_action('choosewin/vsplit')
-    let s:unite = unite#get_current_unite()
-    if s:unite.profile_name == 'todo'
-      nnoremap <buffer>N :<C-u>UniteTodoAddSimple<CR>
-    endif
-  endfunction
+  if neobundle#is_installed('unite.vim')
+    autocmd! FileType unite call g:my_unite_settings()
+    function! g:my_unite_settings()
+      nmap <buffer><ESC>       <PLUG>(unite_exit)
+      nmap <buffer>:q          <PLUG>(unite_exit)
+      nmap <buffer><LEADER>q   <PLUG>(unite_exit)
+      nmap <buffer>@           <PLUG>(unite_toggle_mark_current_candidate)
+      nmap <buffer>a           <PLUG>(unite_append_end)
+      nmap <buffer><C-p>       <PLUG>(unite_loop_cursor_up)
+      nmap <buffer><C-n>       <PLUG>(unite_loop_cursor_down)
+      imap <buffer><C-p>       <PLUG>(unite_insert_leave)
+      imap <buffer><C-n>       <PLUG>(unite_insert_leave)
+      nnoremap <buffer><expr>e unite#do_action('choosewin/open')
+      nnoremap <buffer><expr>s unite#do_action('choosewin/split')
+      nnoremap <buffer><expr>v unite#do_action('choosewin/vsplit')
+      let s:unite = unite#get_current_unite()
+      if s:unite.profile_name == 'todo'
+        nnoremap <buffer>N :<C-u>UniteTodoAddSimple<CR>
+      endif
+    endfunction
+  endif
 
   " vimfiler.
-  autocmd! FileType vimfiler call g:my_vimfiler_settings()
-  function! g:my_vimfiler_settings()
-    nmap     <buffer><expr><C-h> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
-    nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
-    nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
-    nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
-    nmap     <buffer>m           <PLUG>(vimfiler_clipboard_move_file)
-    nmap     <buffer>p           <PLUG>(vimfiler_clipboard_paste)
-    nmap     <buffer>@           <PLUG>(vimfiler_toggle_mark_current_line)
-    nmap     <buffer>j           j<PLUG>(vimfiler_print_filename)
-    nmap     <buffer>k           k<PLUG>(vimfiler_print_filename)
-    nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark directory_mru<CR>
-    nnoremap <buffer>e           :<C-u>call vimfiler#mappings#do_action('choosewin/open')<CR>
-    nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('choosewin/split')<CR>
-    nnoremap <buffer>v           :<C-u>call vimfiler#mappings#do_action('choosewin/vsplit')<CR>
-    nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
-    nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
-    nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
-  endfunction
+  if neobundle#is_installed('vimfiler')
+    autocmd! FileType vimfiler call g:my_vimfiler_settings()
+    function! g:my_vimfiler_settings()
+      nmap     <buffer><expr><C-h> ':\<C-u>new \| VimFilerCreate -winwidth='. g:my_vimfiler_winwidth. ' -simple -no-quit<CR>'
+      nmap     <buffer><expr><CR>  vimfiler#smart_cursor_map("\<PLUG>(vimfiler_expand_tree)", "e")
+      nmap     <buffer><TAB>       <PLUG>(vimfiler_choose_action)
+      nmap     <buffer>c           <PLUG>(vimfiler_clipboard_copy_file)
+      nmap     <buffer>m           <PLUG>(vimfiler_clipboard_move_file)
+      nmap     <buffer>p           <PLUG>(vimfiler_clipboard_paste)
+      nmap     <buffer>@           <PLUG>(vimfiler_toggle_mark_current_line)
+      nmap     <buffer>j           j<PLUG>(vimfiler_print_filename)
+      nmap     <buffer>k           k<PLUG>(vimfiler_print_filename)
+      nnoremap <buffer>b           :<C-u>Unite -buffer-name=bookmark-vimfiler_history -default-action=cd -no-start-insert bookmark directory_mru<CR>
+      nnoremap <buffer>e           :<C-u>call vimfiler#mappings#do_action('choosewin/open')<CR>
+      nnoremap <buffer>s           :<C-u>call vimfiler#mappings#do_action('choosewin/split')<CR>
+      nnoremap <buffer>v           :<C-u>call vimfiler#mappings#do_action('choosewin/vsplit')<CR>
+      nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
+      nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
+      nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
+    endfunction
+  endif
 
   " vimshell.
-  autocmd! FileType vimshell call g:my_vimshell_settings()
-  function! g:my_vimshell_settings()
-    nnoremap <buffer>a GA
-    inoremap <buffer><TAB> <NOP>
-    inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
-    inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
-          \ 'no_start_insert' : 1,
-          \ 'default_action': 'insert',
-          \ 'select': 0,
-          \ 'input' : vimshell#get_cur_text(),
-          \ })
-    call vimshell#altercmd#define('ls', 'ls -al')
-    call vimshell#altercmd#define('ll', 'ls -al')
-    call vimshell#altercmd#define('l', 'll')
-    call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
-  endfunction
+  if neobundle#is_installed('vimshell')
+    autocmd! FileType vimshell call g:my_vimshell_settings()
+    function! g:my_vimshell_settings()
+      nnoremap <buffer>a GA
+      inoremap <buffer><TAB> <NOP>
+      inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
+      inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
+            \ 'start_insert' : 0,
+            \ 'default_action': 'insert',
+            \ 'select': 0,
+            \ 'input' : vimshell#get_cur_text(),
+            \ })
+      call vimshell#altercmd#define('ls', 'ls -al')
+      call vimshell#altercmd#define('ll', 'ls -al')
+      call vimshell#altercmd#define('l', 'll')
+      call vimshell#hook#add('chpwd', 'my_vimshell_hook_chpwd', 'g:my_vimshell_hook_chpwd')
+    endfunction
+  endif
 
   " vimshell int-*.
-  autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
-  function! g:my_vimshell_interactive_settings()
-    nnoremap <buffer>a GA
-    inoremap <buffer><TAB> <NOP>
-    inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
-    inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
-          \ 'no_start_insert' : 1,
-          \ 'select': 0,
-          \ 'default_action': 'insert',
-          \ 'input' : vimshell#get_cur_text(),
-          \ })
-  endfunction
+  if neobundle#is_installed('vimshell')
+    autocmd! Filetype int-* call g:my_vimshell_interactive_settings()
+    function! g:my_vimshell_interactive_settings()
+      nnoremap <buffer>a GA
+      inoremap <buffer><TAB> <NOP>
+      inoremap <buffer><expr><TAB> g:my_cursor_move_or_snippet_expand_command()
+      inoremap <buffer><expr><C-l> unite#start_complete(['vimshell/history', 'vimshell/external_history'], {
+            \ 'start_insert' : 0,
+            \ 'select': 0,
+            \ 'default_action': 'insert',
+            \ 'input' : vimshell#get_cur_text(),
+            \ })
+    endfunction
+  endif
 
   " neocomplete.
-  autocmd! BufRead,BufWritePost * call g:my_neocomplete_settings()
-  function! g:my_neocomplete_settings()
-    if !index(g:my_neocomplete_ignore_filenames, expand('<abuf>:t'))
-      NeoCompleteBufferMakeCache
-    endif
-  endfunction
+  if neobundle#is_installed('neocomplete')
+    autocmd! BufRead,BufWritePost * call g:my_neocomplete_settings()
+    function! g:my_neocomplete_settings()
+      if !index(g:my_neocomplete_ignore_filenames, expand('<abuf>:t'))
+        NeoCompleteBufferMakeCache
+      endif
+    endfunction
+  endif
 augroup END
 " }}}
 
 " ----------
 " watchdogs setting. {{{
 " ----------
-  let g:watchdogs_check_BufWritePost_enable = 1
-  let g:quickrun_config = extend(get(g:, 'quickrun_config', {}), {
-        \   '_': {
-        \     'runner': 'vimproc'
-        \   },
-        \   'watchdogs_checker/_': {
-        \     'outputter/quickfix/open_cmd': ''
-        \   }
-        \ })
+  if neobundle#is_installed('vim-watchdogs')
+    let g:watchdogs_check_BufWritePost_enable = 1
+    let g:quickrun_config = extend(get(g:, 'quickrun_config', {}), {
+          \   '_': {
+          \     'runner': 'vimproc'
+          \   },
+          \   'watchdogs_checker/_': {
+          \     'outputter/quickfix/open_cmd': ''
+          \   }
+          \ })
+  endif
 " }}}
 
 " ----------
 " vimfiler setting. {{{
 " ----------
-  let g:my_vimfiler_explorer_name = 'explorer'
-  let g:my_vimfiler_winwidth = 30
-  let g:vimfiler_safe_mode_by_default = 0
-  let g:vimfiler_as_default_explorer = 1
-  let g:vimfiler_directory_display_top = 1
-  let g:vimfiler_tree_leaf_icon = ' '
-  let g:vimfiler_tree_opened_icon = '-'
-  let g:vimfiler_tree_closed_icon = '+'
+  if neobundle#is_installed('vimfiler')
+    let g:my_vimfiler_explorer_name = 'explorer'
+    let g:my_vimfiler_winwidth = 30
+    let g:vimfiler_safe_mode_by_default = 0
+    let g:vimfiler_as_default_explorer = 1
+    let g:vimfiler_directory_display_top = 1
+    let g:vimfiler_tree_leaf_icon = ' '
+    let g:vimfiler_tree_opened_icon = '-'
+    let g:vimfiler_tree_closed_icon = '+'
+  endif
 " }}}
 
 " ----------
 " unite setting. {{{
 " ----------
-  if !exists('g:my_unite_project_dir')
-    let g:my_unite_project_dir = ""
+  if neobundle#is_installed('unite.vim')
+    if !exists('g:my_unite_project_dir')
+      let g:my_unite_project_dir = ""
+    endif
+    let g:unite_data_directory = expand("~/.unite")
+    let g:unite_source_grep_default_opts = '-Hni'
+    let g:unite_source_grep_max_candidates = 0
+    let g:unite_source_file_mru_filename_format = ''
+    let g:unite_source_file_rec_min_cache_files = 0
+    let g:unite_source_line_enable_highlight = 1
+    let g:unite_kind_openable_lcd_command = 'cd'
+    call unite#custom#profile('default', 'context', {
+          \ 'no_start_insert': 1,
+          \ 'start_insert': 0,
+          \ 'direction': 'botright',
+          \ 'update_time': 200,
+          \ 'winheight': 15,
+          \ })
+    call unite#filters#sorter_default#use(['sorter_rank'])
+    call unite#set_profile('action', 'context', { 'start_insert': 0 })
+    call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'matchers', ['matcher_file_name'])
+    call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'sorters', ['sorter_nothing'])
+    call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'converters', ['converter_nothing'])
+    call unite#custom#source('file,jump_list', 'default_action', 'choosewin/open')
+    call unite#custom#source('file_rec/async,file_rec/git,file_rec,file_mru', 'ignore_pattern', join([
+          \ '\.git\/',
+          \ '\.svn\/',
+          \ '\/\(image\|img\)\/',
+          \ 'node_modules',
+          \ 'vendor'
+          \ ], '\|'))
   endif
-  let g:unite_enable_start_insert = 0
-  let g:unite_split_rule = "botright"
-  let g:unite_source_grep_default_opts = '-Hni'
-  let g:unite_source_grep_max_candidates = 0
-  let g:unite_source_file_mru_filename_format = ''
-  let g:unite_source_file_rec_min_cache_files = 0
-  let g:unite_update_time = 200
-  let g:unite_winheight = 15
-  let g:unite_source_line_enable_highlight = 1
-  let g:unite_data_directory = expand("~/.unite")
-  let g:unite_kind_openable_lcd_command = 'cd'
-  call unite#filters#sorter_default#use(['sorter_rank'])
-  call unite#set_profile('action', 'context', { 'no_start_insert': 1 })
-  call unite#custom_filters('buffer_tab,file_rec/async,file_rec,file_mru', ['matcher_file_name', 'converter_nothing', 'sorter_nothing'])
-  call unite#custom_default_action('file,jump_list', 'choosewin/open')
-  call unite#custom_source('file_rec/async,file_rec,file_mru', 'ignore_pattern', join([
-        \ '\.git\/',
-        \ '\.svn\/',
-        \ '\/\(image\|img\)\/',
-        \ 'node_modules',
-        \ 'vendor'
-        \ ], '\|'))
   " }}}
 
 " ----------
 " unite menu source. {{{
 " ----------
-  let g:unite_source_menu_menus = {}
-  let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
-  let g:unite_source_menu_menus.global.command_candidates = [
-        \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
-        \ [ 'NeoBundleUpdate!', 'Unite neobundle/update:!' ],
-        \ [ 'Reverse Line Order', 'g/^/m0' ],
-        \ ]
+  if neobundle#is_installed('unite.vim')
+    let g:unite_source_menu_menus = {}
+    let g:unite_source_menu_menus.global = { 'description': 'global menu.' }
+    let g:unite_source_menu_menus.global.command_candidates = [
+          \ [ 'NeoSnippetEdit', 'NeoSnippetEdit -split -vertical' ],
+          \ [ 'NeoBundleUpdate!', 'Unite neobundle/update:!' ],
+          \ [ 'Reverse Line Order', 'g/^/m0' ],
+          \ [ 'Remove All ^M', '%s///g' ],
+          \ ]
+  endif
 " }}}
 
 " ----------
 " custom unite filter. {{{
 " ----------
-  " matcher_remove.
-  let s:filter = { 'name' : 'matcher_my_remove' }
-  function! s:filter.filter(candidates, context)
-    let candidates = a:candidates
-    for s:regex in ['*vimfiler*', '*vimshell*', '.vimrc']
-      let s:candidates = filter(a:candidates, 'v:val.word !~# "'. s:regex. '"')
-    endfor
-    return s:candidates
-  endfunction
-  call unite#define_filter(s:filter)
-  call unite#custom_filters('buffer_tab,jump', ['matcher_my_remove', 'matcher_glob', 'converter_default', 'sorter_default'])
+  if neobundle#is_installed('unite.vim')
+    " matcher_remove.
+    let s:filter = { 'name' : 'matcher_my_remove' }
+    function! s:filter.filter(candidates, context)
+      let candidates = a:candidates
+      for s:regex in ['*vimfiler*', '*vimshell*', '.vimrc']
+        let s:candidates = filter(a:candidates, 'v:val.word !~# "'. s:regex. '"')
+      endfor
+      return s:candidates
+    endfunction
+    call unite#define_filter(s:filter)
+    call unite#custom#source('buffer_tab,jump', 'matchers', ['matcher_my_remove', 'matcher_glob'])
 
-  " matcher_unique.
-  let s:filter = { 'name' : 'matcher_my_unique' }
-  function! s:filter.filter(candidates, context)
-    let s:candidates = []
-    for s:candidate1 in a:candidates
-      let s:found = 0
-      for s:candidate2 in a:candidates
-        if !(s:candidate1 is s:candidate2) && s:candidate1.action__path == s:candidate2.action__path
-          let s:found = 1
+    " matcher_unique.
+    let s:filter = { 'name' : 'matcher_my_unique' }
+    function! s:filter.filter(candidates, context)
+      let s:candidates = []
+      for s:candidate1 in a:candidates
+        let s:found = 0
+        for s:candidate2 in a:candidates
+          if !(s:candidate1 is s:candidate2) && s:candidate1.action__path == s:candidate2.action__path
+            let s:found = 1
+          endif
+        endfor
+        if !s:found
+          call add(s:candidates, s:candidate1)
         endif
       endfor
-      if !s:found
-        call add(s:candidates, s:candidate1)
-      endif
-    endfor
-    return s:candidates
-  endfunction
-  call unite#define_filter(s:filter)
-  call unite#custom_filters('vimfiler/history', ['matcher_my_unique', 'matcher_glob', 'converter_default', 'sorter_default'])
+      return s:candidates
+    endfunction
+    call unite#define_filter(s:filter)
+    call unite#custom#source('vimfiler/history', 'matchers', ['matcher_my_unique', 'matcher_glob'])
+  endif
 " }}}
 
 " ----------
 " custom unite action. {{{
 " ----------
-  " choosewin/open.
-  let s:action = { 'is_selectable' : 0 }
-  function! s:action.func(candidate)
-    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
-    if !empty(choice)
-      let tab = choice[0]
-      let win = choice[1]
-      execute 'tabnext' tab
-      execute win 'wincmd w'
-    endif
-    call unite#take_action('open', a:candidate)
-  endfunction
-  call unite#custom_action('openable', 'choosewin/open', s:action)
-
-  " choosewin/split.
-  let s:action = { 'is_selectable' : 0 }
-  function! s:action.func(candidate)
-    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
-    if !empty(choice)
-      let tab = choice[0]
-      let win = choice[1]
-      execute 'tabnext' tab
-      execute win 'wincmd w'
-    endif
-    call unite#take_action('split', a:candidate)
-  endfunction
-  call unite#custom_action('openable', 'choosewin/split', s:action)
-
-  " choosewin/vsplit.
-  let s:action = { 'is_selectable' : 0 }
-  function! s:action.func(candidate)
-    let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
-    if !empty(choice)
-      let tab = choice[0]
-      let win = choice[1]
-      execute 'tabnext' tab
-      execute win 'wincmd w'
-    endif
-    call unite#take_action('vsplit', a:candidate)
-  endfunction
-  call unite#custom_action('openable', 'choosewin/vsplit', s:action)
-
-  " check ignore window by filetype."
-  function! s:is_ignore_window(winnr)
-    return index(["unite", "vimfiler", "vimshell"], getbufvar(winbufnr(a:winnr), "&filetype")) >= 0
-  endfunction
-
-  " my_project_cd.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    let g:my_unite_project_dir = substitute(a:candidates[0].action__directory, '\/$', '', 'g')
-    let winnr = bufwinnr(bufnr('%'))
-    for bufnr in range(1, bufnr('$'))
-      if stridx(fnamemodify(bufname(bufnr), ':p'), fnamemodify(g:my_unite_project_dir, ':p')) == -1
-        continue
-      endif
-
-      let bufwinnr = bufwinnr(bufnr)
-
-      " remove.
-      if bufwinnr == -1 && bufexists(bufnr)
-        try
-          execute 'bdelete ' . bufnr
-        catch
-        endtry
-
-      " hidden.
+  if neobundle#is_installed('unite.vim')
+    " choosewin/open.
+    let s:action = { 'is_selectable' : 0 }
+    function! s:action.func(candidate)
+      let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+      if !empty(choice)
+        let tab = choice[0]
+        let win = choice[1]
+        execute 'tabnext' tab
+        execute win 'wincmd w'
       else
-        execute bufwinnr . 'wincmd w'
-        setlocal bufhidden=delete nobuflisted
+        return
       endif
-    endfor
-    execute winnr . 'wincmd w'
-  endfunction
-  call unite#custom_action('file', 'my_project_cd', s:action)
+      call unite#take_action('open', a:candidate)
+    endfunction
+    call unite#custom_action('openable', 'choosewin/open', s:action)
 
-  " my_project_root_cd.
-  let s:action = { 'is_selectable' : 1 }
-  function! s:action.func(candidates)
-    let s:project_dir = g:my_unite_project_dir
-    let s:action_dir = a:candidates[0].action__directory
-    let s:is_version_control = versions#get_type(s:action_dir) != ''
+    " choosewin/split.
+    let s:action = { 'is_selectable' : 0 }
+    function! s:action.func(candidate)
+      let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+      if !empty(choice)
+        let tab = choice[0]
+        let win = choice[1]
+        execute 'tabnext' tab
+        execute win 'wincmd w'
+      else
+        return
+      endif
+      call unite#take_action('split', a:candidate)
+    endfunction
+    call unite#custom_action('openable', 'choosewin/split', s:action)
 
-    if len(s:project_dir) <= 0 && s:is_version_control
-      let s:dir = versions#get_root_dir(s:action_dir)
-    endif
-    if len(s:project_dir) > 0 && !s:is_version_control
-      let s:dir = s:project_dir
-    endif
-    if len(s:project_dir) > 0 && s:is_version_control
-      let s:vcs_root_dir = versions#get_root_dir(s:action_dir)
-      if len(s:project_dir) > len(s:vcs_root_dir) && fnamemodify(s:project_dir, ':p') != fnamemodify(s:action_dir, ':p')
+    " choosewin/vsplit.
+    let s:action = { 'is_selectable' : 0 }
+    function! s:action.func(candidate)
+      let choice = choosewin#start(filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)'), { 'noop': 1, 'auto_choose': 1 })
+      if !empty(choice)
+        let tab = choice[0]
+        let win = choice[1]
+        execute 'tabnext' tab
+        execute win 'wincmd w'
+      else
+        return
+      endif
+      call unite#take_action('vsplit', a:candidate)
+    endfunction
+    call unite#custom_action('openable', 'choosewin/vsplit', s:action)
+
+    " check ignore window by filetype."
+    function! s:is_ignore_window(winnr)
+      return index(["unite", "vimfiler", "vimshell"], getbufvar(winbufnr(a:winnr), "&filetype")) >= 0
+    endfunction
+
+    " my_project_cd.
+    let s:action = { 'is_selectable' : 1 }
+    function! s:action.func(candidates)
+      let g:my_unite_project_dir = substitute(a:candidates[0].action__path, '\/$', '', 'g')
+      let winnr = bufwinnr(bufnr('%'))
+      for bufnr in range(1, bufnr('$'))
+        if stridx(fnamemodify(bufname(bufnr), ':p'), fnamemodify(g:my_unite_project_dir, ':p')) == -1
+          continue
+        endif
+
+        let bufwinnr = bufwinnr(bufnr)
+
+        " remove.
+        if bufwinnr == -1 && bufexists(bufnr)
+          try
+            execute 'bdelete ' . bufnr
+          catch
+          endtry
+
+        " hidden.
+        else
+          execute bufwinnr . 'wincmd w'
+          setlocal bufhidden=delete nobuflisted
+        endif
+      endfor
+      execute winnr . 'wincmd w'
+    endfunction
+    call unite#custom_action('file_vimfiler_base', 'my_project_cd', s:action)
+
+    " my_project_root_cd.
+    let s:action = { 'is_selectable' : 1 }
+    function! s:action.func(candidates)
+      let s:project_dir = g:my_unite_project_dir
+      let s:action_dir = a:candidates[0].action__path
+      let s:is_version_control = versions#get_type(s:action_dir) != ''
+
+      if len(s:project_dir) <= 0 && s:is_version_control
+        let s:dir = versions#get_root_dir(s:action_dir)
+      endif
+      if len(s:project_dir) > 0 && !s:is_version_control
         let s:dir = s:project_dir
-      else
-        let s:dir = s:vcs_root_dir
       endif
-    endif
+      if len(s:project_dir) > 0 && s:is_version_control
+        let s:vcs_root_dir = versions#get_root_dir(s:action_dir)
+        if len(s:project_dir) > len(s:vcs_root_dir) && fnamemodify(s:project_dir, ':p') != fnamemodify(s:action_dir, ':p')
+          let s:dir = s:project_dir
+        else
+          let s:dir = s:vcs_root_dir
+        endif
+      endif
 
-    if exists('s:dir')
-      let a:candidates[0].action__directory = s:dir
-      call vimfiler#mappings#cd(s:dir)
-    else
-      echomsg 'can not found cdable directory.'
-    endif
-  endfunction
-  call unite#custom_action('file', 'my_project_root_cd', s:action)
+      if exists('s:dir')
+        let a:candidates[0].action__path = s:dir
+        call vimfiler#mappings#cd(s:dir)
+      else
+        echomsg 'can not found cdable directory.'
+      endif
+    endfunction
+    call unite#custom_action('file', 'my_project_root_cd', s:action)
+  endif
 " }}}
 
 " ----------
 " neosnippet setting. {{{
 " ----------
-  if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
-    let g:neosnippet#snippets_directory = $MYVIMRUNTIME. '/bundle/vim-neco-snippets'
-    let g:neosnippet#disable_runtime_snippets = { '_': 1 }
+  if neobundle#is_installed('neosnippet')
+    if isdirectory($MYVIMRUNTIME. '/bundle/vim-neco-snippets')
+      let g:neosnippet#snippets_directory = $MYVIMRUNTIME. '/bundle/vim-neco-snippets'
+      let g:neosnippet#disable_runtime_snippets = { '_': 1 }
+    endif
   endif
 " }}}
 
 " ----------
-" neocomplete setting. {{[
+" neocomplete setting. {{{
 " ----------
-  let g:my_neocomplete_ignore_filenames = ['.vimrc']
-  let g:neocomplete#enable_at_startup = 1
-  let g:neocomplete#auto_completion_start_length = 1
+  if neobundle#is_installed('neocomplete')
+    let g:my_neocomplete_ignore_filenames = ['.vimrc']
+    let g:neocomplete#enable_at_startup = 1
+    let g:neocomplete#auto_completion_start_length = 1
+  endif
 " }}}
 
 " ----------
 " vimshell setting. {{{
 " ----------
-  let g:vimshell_popup_height = 40
-  let g:vimshell_split_command = 'tabnew'
-  let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
-  let g:vimshell_disable_escape_highlight = 1
-  let g:vimshell_prompt = '$ '
-  let g:vimshell_right_prompt = 'versions#info()'
-  let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | set winfixheight'
-  function! g:my_vimshell_popup()
-    return winheight(0) * g:vimshell_popup_height / 100
-  endfunction
-  function! g:my_vimshell_hook_chpwd(args, context)
-    call vimshell#execute('ls -al')
-  endfunction
+  if neobundle#is_installed('vimshell')
+    let g:vimshell_popup_height = 40
+    let g:vimshell_split_command = 'tabnew'
+    let g:vimshell_user_prompt = 'fnamemodify(getcwd(), ":~")'
+    let g:vimshell_disable_escape_highlight = 1
+    let g:vimshell_prompt = '$ '
+    let g:vimshell_right_prompt = 'versions#info()'
+    let g:vimshell_popup_command = 'topleft sp | execute "resize " . g:my_vimshell_popup() | setlocal winfixheight'
+    function! g:my_vimshell_popup()
+      return winheight(0) * g:vimshell_popup_height / 100
+    endfunction
+    function! g:my_vimshell_hook_chpwd(args, context)
+      call vimshell#execute('ls -al')
+    endfunction
+  endif
 " }}}
 
 " ----------
 " versions. {{{
 " ----------
-  let g:versions#type#svn#log#stop_on_copy = 0
-  if !exists('g:versions#info')
-    let g:versions#info = {}
+  if neobundle#is_installed('vim-versions')
+    let g:versions#type#svn#log#stop_on_copy = 0
+    if !exists('g:versions#info')
+      let g:versions#info = {}
+    endif
+    let g:versions#info.git = '(%s) - (%b)'
+    let g:versions#info.svn = '(%s) - (%R)'
+    let g:versions#type#svn#status#ignore_status = ['X']
+    let g:versions#type#git#log#append_is_pushed = 1
   endif
-  let g:versions#info.git = '(%s) - (%b)'
-  let g:versions#info.svn = '(%s) - (%R)'
-  let g:versions#type#svn#status#ignore_status = ['X']
-  let g:versions#type#git#log#append_is_pushed = 1
-  let g:versions#type#git#log#first_parent = 1
+" }}}
+
+" ----------
+" versions. {{{
+" ----------
+  if neobundle#is_installed('vim-versions')
+    set tabline=%!g:my_tabline()
+
+    function! g:my_tabline()
+      let s:titles = map(range(1, tabpagenr('$')), 'g:my_tabtitle(v:val)')
+      let s:tabpages = join(s:titles, '').  '%#TabLineFill#%T'
+      let s:info = ''
+      if neobundle#is_installed('vim-versions')
+        let s:info .= '['
+        let s:info .= g:my_unite_project_dir == '' ? 'project_dir not detect' : pathshorten(g:my_unite_project_dir)
+        let s:vcs = versions#info({ 'path': g:my_unite_project_dir })
+        if strlen(s:vcs) > 0
+          let s:info .= ' : ' . s:vcs
+        endif
+        let s:info .= ']'
+      endif
+      return s:tabpages . '%=' . s:info
+    endfunction
+
+    function! g:my_tabtitle(tabnr)
+      let s:bufnrs = tabpagebuflist(a:tabnr)
+      let s:highlight = a:tabnr is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
+      let s:curbufnr = s:bufnrs[tabpagewinnr(a:tabnr) - 1]
+      let s:max_length = 30
+
+      let s:fname = a:tabnr . ': ' . fnamemodify(bufname(s:curbufnr), ':t')
+      let s:title = ' ' . s:fname . repeat(' ', s:max_length)
+      let s:title = strpart(s:title, 0, s:max_length)
+      if strlen(s:fname) > s:max_length
+        let s:title = strpart(s:title, 0, s:max_length - 4) . '... '
+      endif
+      return '%' . a:tabnr . 'T' . s:highlight . s:title . '%T%#TabLineFill#'
+    endfunction
+  endif
 " }}}
 
 " ----------
 " prettyprint setting. {{{
 " ----------
-  let g:prettyprint_indent = 2
-  let g:prettyprint_width = 50
+  if neobundle#is_installed('vim-prettyprint')
+    let g:prettyprint_indent = 2
+    let g:prettyprint_width = 50
+  endif
 " }}}
 
 " ----------
 " emmet setting. {{{
 " ----------
-  let g:user_emmet_expandabbr_key= '<C-k>'
-  let g:user_emmet_complete_tag = 1
-  let g:user_emmet_settings = {}
-  let g:user_emmet_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
-  let g:user_emmet_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
-  let g:user_emmet_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
-" }}}
-
-" ----------
-" trailingwhitespace setting. {{{
-" ----------
-  let g:trailing_whitespace_fix_events = {}
+  if neobundle#is_installed('emmet-vim')
+    let g:user_emmet_expandabbr_key= '<C-k>'
+    let g:user_emmet_complete_tag = 1
+    let g:user_emmet_settings = {}
+    let g:user_emmet_settings['html'] = { 'lang': 'ja', 'indentation': '  ' }
+    let g:user_emmet_settings['php']  = { 'extends': 'html', 'filters': 'c', 'indentation': '    ' }
+    let g:user_emmet_settings['xml']  = { 'extends': 'html', 'indentation': '    ' }
+  endif
 " }}}
 
 " ----------
 " airline setting. {{{
 " ----------
-  let g:airline_detect_modified = 1
-  let g:airline_left_sep = ''
-  let g:airline_right_sep = ''
-  let g:airline_theme = 'badwolf'
-  let g:airline_detect_paste = 1
+  if neobundle#is_installed('vim-airline')
+    let g:airline_detect_modified = 1
+    let g:airline_left_sep = ''
+    let g:airline_right_sep = ''
+    let g:airline_theme = 'badwolf'
+    let g:airline_detect_paste = 1
+  endif
 " }}}
 
 " ----------
 " choosewin setting. {{{
 " ----------
-  let g:choosewin_overlay_enable = 1
-  let g:choosewin_overlay_clear_multibyte = 1
+  if neobundle#is_installed('vim-choosewin')
+    let g:choosewin_overlay_enable = 1
+    let g:choosewin_overlay_clear_multibyte = 1
+  endif
 " }}}
 
 " ----------
 " submode setting. {{{
 " ----------
-  call submode#enter_with('winsize', 'n', '', '<C-w>>', '15<C-w>>')
-  call submode#enter_with('winsize', 'n', '', '<C-w><', '15<C-w><')
-  call submode#enter_with('winsize', 'n', '', '<C-w>+', '15<C-w>-')
-  call submode#enter_with('winsize', 'n', '', '<C-w>-', '15<C-w>+')
-  call submode#map('winsize', 'n', '', '>', '15<C-w>>')
-  call submode#map('winsize', 'n', '', '<', '15<C-w><')
-  call submode#map('winsize', 'n', '', '+', '15<C-w>-')
-  call submode#map('winsize', 'n', '', '-', '15<C-w>+')
+  if neobundle#is_installed('vim-submode')
+    call submode#enter_with('winsize', 'n', '', '<C-w>>', '15<C-w>>')
+    call submode#enter_with('winsize', 'n', '', '<C-w><', '15<C-w><')
+    call submode#enter_with('winsize', 'n', '', '<C-w>+', '15<C-w>-')
+    call submode#enter_with('winsize', 'n', '', '<C-w>-', '15<C-w>+')
+    call submode#map('winsize', 'n', '', '>', '15<C-w>>')
+    call submode#map('winsize', 'n', '', '<', '15<C-w><')
+    call submode#map('winsize', 'n', '', '+', '15<C-w>-')
+    call submode#map('winsize', 'n', '', '-', '15<C-w>+')
+  endif
 " }}}
 
 if filereadable(expand('$HOME/.vimrc.local'))

@@ -12,6 +12,12 @@ set nocompatible
   endif
 " }}}
 
+set equalalways
+set cmdheight=2
+set scrolloff=3
+set sidescrolloff=3
+set virtualedit=all
+
 let g:unite_split_rule = "botright"
 let g:unite_winheight = 15
 let g:unite_enable_start_insert = 0
