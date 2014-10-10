@@ -492,6 +492,7 @@ augroup my-vimrc
         call feedkeys("\<ESC>:edit " . expand("$HOME/todo.md") . "\<CR>zR")
       else
         edit $MYVIMRC
+        set filetype=vim
       endif
     endif
   endfunction
