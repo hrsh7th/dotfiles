@@ -27,8 +27,8 @@ set nocompatible
     filetype indent off
     execute 'set runtimepath+=' . expand('$MYVIMRUNTIME/bundle/neobundle.vim')
   endif
-  call neobundle#rc(expand('$MYVIMRUNTIME/bundle'))
 
+  call neobundle#begin(expand('$MYVIMRUNTIME/bundle'))
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
   NeoBundle 'git://github.com/Shougo/neocomplete.git'
   NeoBundle 'git://github.com/Shougo/neocomplcache.git'
@@ -87,6 +87,7 @@ set nocompatible
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
   NeoBundle 'git://github.com/jason0x43/vim-js-indent.git'
+  call neobundle#end()
 
   runtime macros/matchit.vim
 
@@ -168,8 +169,6 @@ set nocompatible
   set smartindent
   set shiftwidth=4
   set textwidth=0
-  set comments=sl:/*,mb:\ *,elx:\ */
-  set formatoptions+=rco
   set expandtab
   set tabstop=4
   set softtabstop=4
@@ -445,6 +444,10 @@ augroup my-vimrc
     set nopaste
   endfunction
 
+  " all option.
+  autocmd! Filetype * setlocal comments=sl:/*,mb:\ *,elx:\ */
+  autocmd! Filetype * setlocal formatoptions+=rco"
+
   " filetype.
   autocmd! BufNewFile,BufRead *.tpl setlocal filetype=html
   autocmd! Filetype tpl setlocal filetype=html
@@ -460,8 +463,7 @@ augroup my-vimrc
   autocmd! Filetype actionscript execute get(g:my_coding_style, 't4', '')
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype php execute get(g:my_coding_style, 't4', '')
-  autocmd! Filetype php setlocal iskeyword-=$
+  autocmd! Filetype php execute get(g:my_coding_style, 't4', '') | setlocal iskeyword-=$
   autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
