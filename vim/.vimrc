@@ -287,6 +287,11 @@ endif
   inoremap <C-l> <C-o>l
   inoremap <C-h> <C-o>h
 
+  " gf split.
+  nnoremap gf<CR> gf
+  nnoremap gfv :<C-u>vsplit<CR>gf
+  nnoremap gfs :<C-u>split<CR>gf
+
   " use command line window.
   nnoremap : q:
   xnoremap : q:
