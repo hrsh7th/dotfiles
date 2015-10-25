@@ -30,8 +30,8 @@ set nocompatible
 
   call neobundle#begin(expand('$MYVIMRUNTIME/bundle'))
   NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
-  NeoBundle 'git://github.com/Shougo/neocomplete.git'
   NeoBundle 'git://github.com/Shougo/neocomplcache.git'
+  NeoBundle 'git://github.com/Shougo/neocomplete.git'
   NeoBundle 'git://github.com/Shougo/neomru.vim.git'
   NeoBundle 'git://github.com/Shougo/neosnippet.git'
   NeoBundle 'git://github.com/Shougo/unite-outline.git'
@@ -51,45 +51,36 @@ set nocompatible
   NeoBundle 'git://github.com/hrsh7th/vim-neco-calc.git'
   NeoBundle 'git://github.com/hrsh7th/vim-neco-snippets.git'
   NeoBundle 'git://github.com/hrsh7th/vim-versions.git'
-  NeoBundle 'git://github.com/itchyny/calendar.vim.git'
+  NeoBundle 'git://github.com/jason0x43/vim-js-indent.git'
   NeoBundle 'git://github.com/jceb/vim-hier.git'
   NeoBundle 'git://github.com/juvenn/mustache.vim.git'
-  NeoBundle 'git://github.com/kana/vim-operator-user.git'
   NeoBundle 'git://github.com/kana/vim-submode.git'
   NeoBundle 'git://github.com/kana/vim-textobj-user.git'
-  NeoBundle 'git://github.com/leafgarland/typescript-vim.git'
   NeoBundle 'git://github.com/mattn/emmet-vim.git'
   NeoBundle 'git://github.com/mattn/webapi-vim.git'
   NeoBundle 'git://github.com/osyo-manga/shabadou.vim.git'
-  NeoBundle 'git://github.com/osyo-manga/vim-textobj-multiblock.git'
   NeoBundle 'git://github.com/osyo-manga/vim-watchdogs.git'
+  NeoBundle 'git://github.com/othree/html5.vim.git'
   NeoBundle 'git://github.com/pangloss/vim-javascript.git'
-  NeoBundle 'git://github.com/pasela/unite-webcolorname.git'
   NeoBundle 'git://github.com/plasticboy/vim-markdown.git'
   NeoBundle 'git://github.com/t9md/vim-choosewin.git'
   NeoBundle 'git://github.com/t9md/vim-quickhl.git'
   NeoBundle 'git://github.com/thinca/vim-ft-svn_diff.git'
-  NeoBundle 'git://github.com/thinca/vim-github.git'
   NeoBundle 'git://github.com/thinca/vim-prettyprint.git'
   NeoBundle 'git://github.com/thinca/vim-qfreplace.git'
   NeoBundle 'git://github.com/thinca/vim-quickrun.git'
-  NeoBundle 'git://github.com/todashuta/unite-transparency.git'
+  NeoBundle 'git://github.com/tmhedberg/matchit.git'
   NeoBundle 'git://github.com/tpope/vim-surround.git'
   NeoBundle 'git://github.com/triglav/vim-visual-increment.git'
-  NeoBundle 'git://github.com/tsukkee/unite-tag.git'
   NeoBundle 'git://github.com/tyru/caw.vim.git'
   NeoBundle 'git://github.com/ujihisa/unite-colorscheme.git'
   NeoBundle 'git://github.com/vim-jp/vimdoc-ja.git'
   NeoBundle 'git://github.com/vim-jp/vital.vim.git'
   NeoBundle 'git://github.com/vim-scripts/actionscript.vim--Leider.git'
-  NeoBundle 'git://github.com/vim-scripts/operator-camelize.git'
   NeoBundle 'git://github.com/vim-scripts/pig.vim.git'
   NeoBundle 'git://github.com/vim-scripts/smarty-syntax.git'
   NeoBundle 'git://github.com/vim-scripts/sudo.vim.git'
-  NeoBundle 'git://github.com/jason0x43/vim-js-indent.git'
   call neobundle#end()
-
-  runtime macros/matchit.vim
 
   syntax on
   filetype plugin on
@@ -147,7 +138,11 @@ set nocompatible
   set listchars=tab:\|\ ,trail:^
   set pumheight=20
   set previewheight=20
-  colorscheme hybrid
+  if neobundle#is_installed('vim-hybrid')
+    colorscheme hybrid
+  else
+    colorscheme ron
+  endif
 " }}}
 
 " ----------
@@ -157,6 +152,7 @@ set nocompatible
   set hlsearch
   set ignorecase
   set smartcase
+  set suffixesadd=.php,.js,.rb,.java,.json,.md,.as
   set includeexpr=substitute(v:fname,'^\\/','','')
   set path+=./;/
 " }}}
@@ -239,9 +235,6 @@ endif
         \ 'nohlsearch',
         \ 'redraw!')
 
-  " marking.
-  nnoremap <LEADER>- :<C-u>UniteMarkAdd<CR>
-
   " rough move.
   nnoremap H 15h
   nnoremap J 8j
@@ -251,6 +244,9 @@ endif
   vnoremap J 8j
   vnoremap K 8k
   vnoremap L 15l
+
+  " apply last command.
+  vnoremap <CR> :<UP><CR>
 
   " move window.
   nnoremap <LEADER>h <C-w>h
@@ -330,15 +326,23 @@ endif
   endfunction
 
   " search cursor_word.
-  nnoremap <expr><LEADER>gf g:my_cursor_word_search_command()
-  function! g:my_cursor_word_search_command()
-    " TODO: search path and classname
-    " ex) <script type="text/javascript" src="../../js/app.js"></script> => js.*app.js
-    " ex) new App.test.TestClass => testclass
-    return printf(":\<C-u>Unite -buffer-name=file_rec/async -input=%s file_rec/async:%s\<CR>",
-          \ tolower(expand('<cword>')),
-          \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
-  endfunction
+  " nnoremap <expr>gf<CR> g:my_cursor_word_search_command('open')
+  " nnoremap <expr>gfv g:my_cursor_word_search_command('vsplit')
+  " nnoremap <expr>gfs g:my_cursor_word_search_command('split')
+  " function! g:my_cursor_word_search_command(action)
+  "   let iskeyword = &iskeyword
+  "   setlocal iskeyword +=.-/
+  "   let word = strlen(expand('<cword>')) ? tolower(expand('<cword>')) : ''
+  "   let word = substitute(word, '\.', '/', 'g')
+  "   let word = substitute(word, '\/\+', '\/', 'g')
+  "   let word = substitute(word, '^\/\|\/$', '', 'g')
+  "   let word = substitute(word, '^.*\/', '', 'g')
+  "   execute 'setlocal iskeyword=' . iskeyword
+  "   return printf(":\<C-u>Unite -buffer-name=file_rec/async -immediately -default-action=%s -input=%s file_rec/async:%s\<CR>",
+  "         \ a:action,
+  "         \ word,
+  "         \ (g:my_unite_project_dir != "" ? g:my_unite_project_dir : "!"))
+  " endfunction
 
   " open explorer.
   nnoremap <expr><F2> g:my_open_explorer_command()
@@ -377,9 +381,6 @@ endif
   " tag jump.
   noremap <C-]> :<C-u>Unite -immediately -no-start-insert -buffer-name=tag tag:<C-r>=expand('<cword>')<CR><CR>
 
-  " line.
-  noremap <LEADER>? :<C-u>Unite line<CR>
-
   " complete.
   inoremap ] <C-n>
   inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
@@ -399,9 +400,6 @@ endif
     return "\<PLUG>(insert_point_next_point)"
   endfunction
 
-  " neosnippet.
-  xmap <C-k> <PLUG>(neosnippet_expand_target)
-
   " caw.
   nmap <LEADER>/ <PLUG>(caw:i:toggle)
   vmap <LEADER>/ <PLUG>(caw:i:toggle)
@@ -413,14 +411,6 @@ endif
 
   " replace word by register.
   nnoremap cir ciw<C-r>0<ESC>:<C-u>let@/=@1<CR>:noh<CR>
-
-  " auto surround.
-  omap i<LEADER> <PLUG>(textobj-multiblock-i)
-  omap a<LEADER> <PLUG>(textobj-multiblock-a)
-  vmap i<LEADER> <PLUG>(textobj-multiblock-i)
-  vmap a<LEADER> <PLUG>(textobj-multiblock-a)
-  nmap c <Plug>(operator-camelize-toggle)
-  vmap c <Plug>(operator-camelize-toggle)
 " }}}
 
 " ----------
@@ -450,8 +440,7 @@ augroup my-vimrc
   endfunction
 
   " all option.
-  autocmd! Filetype * setlocal comments=sl:/*,mb:\ *,elx:\ */
-  autocmd! Filetype * setlocal formatoptions+=rco"
+  autocmd! Filetype * setlocal comments=sl:/*,mb:\ *,elx:\ */ | setlocal formatoptions+=rco"
 
   " filetype.
   autocmd! BufNewFile,BufRead *.tpl setlocal filetype=html
@@ -469,16 +458,21 @@ augroup my-vimrc
   autocmd! Filetype coffee execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype vim execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype php execute get(g:my_coding_style, 't4', '') | setlocal iskeyword-=$
-  autocmd! Filetype html execute get(g:my_coding_style, 't2', '')
-  autocmd! Filetype xhtml execute get(g:my_coding_style, 't2', '')
+  autocmd! Filetype html execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype xhtml execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype css execute get(g:my_coding_style, 's2', '')
   autocmd! Filetype scss execute get(g:my_coding_style, 's2', '')
-  autocmd! Filetype mkd execute get(g:my_coding_style, 's2', '')
+  autocmd! Filetype mkd execute get(g:my_coding_style, 's4', '')
 
   " javascript.
   autocmd! Filetype javascript call g:my_javascript_settings()
   function! g:my_javascript_settings()
     execute get(g:my_coding_style, 's2', '')
+  endfunction
+
+  autocmd! Filetype html call g:my_html_settings()
+  function! g:my_html_settings()
+    let b:match_words .= ',{\s*if\>:{\s*elseif\>:{\s*else\>:{\s*/if\>,{\s*foreach\>:{\s*foreachelse\>:{\s*/foreach\>,{\s*capture\>:{\s*/capture\>,{\s*strip\>:{\s*/strip\>,{\s*literal\>:{\s*/literal\>'
   endfunction
 
   " command line window.
@@ -562,6 +556,7 @@ augroup my-vimrc
       nnoremap <buffer><F5>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_cd')<CR>
       nnoremap <buffer><F8>        :<C-u>VimFilerTab -double<CR>
       nnoremap <buffer><BS>        :<C-u>call vimfiler#mappings#do_current_dir_action('my_project_root_cd')<CR>
+      nnoremap <buffer><LEADER>l   <C-w>l
     endfunction
   endif
 
@@ -663,7 +658,8 @@ augroup END
     let g:unite_source_grep_default_opts = '-Hni'
     let g:unite_source_grep_max_candidates = 0
     let g:unite_source_file_mru_filename_format = ''
-    let g:unite_source_file_rec_min_cache_files = 0
+    let g:unite_source_rec_min_cache_files = 0
+    let g:unite_source_rec_max_cache_files = 100000
     let g:unite_source_line_enable_highlight = 1
     let g:unite_kind_openable_lcd_command = 'cd'
     call unite#custom#profile('default', 'context', {
@@ -675,7 +671,6 @@ augroup END
           \ })
     call unite#filters#sorter_default#use(['sorter_rank'])
     call unite#set_profile('action', 'context', { 'start_insert': 0 })
-    call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'matchers', ['matcher_file_name'])
     call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'sorters', ['sorter_nothing'])
     call unite#custom#source('buffer_tab,file_rec/async,file_rec/git,file_rec,file_mru', 'converters', ['converter_nothing'])
     call unite#custom#source('file,jump_list', 'default_action', 'choosewin/open')
@@ -700,6 +695,7 @@ augroup END
           \ [ 'NeoBundleUpdate!', 'Unite neobundle/update:!' ],
           \ [ 'Reverse Line Order', 'g/^/m0' ],
           \ [ 'Remove All ^M', '%s///g' ],
+          \ [ 'Format QueryString', 'silent! %s/&amp;/\&/g | silent! %s/&/\r/g | silent! %s/=/\r\t=/g' ],
           \ ]
   endif
 " }}}
@@ -947,7 +943,7 @@ augroup END
 " }}}
 
 " ----------
-" versions. {{{
+" versions tabline. {{{
 " ----------
   if neobundle#is_installed('vim-versions')
     set tabline=%!g:my_tabline()
