@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# script dir.
+SCRIPT_DIR=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
+
+# bash.
+if [ -f "$HOME/.bash_profile" ]; then
+  mv $HOME/.bash_profile $HOME/.bash_profile.backup
+fi
+ln -s $SCRIPT_DIR/bash/.bash_profile $HOME/.bash_profile
+
+# nvim.
+if [ -f "$HOME/.config/nvim/init.vim" ]; then
+  mv $HOME/.config/nvim/init.vim $HOME/.config/nvim/init.vim.backup
+fi
+mkdir -p $HOME/.config/nvim
+ln -s $SCRIPT_DIR/nvim/init.vim $HOME/.config/nvim/init.vim
+
