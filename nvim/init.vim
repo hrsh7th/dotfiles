@@ -30,27 +30,28 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
-  call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('andymass/vim-matchup')
-  call dein#add('h1mesuke/vim-alignta')
+  call dein#add('freeo/vim-kalisi')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
   call dein#add('hrsh7th/vim-versions')
   call dein#add('itchyny/lightline.vim')
+  call dein#add('jacoborus/tender.vim')
+  call dein#add('kaicataldo/material.vim')
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-git')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
   call dein#add('luochen1990/rainbow')
-  call dein#add('nanotech/jellybeans.vim')
+  call dein#add('morhetz/gruvbox')
   call dein#add('natebosch/vim-lsc')
-  call dein#add('neoclide/denite-git')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
+  call dein#add('powerline/fonts', { 'build': './install.sh' })
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('t9md/vim-quickhl')
@@ -75,14 +76,17 @@ filetype plugin indent on
 syntax enable
 
 " ########################################################################################################################
-" General Setting
+" Terminal Colors Setting
 " ########################################################################################################################
 let $NVIM_TUI_ENABLE_TRUE_COLOR=1
 let base16colorspace=256
 set t_Co=256
 let $TERM='xterm256-color'
 set termguicolors
-let g:impact_transbg=1
+
+" ########################################################################################################################
+" General Setting
+" ########################################################################################################################
 set updatetime=500
 set autoread
 set hidden
@@ -127,8 +131,8 @@ set nowrap
 set number
 set list
 set listchars=tab:>-,trail:^
-set pumheight=20
-set nocursorline
+set pumheight=30
+set cursorline
 set noshowmode
 set ambiwidth=double
 set fillchars+=vert:\ ,eob:\ 
@@ -143,7 +147,6 @@ set smartcase
 set suffixesadd=.php,.tpl,.ts,.tsx,.rb,.java,.json,.md,.as,.js
 set matchpairs=(:),[:],{:}
 set path+=./;/
-set includeexpr=MyIncludeExpr(v:fname)
 set inccommand=split
 
 " ########################################################################################################################
@@ -168,6 +171,7 @@ set whichwrap=b,s,h,l,<,>,[,]
 " --------------------
 let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
+nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>! :<C-u>q!<CR>
 nnoremap <Leader>w :<C-u>w<CR>
@@ -231,7 +235,6 @@ nnoremap <Leader>H :<C-u>tabprev<CR>
 " --------------------
 nnoremap : q:
 xnoremap : q:
-vnoremap <CR> :<UP><CR>
 
 " --------------------
 " Utility.
@@ -303,19 +306,13 @@ if dein#tap('vim-quickhl')
   vmap <Leader>m <Plug>(quickhl-manual-this)
 endif
 
-if dein#tap('incsearch.vim')
-  map / <Plug>(incsearch-forward)
-  map ? <Plug>(incsearch-backward)
-endif
-
 if dein#tap('open-browser.vim')
-  nmap <Leader><CR> <Plug>(openbrowser-smart-search)
+  nmap <Leader><Leader><CR> <Plug>(openbrowser-smart-search)
 endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite buffer file_mru<CR>
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>i :<C-u>Denite buffer<CR>
   nnoremap <expr><Plug>(my-denite-grep) printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
   nnoremap <Plug>(my-denite-grep-next) :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty -buffer-name=grep<CR>
   nnoremap <Plug>(my-denite-grep-prev) :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty -buffer-name=grep<CR>
@@ -373,7 +370,7 @@ function! MyProjectRootDetect(path, option)
 
   while path != '/'
     for detect in g:my_project_root_detectors
-      let target = printf('%s/%s', MyTrimRight(path, '/'), detect)
+      let target = printf('%s/%s', s:trim_right(path, '/'), detect)
       if isdirectory(target) || filereadable(target)
         return path
       endif
@@ -403,15 +400,15 @@ function! MyProjectRootDecide()
   execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
 endfunction
 
-let g:MyProjectRootFindFileConverter = {}
+let g:find_file_in_project_root_converters = {}
 function! MyProjectRootFindFile(filepath, command)
   let path = MyProjectRootDetect(MyExpandCurrentBuffer(''), {'ignore_project_root_vars': 1})
   let filepath = a:filepath
   let filepath = substitute(filepath, '\..\{-}$', '', 'g')
   let filepath = substitute(filepath, '^[\.\/]*', '', 'g')
   let filepath = substitute(filepath, '\.\|\\', '/', 'g')
-  for funcname in keys(g:MyProjectRootFindFileConverter)
-    let filepath = g:MyProjectRootFindFileConverter[funcname]({'path': path, 'filepath': filepath})
+  for funcname in keys(g:find_file_in_project_root_converters)
+    let filepath = g:find_file_in_project_root_converters[funcname]({'path': path, 'filepath': filepath})
   endfor
 
   if !strlen(filepath)
@@ -422,7 +419,7 @@ function! MyProjectRootFindFile(filepath, command)
   let bufferdirs = split(fnamemodify(expand('%:p:h'), ':h'), '/')
   let search_path = '/' . join(s:remove_tail_paths(bufferdirs, filedirs), '/')
 
-  if exists('g:MyDebug')
+  if exists('g:my_debug')
     echomsg 'target file   name: ' . a:filepath
     echomsg 'project root   dir: ' . path
     echomsg 'upward start   dir: ' . expand('%:p:h')
@@ -450,41 +447,31 @@ function! s:remove_tail_paths(dirs, removes)
   return s:dirs
 endfunction
 
-" include expr.
-function! MyIncludeExpr(fname)
-  let fname = a:fname
-  let fname = substitute(fname, '^\\/', '', '')
-  let fname = join(filter(split(fname, '/'), "v:val =~ '^[0-9A-Za-z_\.-]*$'"), '/')
-  if exists('g:MyDebug')
-    echomsg 'includeexpr result: '. fname
-  endif
-  return './*/' . fname
-endfunction
-
 " trim.
-function! MyTrim(str, trim)
-  return MyTrimLeft(MyTrimRight(a:str, a:trim), a:trim)
+function! s:trim(str, trim)
+  return s:trim_left(s:trim_right(a:str, a:trim), a:trim)
 endfunction
-function! MyTrimRight(str, trim)
+function! s:trim_right(str, trim)
   return substitute(a:str, printf('%s$', a:trim), '', 'g')
 endfunction
-function! MyTrimLeft(str, trim)
+function! s:trim_left(str, trim)
   return substitute(a:str, printf('^%s', a:trim), '', 'g')
 endfunction
 
 " ellipsis and pad.
-function! MyEllipsis(str, max)
+function! s:ellipsis(str, max)
   return strpart(a:str, 0, a:max)
 endfunction
-function! MyPad(str, char, max)
+function! s:padding(str, char, max)
   return a:str . repeat(a:char, a:max)
 endfunction
 
 " find upwards.
-function! FindFileUpwards(filename, path)
+function! s:find_file_upwards(filename, path)
   return findfile(a:filename, fnamemodify(a:path, ':p:h') . ';')
 endfunction
 
+" get git branch name.
 function! GitBranch()
   try
     if dein#tap('vim-fugitive')
@@ -505,8 +492,23 @@ endfunction
 " --------------------
 "  colorscheme
 " --------------------
-if dein#tap('jellybeans.vim')
-  colorscheme jellybeans
+if 0 && dein#tap('tender.vim')
+  colorscheme tender
+  highlight! link VertSplit StatusLineNC
+
+elseif 0 && dein#tap('vim-kalisi')
+  colorscheme kalisi
+
+elseif 0 && dein#tap('material.vim')
+  let g:material_theme_style = 'palenight'
+  let g:material_terminal_italics = 1
+  colorscheme material
+  highlight! link VertSplit StatusLineNC
+
+elseif 1 && dein#tap('gruvbox')
+  colorscheme gruvbox
+  highlight! link VertSplit StatusLineNC
+
 else
   colorscheme ron
 endif
@@ -515,6 +517,7 @@ endif
 "  vim-session
 " --------------------
 if dein#tap('vim-session')
+  set sessionoptions-=buffers,globals,help
   let s:session_path = '~/.vim-session'
   let g:session_autosave = 'yes'
   let g:session_autoload = 'yes'
@@ -532,17 +535,6 @@ if dein#tap('vim-matchup')
   let g:matchup_matchparen_hi_background = 1
   let g:matchup_matchparen_timeout = 100
   let g:matchup_matchparen_insert_timeout = 50
-endif
-
-" --------------------
-" echodoc.vim.
-" --------------------
-if dein#tap('echodoc.vim')
-  let g:echodoc#enable_at_startup = 1
-  let g:echodoc#enable_force_overwrite = 1
-  let g:echodoc#type = 'virtual'
-  set cmdheight=3
-  set noshowmode
 endif
 
 " --------------------
@@ -586,16 +578,16 @@ if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
   let g:deol#enable_dir_changed = 0
 
-  autocmd! FileType deol call MyDeolSetting()
-  function! MyDeolSetting()
+  autocmd! FileType deol call s:deol_setting()
+  function! s:deol_setting()
     setlocal nobuflisted
     nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', MyExpandCurrentBuffer(':p:h')))<CR>
   endfunction
 endif
 
 if dein#tap('defx.nvim')
-  autocmd FileType defx call s:my_defx_settings()
-  function! s:my_defx_settings() abort
+  autocmd FileType defx call s:defx_setting()
+  function! s:defx_setting() abort
     " open
     nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'MyDefxOpen')
     nnoremap <silent><buffer><expr>l       defx#do_action('open', 'MyDefxOpen')
@@ -624,7 +616,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
 
     if dein#tap('deol.nvim')
-      nnoremap <buffer>H :<C-u>call MyDeolPop(getcwd())<CR>
+      nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
     endif
   endfunction
 
@@ -659,15 +651,15 @@ if dein#tap('defx.nvim')
     let g:defx_git#column_length = 2
   endif
 
-  command! -nargs=* -range MyDefxOpen call MyDefxOpenCommand('edit', <q-args>)
-  command! -nargs=* -range MyDefxVsplit call MyDefxOpenCommand('vsplit', <q-args>)
-  command! -nargs=* -range MyDefxSplit call MyDefxOpenCommand('split', <q-args>)
-  function! MyDefxOpenCommand(cmd, path)
-    let winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-    if len(winnrs) > 1
-      for winnr in winnrs
-        if index(['deol', 'defx', 'denite'], getbufvar(winbufnr(winnr), '&filetype')) == -1
-          execute printf('%swincmd w', winnr)
+  command! -nargs=* -range MyDefxOpen call s:defx_open_command('edit', <q-args>)
+  command! -nargs=* -range MyDefxVsplit call s:defx_open_command('vsplit', <q-args>)
+  command! -nargs=* -range MyDefxSplit call s:defx_open_command('split', <q-args>)
+  function! s:defx_open_command(cmd, path)
+    let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
+    if len(s:winnrs) > 1
+      for s:winnr in s:winnrs
+        if index(['deol', 'defx', 'denite'], getbufvar(winbufnr(s:winnr), '&filetype')) == -1
+          execute printf('%swincmd w', s:winnr)
           execute printf('%s %s', a:cmd, a:path)
           return
         endif
@@ -676,7 +668,7 @@ if dein#tap('defx.nvim')
     execute printf('edit %s', a:path)
   endfunction
 
-  function! MyDeolPop(cwd)
+  function! MyPopupDeol(cwd)
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 15split
       setlocal winfixheight
@@ -699,8 +691,8 @@ if dein#tap('unite.vim')
   call unite#custom#source('file_rec', 'ignore_pattern', join(['\.git\/', '\.svn\/', '\/\(image\|img\)\/', 'node_modules', 'vendor'], '\|'))
   call unite#custom#default_action('directory', 'cd')
 
-  autocmd! FileType unite call MyUniteSetting()
-  function! MyUniteSetting()
+  autocmd! FileType unite call s:unite_setting()
+  function! s:unite_setting()
     unmap <buffer><Leader>
     nmap <buffer><Esc>     <Plug>(unite_all_exit)
     nmap <buffer>q         <Plug>(unite_all_exit)
@@ -719,11 +711,13 @@ endif
 " --------------------
 if dein#tap('lightline.vim')
   let g:lightline = {}
+  let g:lightline.colorscheme = g:colors_name
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['branch', 'close']]
   let g:lightline.component = {}
   let g:lightline.component.branch = '%{GitBranch()}'
+  let g:lightline.separator = { 'left': '', 'right': '' }
 endif
 
 " --------------------
@@ -740,7 +734,7 @@ if dein#tap('vim-lsp')
     autocmd! User lsp_setup call lsp#register_server({
         \ 'name': 'typescript-language-server',
         \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(FindFileUpwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
+        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(s:find_file_upwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
         \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
         \ })
   endif
@@ -754,7 +748,7 @@ if !dein#tap('vim-lsp') && dein#tap('vim-lsc')
      \ 'command': 'typescript-language-server --stdio',
      \ 'message_hooks': {
      \   'initialize': {
-     \     'rootUri': { method, params -> lsc#uri#documentUri(fnamemodify(FindFileUpwards('tsconfig.json', expand(':p:h')), ':p:h')) }
+     \     'rootUri': { method, params -> lsc#uri#documentUri(fnamemodify(s:find_file_upwards('tsconfig.json', expand(':p:h')), ':p:h')) }
      \   },
      \ }
      \ }
@@ -839,39 +833,39 @@ if dein#tap('denite.nvim')
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
 
   if dein#tap('vim-qfreplace')
-    function! MyDeniteReplace(context)
-      let qflist = []
-      for target in a:context['targets']
-        if !has_key(target, 'action__path') | continue | endif
-        if !has_key(target, 'action__line') | continue | endif
-        if !has_key(target, 'action__text') | continue | endif
+    function! s:denite_replace_action(context)
+      let s:qflist = []
+      for s:target in a:context['targets']
+        if !has_key(s:target, 'action__path') | continue | endif
+        if !has_key(s:target, 'action__line') | continue | endif
+        if !has_key(s:target, 'action__text') | continue | endif
 
-        call add(qflist, {
-              \ 'filename': target['action__path'],
-              \ 'lnum': target['action__line'],
-              \ 'text': target['action__text']
+        call add(s:qflist, {
+              \ 'filename': s:target['action__path'],
+              \ 'lnum': s:target['action__line'],
+              \ 'text': s:target['action__text']
               \ })
       endfor
-      call setqflist(qflist)
+      call setqflist(s:qflist)
       call qfreplace#start('')
     endfunction
-    call denite#custom#action('file', 'qfreplace', function('MyDeniteReplace'))
+    call denite#custom#action('file', 'qfreplace', function('s:denite_replace_action'))
   endif
 
   " menu.
-  let menus = {}
-  let menus.string = {'description': 'string utilities.'}
-  let menus.string.command_candidates = [
+  let s:menus = {}
+  let s:menus.string = {'description': 'string utilities.'}
+  let s:menus.string.command_candidates = [
         \ ['format: reverse lines', 'g/^/m0'],
         \ ['format: remove ^M', '%s///g'],
         \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r/g | silent! %s/=/\r\t=/g'],
         \ ['format: to smb', 'silent! %s/\\/\//g | silent! %s/^\(smb:\/\/\|\/\/\)\?/smb:\/\//g']
         \ ]
-  let menus.vim = {'description': 'vim runtime.'}
-  let menus.vim.command_candidates = [
+  let s:menus.vim = {'description': 'vim runtime.'}
+  let s:menus.vim.command_candidates = [
         \ ['upgrade: dein:deps', 'call dein#update()']
         \ ]
-  call denite#custom#var('menu', 'menus', menus)
+  call denite#custom#var('menu', 'menus', s:menus)
 
   highlight! clear deniteMatched
 endif
@@ -882,25 +876,25 @@ endif
 augroup MyAutoCmd
   autocmd!
 
-  autocmd! BufReadPost * call MyBufReadPost()
-  function! MyBufReadPost()
-    for [exts, ft] in [
+  autocmd! BufReadPost * call s:buf_read_post()
+  function! s:buf_read_post()
+    for [s:exts, s:ft] in [
           \ ['log', 'log'],
           \ ['ejs', 'html'],
           \ ['vue', 'html'],
           \ ['tsx', 'typescript.tsx']
           \ ]
-      if index(split(exts, ','), expand('%:e')) >= 0
-        execute printf('setlocal filetype=%s', ft)
+      if index(split(s:exts, ','), expand('%:e')) >= 0
+        execute printf('setlocal filetype=%s', s:ft)
       endif
     endfor
   endfunction
 
-  autocmd! FileType * call MyFileTypeSetting()
-  function! MyFileTypeSetting()
-
-    for [v, filetypes] in items(g:my_lsp_language_server_filetypes)
-      if index(filetypes, getbufvar(bufnr('%'), '&filetype')) >= 0
+  autocmd! FileType * call s:file_type()
+  function! s:file_type()
+    " apply lsp mappings.
+    for [s:v, s:filetypes] in items(g:my_lsp_language_server_filetypes)
+      if index(s:filetypes, getbufvar(bufnr('%'), '&filetype')) >= 0
         nnoremap <buffer><Leader><CR> :<C-u>LspCodeAction<CR>
         nnoremap <buffer><Leader>g    :<C-u>LspReferences<CR>
         nnoremap <buffer>gf<CR>       :<C-u>LspDefinition<CR>
@@ -937,15 +931,15 @@ augroup MyAutoCmd
   endfunction
 
   " VimEnter.
-  autocmd! VimEnter * call MyVimEnterSetting()
-  function! MyVimEnterSetting()
+  autocmd! VimEnter * call s:vim_enter()
+  function! s:vim_enter()
     map <Nul> <C-Space>
     map! <Nul> <C-Space>
   endfunction
 
   " BufEnter.
-  autocmd! BufEnter * call MyBufEnterSetting()
-  function! MyBufEnterSetting()
+  autocmd! BufEnter * call s:buf_enter()
+  function! s:buf_enter()
     let &titlestring = MyExpandCurrentBuffer('')
     if exists('t:my_project_root_dir')
       execute printf('cd! %s', fnameescape(t:my_project_root_dir))
@@ -953,15 +947,15 @@ augroup MyAutoCmd
   endfunction
 
   " TermOpen.
-  autocmd! TermOpen term://* call MyTermOpenSetting()
-  function! MyTermOpenSetting()
+  autocmd! TermOpen term://* call s:term_open()
+  function! s:term_open()
     tnoremap <buffer><silent><Esc> <C-\><C-n>
     let &buftype = 'nofile'
   endfunction
 
   " CmdwinEnter.
-  autocmd! CmdwinEnter * call MyCmdwinEnterSetting()
-  function! MyCmdwinEnterSetting()
+  autocmd! CmdwinEnter * call s:cmdwin_enter()
+  function! s:cmdwin_enter()
     nnoremap <buffer><silent><Esc> :<C-u>q<CR>
     nnoremap <buffer>a             A
     nnoremap <buffer><silent>dd :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
@@ -969,23 +963,23 @@ augroup MyAutoCmd
   endfunction
 
   " WinLeave.
-  autocmd! WinLeave * call MyWindowSetting()
-  function! MyWindowSetting()
-    let current_winnr = tabpagewinnr(tabpagenr())
+  autocmd! WinLeave * call s:win_leave()
+  function! s:win_leave()
+    let s:current_winnr = tabpagewinnr(tabpagenr())
 
     " deol.nvim.
-    let winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-    if len(winnrs) > 1
-      for winnr in winnrs
-        if index(['deol'], getbufvar(winbufnr(winnr), '&filetype')) > -1
-          execute printf('%swincmd w', winnr)
+    let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
+    if len(s:winnrs) > 1
+      for s:winnr in s:winnrs
+        if index(['deol'], getbufvar(winbufnr(s:winnr), '&filetype')) > -1
+          execute printf('%swincmd w', s:winnr)
           execute printf('wincmd K | resize %s', 12)
           break
         endif
       endfor
     endif
 
-    silent noautocmd execute printf('%swincmd w', current_winnr)
+    silent noautocmd execute printf('%swincmd w', s:current_winnr)
   endfunction
 
 augroup END
