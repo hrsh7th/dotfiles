@@ -564,6 +564,12 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
 endif
 
+" --------------------
+" ale.
+" --------------------
+if dein#tap('ale')
+  let g:ale_virtualtext_cursor = 1
+endif
 
 " --------------------
 " neomru.vim.
