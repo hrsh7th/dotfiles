@@ -35,7 +35,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('andymass/vim-matchup')
-  call dein#add('freeo/vim-kalisi')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
   call dein#add('hrsh7th/vim-versions')
@@ -44,16 +43,16 @@ if dein#load_state(dein.dir.install)
   call dein#add('kaicataldo/material.vim')
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-git')
+  call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
   call dein#add('luochen1990/rainbow')
+  call dein#add('mhinz/vim-signify')
   call dein#add('morhetz/gruvbox')
   call dein#add('natebosch/vim-lsc')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
-  call dein#add('powerline/fonts', { 'build': './install.sh' })
-  call dein#add('prabirshrestha/async.vim')
-  call dein#add('prabirshrestha/vim-lsp')
+  call dein#add('ryanoasis/vim-devicons')
   call dein#add('t9md/vim-quickhl')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
@@ -288,7 +287,7 @@ if dein#tap('rainbow')
 endif
 
 if dein#tap('defx.nvim')
-  nnoremap <F2> :<C-u>Defx -auto-cd -columns=git:filename:type -toggle -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`<CR>
+  nnoremap <F2> :<C-u>Defx -auto-cd -columns=git:icons:filename:type -toggle -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`<CR>
 endif
 
 if dein#tap('denite.nvim')
@@ -496,11 +495,8 @@ if 0 && dein#tap('tender.vim')
   colorscheme tender
   highlight! link VertSplit StatusLineNC
 
-elseif 0 && dein#tap('vim-kalisi')
-  colorscheme kalisi
-
 elseif 0 && dein#tap('material.vim')
-  let g:material_theme_style = 'palenight'
+  let g:material_theme_style = 'dark'
   let g:material_terminal_italics = 1
   colorscheme material
   highlight! link VertSplit StatusLineNC
@@ -512,6 +508,12 @@ elseif 1 && dein#tap('gruvbox')
 else
   colorscheme ron
 endif
+
+if dein#tap('defx-icons')
+  let g:defx_icons_enable_syntax_highlight = 1
+  let g:defx_icons_column_length = 2
+endif
+
 
 " --------------------
 "  vim-session
@@ -715,42 +717,23 @@ if dein#tap('lightline.vim')
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['branch', 'close']]
-  let g:lightline.component = {}
-  let g:lightline.component.branch = '%{GitBranch()}'
-  let g:lightline.separator = { 'left': '', 'right': '' }
+  let g:lightline.component_function = {}
+  let g:lightline.component_function.branch = 'GitBranch'
+  let g:lightline.separator = { 'left': '', 'right': '' }
+  let g:lightline.subseparator = { 'left': '', 'right': '' }
 endif
 
 " --------------------
 " vim-lsc
 " --------------------
-if dein#tap('vim-lsp')
-  let g:lsp_signs_enabled = 1
-  let g:lsp_diagnostics_enabled = 1
-  let g:lsp_diagnostics_echo_cursor = 1
-
-  let g:my_lsp_language_server_filetypes = {}
-  if executable('typescript-language-server')
-    let g:my_lsp_language_server_filetypes['typescript-language-server'] = ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx']
-    autocmd! User lsp_setup call lsp#register_server({
-        \ 'name': 'typescript-language-server',
-        \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(s:find_file_upwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
-        \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
-        \ })
-  endif
-endif
-
-" --------------------
-" vim-lsc
-" --------------------
-if !dein#tap('vim-lsp') && dein#tap('vim-lsc')
+if dein#tap('vim-lsc')
   let g:typescript_language_server = {
-     \ 'command': 'typescript-language-server --stdio',
-     \ 'message_hooks': {
-     \   'initialize': {
-     \     'rootUri': { method, params -> lsc#uri#documentUri(fnamemodify(s:find_file_upwards('tsconfig.json', expand(':p:h')), ':p:h')) }
-     \   },
-     \ }
+     \   'command': 'typescript-language-server --stdio',
+     \   'message_hooks': {
+     \     'initialize': {
+     \       'rootUri': { method, params -> lsc#uri#documentUri(fnamemodify(s:find_file_upwards('tsconfig.json', expand(':p:h')), ':p:h')) }
+     \     },
+     \   }
      \ }
   let g:lsc_server_commands = {
         \ 'typescript': g:typescript_language_server,
@@ -769,14 +752,6 @@ if !dein#tap('vim-lsp') && dein#tap('vim-lsc')
         \ 'SignatureHelp': '<Leader>o',
         \ 'Completion': 'completefunc',
         \ }
-endif
-
-" --------------------
-" ale.
-" --------------------
-if dein#tap('ale')
-  let g:ale_linters = {}
-  let g:ale_linters.typescript = ['prettier']
 endif
 
 " --------------------
@@ -892,21 +867,6 @@ augroup MyAutoCmd
 
   autocmd! FileType * call s:file_type()
   function! s:file_type()
-    " apply lsp mappings.
-    for [s:v, s:filetypes] in items(g:my_lsp_language_server_filetypes)
-      if index(s:filetypes, getbufvar(bufnr('%'), '&filetype')) >= 0
-        nnoremap <buffer><Leader><CR> :<C-u>LspCodeAction<CR>
-        nnoremap <buffer><Leader>g    :<C-u>LspReferences<CR>
-        nnoremap <buffer>gf<CR>       :<C-u>LspDefinition<CR>
-        nnoremap <buffer>gfs          :<C-u>sp  \| LspDefinition<CR>
-        nnoremap <buffer>gfv          :<C-u>vsp \| LspDefinition<CR>
-        nnoremap <buffer><Leader>r    :<C-u>LspRename<CR>
-        nnoremap <buffer><Leader>i    :<C-u>LspHover<CR>
-        setlocal omnifunc=lsp#complete
-        break
-      endif
-    endfor
-
     " alias filetype.
     if index(['atlas'], getbufvar(bufnr('%'), '&filetype')) >= 0
       setlocal filetype=actionscript
