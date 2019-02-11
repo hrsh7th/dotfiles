@@ -526,6 +526,35 @@ if dein#tap('vim-signify')
 endif
 
 " --------------------
+" vim-lsp
+" --------------------
+if dein#tap('vim-lsp')
+  let g:lsp_signs_enabled = 1
+  let g:lsp_diagnostics_enabled = 1
+  let g:lsp_diagnostics_echo_cursor = 1
+  let g:lsp_signs_error = { 'text': "\uf071" }
+  let g:lsp_signs_warning = { 'text': "\uf071" }
+  let g:lsp_signs_information = { 'text': "\uf449" }
+  let g:lsp_signs_hint = { 'text': "\uf400" }
+
+  highlight! link LspErrorText SignColumn
+  highlight! link LspWarningText SignColumn
+  highlight! link LspInformationText SignColumn
+  highlight! link LspHintText SignColumn
+
+  let g:my_lsp_language_server_filetypes = {}
+  if executable('typescript-language-server')
+    let g:my_lsp_language_server_filetypes['typescript-language-server'] = ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx']
+    autocmd! User lsp_setup call lsp#register_server({
+        \ 'name': 'typescript-language-server',
+        \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
+        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(s:find_file_upwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
+        \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
+        \ })
+  endif
+endif
+
+" --------------------
 "  vim-matchup
 " --------------------
 if dein#tap('vim-matchup')
@@ -561,13 +590,6 @@ if dein#tap('deoplete.nvim')
         \ 'javascript.tsx': '[^. *\t]\.\w*',
         \ })
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
-endif
-
-" --------------------
-" ale.
-" --------------------
-if dein#tap('ale')
-  let g:ale_virtualtext_cursor = 1
 endif
 
 " --------------------
@@ -723,25 +745,6 @@ if dein#tap('lightline.vim')
   let g:lightline.subseparator = { 'left': '', 'right': '' }
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
   let g:lightline.tabline_subseparator = { 'left': '', 'right': '' }
-endif
-" --------------------
-" vim-lsc
-" --------------------
-if dein#tap('vim-lsp')
-  let g:lsp_signs_enabled = 1
-  let g:lsp_diagnostics_enabled = 1
-  let g:lsp_diagnostics_echo_cursor = 1
-
-  let g:my_lsp_language_server_filetypes = {}
-  if executable('typescript-language-server')
-    let g:my_lsp_language_server_filetypes['typescript-language-server'] = ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx']
-    autocmd! User lsp_setup call lsp#register_server({
-        \ 'name': 'typescript-language-server',
-        \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(s:find_file_upwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
-        \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
-        \ })
-  endif
 endif
 
 " --------------------
