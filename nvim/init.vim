@@ -130,7 +130,7 @@ set number
 set list
 set listchars=tab:>-,trail:^
 set pumheight=30
-set cursorline
+set nocursorline
 set noshowmode
 set ambiwidth=double
 set fillchars+=vert:\ ,eob:\ 
@@ -614,13 +614,16 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>m       defx#do_action('move')
     nnoremap <silent><buffer><expr>d       defx#do_action('remove')
     nnoremap <silent><buffer><expr>r       defx#do_action('rename')
+    nnoremap <silent><buffer><expr>p       defx#do_action('paste')
 
+    nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer>b             :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
     nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>q       defx#do_action('quit')
     nnoremap <silent><buffer><expr><Space> defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
+    nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new -columns=git:icons:filename:type `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
       nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
