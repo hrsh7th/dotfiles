@@ -34,23 +34,21 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neomru.vim')
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
-  call dein#add('andymass/vim-matchup')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
   call dein#add('hrsh7th/vim-versions')
   call dein#add('itchyny/lightline.vim')
   call dein#add('kmnk/denite-dirmark')
-  call dein#add('kristijanhusak/defx-git')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
   call dein#add('luochen1990/rainbow')
   call dein#add('mhinz/vim-signify')
+  call dein#add('morhetz/gruvbox')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
-  call dein#add('rafi/awesome-vim-colorschemes')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('t9md/vim-quickhl')
   call dein#add('thinca/vim-qfreplace')
@@ -281,27 +279,19 @@ if dein#tap('vim-quickrun')
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
 endif
 
-if dein#tap('rainbow')
-  let g:rainbow_active = 1
-endif
-
 if dein#tap('defx.nvim')
-  nnoremap <F2> :<C-u>Defx -auto-cd -columns=git:icons:filename:type -toggle -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`<CR>
-endif
-
-if dein#tap('denite.nvim')
-  nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
+  nnoremap <F2> :<C-u>Defx -auto-cd -toggle -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`<CR>
 endif
 
 if dein#tap('unite.vim') && dein#tap('vim-versions')
-  nnoremap <expr><Leader><Leader> printf(':<C-u>Unite versions:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
+  nnoremap <expr><Leader>b printf(':<C-u>Unite versions:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
   nnoremap <expr><F6> printf(':<C-u>UniteVersions status:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 endif
 
 if dein#tap('vim-quickhl')
-  nmap <Leader>m <Plug>(quickhl-manual-this)
-  vmap <Leader>m <Plug>(quickhl-manual-this)
+  nmap <Leader><Leader>m <Plug>(quickhl-manual-this)
+  vmap <Leader><Leader>m <Plug>(quickhl-manual-this)
 endif
 
 if dein#tap('open-browser.vim')
@@ -310,14 +300,13 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite buffer file_mru<CR>
+  nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
+  nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <expr><Plug>(my-denite-grep) printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
-  nnoremap <Plug>(my-denite-grep-next) :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty -buffer-name=grep<CR>
-  nnoremap <Plug>(my-denite-grep-prev) :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty -buffer-name=grep<CR>
-  nmap gr <Plug>(my-denite-grep)
-  nmap <Leader>n <Plug>(my-denite-grep-next)
-  nmap <Leader>p <Plug>(my-denite-grep-prev)
-  nnoremap <F8> :<C-u>Denite -auto-preview outline<CR>
+
+  nnoremap <Leader>m :<C-u>Denite -resume<CR>
+  nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
+  nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
 
 
@@ -356,7 +345,7 @@ function! MyPairIsBetween()
 endfunction
 
 " project.
-let g:my_project_root_detectors = ['.svn', '.git', 'package.json', 'composer.json']
+let g:project_root_detectors = ['.svn', '.git', 'package.json', 'composer.json']
 function! MyProjectRootDetect(path, option)
   if exists('t:my_project_root_dir') && !exists('a:option.ignore_project_root_vars')
     return t:my_project_root_dir
@@ -367,7 +356,7 @@ function! MyProjectRootDetect(path, option)
   let path = exists('b:unite.prev_bufnr') ? fnamemodify(bufname(b:unite.prev_bufnr), ':p') : path
 
   while path != '/'
-    for detect in g:my_project_root_detectors
+    for detect in g:project_root_detectors
       let target = printf('%s/%s', s:trim_right(path, '/'), detect)
       if isdirectory(target) || filereadable(target)
         return path
@@ -490,17 +479,40 @@ endfunction
 " --------------------
 "  colorscheme
 " --------------------
-let g:colors_name = 'angr'
-
+let g:colors_name = 'gruvbox'
 if g:colors_name == 'gruvbox'
   let g:gruvbox_italic = 1
-  let g:gruvbox_sign_column = 'bg0'
 endif
 
 if g:colors_name != ''
   execute printf('colorscheme %s', g:colors_name)
+  highlight! link VertSplit StatusLineNC
+  highlight! link LineNr StatusLineNC
 else
   colorscheme ron
+endif
+
+" --------------------
+"  auto-pairs
+" --------------------
+if dein#tap('ale')
+  let g:ale_linters = {}
+  let g:ale_linters.typescript = ['prettier']
+  let g:ale_linters.javascript = ['prettier']
+endif
+
+" --------------------
+"  rainbow
+" --------------------
+if dein#tap('rainbow')
+  let g:rainbow_active = 1
+endif
+
+" --------------------
+"  rainbow
+" --------------------
+if dein#tap('vim-unmatchparen')
+  let g:unmatchparen#disable_filetypes = ['vim']
 endif
 
 " --------------------
@@ -536,6 +548,7 @@ if dein#tap('vim-lsp')
   let g:lsp_signs_warning = { 'text': "\uf071" }
   let g:lsp_signs_information = { 'text': "\uf449" }
   let g:lsp_signs_hint = { 'text': "\uf400" }
+  let g:lsp_insert_text_enabled = 0
 
   highlight! link LspErrorText SignColumn
   highlight! link LspWarningText SignColumn
@@ -586,8 +599,6 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#option('omni_patterns', {
         \ 'typescript': '[^. *\t]\.\w*',
         \ 'typescript.tsx': '[^. *\t]\.\w*',
-        \ 'javascript': '[^. *\t]\.\w*',
-        \ 'javascript.tsx': '[^. *\t]\.\w*',
         \ })
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
 endif
@@ -597,6 +608,7 @@ endif
 " --------------------
 if dein#tap('neomru.vim')
   let g:neomru#directory_mru_ignore_pattern = join(['\.config'], '\|')
+  let g:neomru#directory_mru_limit = 100
   let g:neomru#file_mru_limit = 100
 endif
 
@@ -615,13 +627,27 @@ if dein#tap('deol.nvim')
 endif
 
 if dein#tap('defx.nvim')
+  call defx#custom#option('_', {
+        \ 'columns': 'mark:icons:filename:type',
+        \ })
+  call defx#custom#column('mark', {
+        \ 'directory_icon': ' ',
+        \ 'readonly_icon': ' ',
+        \ 'root_icon': ' ',
+        \ 'selected_icon': '*',
+        \ 'length': 1,
+        \ })
+
   autocmd FileType defx call s:defx_setting()
   function! s:defx_setting() abort
+    setlocal nonumber
+
     " open
     nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'MyDefxOpen')
     nnoremap <silent><buffer><expr>l       defx#do_action('open', 'MyDefxOpen')
     nnoremap <silent><buffer><expr>v       defx#do_action('open', 'MyDefxVsplit')
     nnoremap <silent><buffer><expr>s       defx#do_action('open', 'MyDefxSplit')
+    nnoremap <silent><buffer><expr>x       defx#do_action('execute_system')
 
     " move.
     nnoremap <silent><buffer><expr>h       defx#do_action('cd', ['..'])
@@ -643,9 +669,9 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>q       defx#do_action('quit')
-    nnoremap <silent><buffer><expr><Space> defx#do_action('toggle_select') . 'j'
+    nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
-    nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new -columns=git:icons:filename:type `expand('%:p:h')`<CR>
+    nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
       nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
@@ -735,7 +761,10 @@ endif
 " --------------------
 if dein#tap('lightline.vim')
   let g:lightline = {}
-"  let g:lightline.colorscheme = 
+  let g:lightline.enable = {}
+  let g:lightline.enable.statusline = 1
+  let g:lightline.enable.tabline = 1
+  let g:lightline.colorscheme = index(['gruvbox'], g:colors_name) >= 0 ? g:colors_name : 'default'
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['branch', 'close']]
@@ -778,7 +807,7 @@ if dein#tap('denite.nvim')
   call denite#custom#var('file/rec', 'command', ['scantree.py'])
   call denite#custom#source('file/rec', 'matchers', ['matcher/substring', 'matcher/ignore_globs'])
   call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
-  call denite#custom#var('file/rec', 'cache_threthold', 200000)
+  call denite#custom#var('file/rec', 'cache_threthold', 1000)
 
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
