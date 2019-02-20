@@ -30,6 +30,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
+  call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('Shougo/unite.vim')
@@ -42,9 +43,11 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
+  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('luochen1990/rainbow')
   call dein#add('mhinz/vim-signify')
   call dein#add('morhetz/gruvbox')
+  call dein#add('nightsense/cosmic_latte')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
   call dein#add('prabirshrestha/async.vim')
@@ -57,8 +60,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
-  call dein#add('xolox/vim-misc')
-  call dein#add('xolox/vim-session')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
@@ -140,7 +141,7 @@ set incsearch
 set hlsearch
 set ignorecase
 set smartcase
-set suffixesadd=.php,.tpl,.ts,.tsx,.rb,.java,.json,.md,.as,.js
+set suffixesadd=.php,.tpl,.ts,.css,.scss,.tsx,.rb,.java,.json,.md,.as,.js
 set matchpairs=(:),[:],{:}
 set path+=./;/
 set inccommand=split
@@ -185,11 +186,10 @@ nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
 cnoremap <Tab> <C-l>
-nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
+nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
       \ dein#tap('vim-quickhl') ? 'QuickhlManualReset' : 'nohlsearch',
       \ dein#tap('vim-quickhl') ? 'QuickhlCwordDisable' : 'nohlsearch',
       \ 'nohlsearch',
-      \ 'syntax on',
       \ 'redraw!'
       \ )
 
@@ -301,7 +301,7 @@ endif
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite buffer file_mru<CR>
   nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
-  nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
+  nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
 
   nnoremap <Leader>m :<C-u>Denite -resume<CR>
@@ -352,7 +352,7 @@ function! MyProjectRootDetect(path, option)
   endif
 
   let path = a:path
-  let path = exists('b:defx.context.paths[0]') ? fnamemodify(b:defx.context.paths[0], ':p') : path
+  let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
   let path = exists('b:unite.prev_bufnr') ? fnamemodify(bufname(b:unite.prev_bufnr), ':p') : path
 
   while path != '/'
@@ -380,7 +380,7 @@ function! MyProjectRootDecide()
   endif
 
   let path = MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})
-  let path = exists('b:defx.context.paths[0]') ? fnamemodify(b:defx.context.paths[0], ':p') : path
+  let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
   let path = exists('b:unite.prev_bufnr') ? fnamemodify(bufname(b:unite.prev_bufnr), ':p') : path
   let t:my_project_root_dir = path
 
@@ -479,15 +479,13 @@ endfunction
 " --------------------
 "  colorscheme
 " --------------------
-let g:colors_name = 'gruvbox'
+let g:colors_name = 'cosmic_latte'
 if g:colors_name == 'gruvbox'
   let g:gruvbox_italic = 1
 endif
 
 if g:colors_name != ''
   execute printf('colorscheme %s', g:colors_name)
-  highlight! link VertSplit StatusLineNC
-  highlight! link LineNr StatusLineNC
 else
   colorscheme ron
 endif
@@ -513,17 +511,6 @@ endif
 " --------------------
 if dein#tap('vim-unmatchparen')
   let g:unmatchparen#disable_filetypes = ['vim']
-endif
-
-" --------------------
-"  vim-session
-" --------------------
-if dein#tap('vim-session')
-  set sessionoptions-=buffers,globals,help
-  let s:session_path = '~/.vim-session'
-  let g:session_autosave = 'no'
-  let g:session_autoload = 'no'
-  let g:session_autosave_periodic = 1
 endif
 
 " --------------------
@@ -556,6 +543,7 @@ if dein#tap('vim-lsp')
   highlight! link LspHintText SignColumn
 
   let g:my_lsp_language_server_filetypes = {}
+
   if executable('typescript-language-server')
     let g:my_lsp_language_server_filetypes['typescript-language-server'] = ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx']
     autocmd! User lsp_setup call lsp#register_server({
@@ -592,15 +580,26 @@ if dein#tap('vim-versions')
 endif
 
 " --------------------
+" vim-versions.
+" --------------------
+if dein#tap('echodoc.vim')
+  let g:echodoc#enable_at_startup = 1
+  let g:echodoc#type = 'echo'
+endif
+
+" --------------------
 " deoplete.nvim.
 " --------------------
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#option('omni_patterns', {
-        \ 'typescript': '[^. *\t]\.\w*',
-        \ 'typescript.tsx': '[^. *\t]\.\w*',
-        \ })
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
+endif
+
+" --------------------
+" deoplete-vim-lsp
+" --------------------
+if dein#tap('deoplete-vim-lsp')
+  let g:deoplete#sources#vim_lsp#show_info = 1
 endif
 
 " --------------------
@@ -608,8 +607,8 @@ endif
 " --------------------
 if dein#tap('neomru.vim')
   let g:neomru#directory_mru_ignore_pattern = join(['\.config'], '\|')
-  let g:neomru#directory_mru_limit = 100
-  let g:neomru#file_mru_limit = 100
+  let g:neomru#directory_mru_limit = 50
+  let g:neomru#file_mru_limit = 50
 endif
 
 " --------------------
@@ -641,6 +640,7 @@ if dein#tap('defx.nvim')
   autocmd FileType defx call s:defx_setting()
   function! s:defx_setting() abort
     setlocal nonumber
+    setlocal winfixwidth
 
     " open
     nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'MyDefxOpen')
@@ -668,10 +668,10 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer>b             :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
     nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
-    nnoremap <silent><buffer><expr>q       defx#do_action('quit')
     nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
     nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
+    nnoremap <silent><buffer><expr><BS>    defx#do_action('call', 'MyDefxSuitableMove')
 
     if dein#tap('deol.nvim')
       nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
@@ -718,6 +718,19 @@ if dein#tap('defx.nvim')
     execute printf('edit %s', a:path)
   endfunction
 
+  " TODO: not work
+  function! MyDefxSuitableMove(context)
+    let s:current = b:defx.paths[0]
+    let s:project = MyProjectRootDetect(s:current)
+    let s:vsc_root = MyProjectRootDetect(s:current, { 'ignore_project_root_vars': 1 })
+
+    if s:current === s:prject
+      call defx#do_action('cd', [s:vcs_root])
+      return
+    endif
+    call defx#do_action('cd', [s:project])
+  endfunction
+
   function! MyPopupDeol(cwd)
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 15split
@@ -760,11 +773,15 @@ endif
 " lightline.
 " --------------------
 if dein#tap('lightline.vim')
+  let g:lightline_thema_map = {
+        \ 'gruvbox': 'gruvbox',
+        \ 'cosmic_latte': 'cosmic_latte_dark'
+        \ }
   let g:lightline = {}
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = index(['gruvbox'], g:colors_name) >= 0 ? g:colors_name : 'default'
+  let g:lightline.colorscheme = has_key(g:lightline_thema_map, g:colors_name) ? g:lightline_thema_map[g:colors_name] : 'default'
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['branch', 'close']]
@@ -818,6 +835,7 @@ if dein#tap('denite.nvim')
     call denite#custom#var('grep', 'final_opts', [])
   endif
 
+  call denite#custom#option('default,grep', 'winheight', 12)
   call denite#custom#option('default,grep', 'vertical_preview', v:true)
   call denite#custom#option('default,grep', 'highlight_mode_insert', 'None')
   call denite#custom#option('default,grep', 'highlight_matched_char', 'None')
@@ -870,7 +888,7 @@ endif
 " ########################################################################################################################
 " AutoCmd Setting.
 " ########################################################################################################################
-augroup MyAutoCmd
+augroup vimrc
   autocmd!
 
   autocmd! BufReadPost * call s:buf_read_post()
@@ -922,10 +940,54 @@ augroup MyAutoCmd
       setlocal completefunc=phpcomplete_extended#CompletePHP
     endif
 
+    " fix layout.
+    let s:current_winnr = tabpagewinnr(tabpagenr())
+    try
+      for s:ft in ['defx', 'deol', 'denite', 'unite']
+        let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
+        if len(s:winnrs) > 1
+          for s:winnr in s:winnrs
+            if s:ft == 'defx' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+              execute printf('silent noautocmd %swincmd w', s:winnr)
+              execute printf('silent noautocmd vertical resize %s', 35)
+              break
+            endif
+            if s:ft == 'deol' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+              execute printf('silent noautocmd %swincmd w', s:winnr)
+              execute printf('silent noautocmd wincmd K | silent noautocmd resize %s', 12)
+              break
+            endif
+            if s:ft == 'denite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+              execute printf('silent noautocmd %swincmd w', s:winnr)
+              execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
+              break
+            endif
+            if s:ft == 'unite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+              execute printf('silent noautocmd %swincmd w', s:winnr)
+              execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
+              break
+            endif
+          endfor
+        endif
+      endfor
+      silent noautocmd execute printf('%swincmd w', s:current_winnr)
+    catch
+    endtry
+
+    " fix indent.
     if filereadable(expand('%')) && exists(':Findent')
       Findent --no-messages --no-warnings --chunksize=100
     endif
   endfunction
+
+  " ColorScheme
+  autocmd! ColorScheme * call s:color_scheme()
+  function! s:color_scheme()
+    highlight! link VertSplit StatusLineNC
+    highlight! link SignColumn StatusLineNC
+    highlight! link LineNr StatusLineNC
+  endfunction
+  doautocmd ColorScheme
 
   " VimEnter.
   autocmd! VimEnter * call s:vim_enter()
@@ -937,7 +999,6 @@ augroup MyAutoCmd
   " BufEnter.
   autocmd! BufEnter * call s:buf_enter()
   function! s:buf_enter()
-    let &titlestring = MyExpandCurrentBuffer('')
     if exists('t:my_project_root_dir')
       execute printf('cd! %s', fnameescape(t:my_project_root_dir))
     endif
@@ -950,6 +1011,14 @@ augroup MyAutoCmd
     let &buftype = 'nofile'
   endfunction
 
+  " WinEnter"
+  autocmd! WinEnter * call s:win_enter()
+  function! s:win_enter()
+    if &previewwindow
+      setlocal wrap
+    endif
+  endfunction
+
   " CmdwinEnter.
   autocmd! CmdwinEnter * call s:cmdwin_enter()
   function! s:cmdwin_enter()
@@ -957,26 +1026,6 @@ augroup MyAutoCmd
     nnoremap <buffer>a             A
     nnoremap <buffer><silent>dd :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
     startinsert!
-  endfunction
-
-  " WinLeave.
-  autocmd! WinLeave * call s:win_leave()
-  function! s:win_leave()
-    let s:current_winnr = tabpagewinnr(tabpagenr())
-
-    " deol.nvim.
-    let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-    if len(s:winnrs) > 1
-      for s:winnr in s:winnrs
-        if index(['deol'], getbufvar(winbufnr(s:winnr), '&filetype')) > -1
-          execute printf('%swincmd w', s:winnr)
-          execute printf('wincmd K | resize %s', 12)
-          break
-        endif
-      endfor
-    endif
-
-    silent noautocmd execute printf('%swincmd w', s:current_winnr)
   endfunction
 
 augroup END
