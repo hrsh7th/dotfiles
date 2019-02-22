@@ -35,6 +35,9 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neomru.vim')
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
+  call dein#add('airblade/vim-gitgutter')
+  call dein#add('andymass/vim-matchup')
+  call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
   call dein#add('hrsh7th/vim-versions')
@@ -45,15 +48,14 @@ if dein#load_state(dein.dir.install)
   call dein#add('leafgarland/typescript-vim')
   call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('luochen1990/rainbow')
-  call dein#add('mhinz/vim-signify')
-  call dein#add('morhetz/gruvbox')
-  call dein#add('nightsense/cosmic_latte')
+  call dein#add('nightsense/snow')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('t9md/vim-quickhl')
+  call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
   call dein#add('tpope/vim-fugitive')
@@ -92,6 +94,7 @@ set noswapfile
 set virtualedit=all
 set scrolloff=3
 set sidescrolloff=3
+set scrollback=2000
 set completeopt-=preview
 set noerrorbells
 set novisualbell
@@ -128,7 +131,7 @@ set nowrap
 set number
 set list
 set listchars=tab:>-,trail:^
-set pumheight=30
+set pumheight=50
 set nocursorline
 set noshowmode
 set ambiwidth=double
@@ -268,12 +271,8 @@ inoremap < <><Left>
 nnoremap <expr><F5> MyProjectRootDecide()
 
 " --------------------
-" Plugin.
+" Plugin Mapping.
 " --------------------
-if dein#tap('dein.vim')
-  let g:dein#install_log_filename = '~/dein.log'
-endif
-
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
@@ -387,20 +386,15 @@ function! MyProjectRootDecide()
   execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
 endfunction
 
-let g:find_file_in_project_root_converters = {}
 function! MyProjectRootFindFile(filepath, command)
   let path = MyProjectRootDetect(MyExpandCurrentBuffer(''), {'ignore_project_root_vars': 1})
   let filepath = a:filepath
-  let filepath = substitute(filepath, '\..\{-}$', '', 'g')
-  let filepath = substitute(filepath, '^[\.\/]*', '', 'g')
+  let filepath = substitute(filepath, '\.[^\.]*$', '', 'g')
   let filepath = substitute(filepath, '\.\|\\', '/', 'g')
-  for funcname in keys(g:find_file_in_project_root_converters)
-    let filepath = g:find_file_in_project_root_converters[funcname]({'path': path, 'filepath': filepath})
+  let filepath = substitute(filepath, '^[\./]*', '', 'g')
+  for name in keys(locon#get('filename_converters'))
+    let filepath = locon#get('filename_converters')[name]({'path': path, 'filepath': filepath})
   endfor
-
-  if !strlen(filepath)
-    return
-  endif
 
   let filedirs = split(fnamemodify(filepath, ':h'), '/')
   let bufferdirs = split(fnamemodify(expand('%:p:h'), ':h'), '/')
@@ -408,6 +402,7 @@ function! MyProjectRootFindFile(filepath, command)
 
   if exists('g:my_debug')
     echomsg 'target file   name: ' . a:filepath
+    echomsg 'modified file name: ' . filepath
     echomsg 'project root   dir: ' . path
     echomsg 'upward start   dir: ' . expand('%:p:h')
     echomsg 'upward end     dir: ' . search_path
@@ -477,13 +472,27 @@ endfunction
 " Plugin Setting.
 " ########################################################################################################################
 " --------------------
-"  colorscheme
+"  dein
 " --------------------
-let g:colors_name = 'cosmic_latte'
-if g:colors_name == 'gruvbox'
-  let g:gruvbox_italic = 1
+if dein#tap('dein.vim')
+  let g:dein#install_log_filename = '~/dein.log'
 endif
 
+if dein#tap('vim-locon')
+  call locon#def('find_tsconfig_dir', { path -> fnamemodify(findfile('tsconfig.json', path . ';') || finddir('.git', path . ';'), ':p:h') })
+  call locon#def('filename_converters', {})
+  call locon#def('ignore_globs', ['.*/', '.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
+  call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
+
+  if filereadable(expand('$HOME/.vimrc.local'))
+    execute printf('source %s', expand('$HOME/.vimrc.local'))
+  endif
+endif
+
+" --------------------
+"  colorscheme
+" --------------------
+let g:colors_name = 'snow'
 if g:colors_name != ''
   execute printf('colorscheme %s', g:colors_name)
 else
@@ -514,14 +523,17 @@ if dein#tap('vim-unmatchparen')
 endif
 
 " --------------------
-"  vim-signify
+"  vim-gitgutter
 " --------------------
-if dein#tap('vim-signify')
-  let g:signify_sign_show_count = 0
-  let g:signify_sign_change = '✚'
-  let g:signify_sign_add = '✹'
-  let g:signify_sign_delete = '✖'
-  let g:signify_sign_delete_first_line = '✖'
+if dein#tap('vim-gitgutter')
+  let g:gitgutter_override_sign_column_highlight = 0
+  let g:gitgutter_map_keys = 0
+  let g:gitgutter_diff_args = '-w'
+  let g:gitgutter_sign_added = "\uf055"
+  let g:gitgutter_sign_modified = "\uf459"
+  let g:gitgutter_sign_removed = "\uf458"
+  let g:gitgutter_sign_removed_first_line = "\uf458"
+  let g:gitgutter_sign_modified_removed = "\uf459"
 endif
 
 " --------------------
@@ -549,7 +561,7 @@ if dein#tap('vim-lsp')
     autocmd! User lsp_setup call lsp#register_server({
         \ 'name': 'typescript-language-server',
         \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(fnamemodify(s:find_file_upwards('tsconfig.json', lsp#utils#get_buffer_path()), ':p:h')) },
+        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_tsconfig_dir')(lsp#utils#get_buffer_path())) },
         \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
         \ })
   endif
@@ -592,6 +604,7 @@ endif
 " --------------------
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
+  call deoplete#custom#source('lsp', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
 endif
 
@@ -774,8 +787,7 @@ endif
 " --------------------
 if dein#tap('lightline.vim')
   let g:lightline_thema_map = {
-        \ 'gruvbox': 'gruvbox',
-        \ 'cosmic_latte': 'cosmic_latte_dark'
+        \ 'snow': 'snow_dark'
         \ }
   let g:lightline = {}
   let g:lightline.enable = {}
@@ -819,16 +831,26 @@ if dein#tap('denite.nvim')
   call denite#custom#map('insert', '<Tab>', '<denite:choose_action>')
 
   if executable('ag')
-    call denite#custom#var('file/rec', 'command', ['ag', '--follow', '--nocolor', '--nogroup', '-g', ''])
+    call denite#custom#var('file/rec', 'command', [
+          \ 'ag',
+          \ '--follow',
+          \ ] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }) + [
+          \ '--nocolor',
+          \ '--nogroup',
+          \ '-g',
+          \ ''
+          \ ])
   endif
-  call denite#custom#var('file/rec', 'command', ['scantree.py'])
-  call denite#custom#source('file/rec', 'matchers', ['matcher/substring', 'matcher/ignore_globs'])
+  call denite#custom#source('file/rec', 'matchers', ['matcher/substring'])
   call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
-  call denite#custom#var('file/rec', 'cache_threthold', 1000)
 
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
-    call denite#custom#var('grep', 'default_opts', ['-i'])
+    call denite#custom#var('grep', 'default_opts', [
+          \ '-i',
+          \ '--exclude',
+          \ join(locon#get('ignore_greps'), '|')
+          \ ])
     call denite#custom#var('grep', 'recursive_opts', ['-R'])
     call denite#custom#var('grep', 'pattern_opt', [])
     call denite#custom#var('grep', 'separator', [])
@@ -845,7 +867,7 @@ if dein#tap('denite.nvim')
   call denite#custom#option('default,grep', 'updatetime', 500)
   call denite#custom#option('default,grep', 'skiptime', 500)
   call denite#custom#option('grep', 'quit', v:false)
-  call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
+  call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
 
   if dein#tap('vim-qfreplace')
     function! s:denite_replace_action(context)
@@ -1029,8 +1051,4 @@ augroup vimrc
   endfunction
 
 augroup END
-
-if filereadable(expand('$HOME/.vimrc.local'))
-  execute printf('source %s', expand('$HOME/.vimrc.local'))
-endif
 
