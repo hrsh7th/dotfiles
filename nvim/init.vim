@@ -36,7 +36,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('airblade/vim-gitgutter')
-  call dein#add('andymass/vim-matchup')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
@@ -144,7 +143,7 @@ set incsearch
 set hlsearch
 set ignorecase
 set smartcase
-set suffixesadd=.php,.tpl,.ts,.css,.scss,.tsx,.rb,.java,.json,.md,.as,.js
+set suffixesadd=.php,.tpl,.ts,.tsx,.css,.scss,.rb,.java,.json,.md,.as,.js
 set matchpairs=(:),[:],{:}
 set path+=./;/
 set inccommand=split
@@ -283,14 +282,14 @@ if dein#tap('defx.nvim')
 endif
 
 if dein#tap('unite.vim') && dein#tap('vim-versions')
-  nnoremap <expr><Leader>b printf(':<C-u>Unite versions:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
+  nnoremap <expr><F8> printf(':<C-u>Unite versions:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
   nnoremap <expr><F6> printf(':<C-u>UniteVersions status:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 endif
 
 if dein#tap('vim-quickhl')
-  nmap <Leader><Leader>m <Plug>(quickhl-manual-this)
-  vmap <Leader><Leader>m <Plug>(quickhl-manual-this)
+  nmap <Leader>m <Plug>(quickhl-manual-this)
+  vmap <Leader>m <Plug>(quickhl-manual-this)
 endif
 
 if dein#tap('open-browser.vim')
@@ -303,7 +302,7 @@ if dein#tap('denite.nvim')
   nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
 
-  nnoremap <Leader>m :<C-u>Denite -resume<CR>
+  nnoremap <Leader><Leader>m :<C-u>Denite -resume<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
@@ -429,28 +428,9 @@ function! s:remove_tail_paths(dirs, removes)
   return s:dirs
 endfunction
 
-" trim.
-function! s:trim(str, trim)
-  return s:trim_left(s:trim_right(a:str, a:trim), a:trim)
-endfunction
+" trim right.
 function! s:trim_right(str, trim)
   return substitute(a:str, printf('%s$', a:trim), '', 'g')
-endfunction
-function! s:trim_left(str, trim)
-  return substitute(a:str, printf('^%s', a:trim), '', 'g')
-endfunction
-
-" ellipsis and pad.
-function! s:ellipsis(str, max)
-  return strpart(a:str, 0, a:max)
-endfunction
-function! s:padding(str, char, max)
-  return a:str . repeat(a:char, a:max)
-endfunction
-
-" find upwards.
-function! s:find_file_upwards(filename, path)
-  return findfile(a:filename, fnamemodify(a:path, ':p:h') . ';')
 endfunction
 
 " get git branch name.
@@ -479,10 +459,11 @@ if dein#tap('dein.vim')
 endif
 
 if dein#tap('vim-locon')
-  call locon#def('find_tsconfig_dir', { path -> fnamemodify(findfile('tsconfig.json', path . ';') || finddir('.git', path . ';'), ':p:h') })
+  call locon#def('find_project_root', { path -> fnamemodify(finddir('.git', path . ';'), ':p:h') })
   call locon#def('filename_converters', {})
-  call locon#def('ignore_globs', ['.*/', '.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
+  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
   call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
+  call locon#def('init_lsp_server', { -> '' })
 
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
@@ -492,20 +473,10 @@ endif
 " --------------------
 "  colorscheme
 " --------------------
-let g:colors_name = 'snow'
-if g:colors_name != ''
-  execute printf('colorscheme %s', g:colors_name)
+if dein#tap('snow')
+  colorscheme snow
 else
   colorscheme ron
-endif
-
-" --------------------
-"  auto-pairs
-" --------------------
-if dein#tap('ale')
-  let g:ale_linters = {}
-  let g:ale_linters.typescript = ['prettier']
-  let g:ale_linters.javascript = ['prettier']
 endif
 
 " --------------------
@@ -561,23 +532,24 @@ if dein#tap('vim-lsp')
     autocmd! User lsp_setup call lsp#register_server({
         \ 'name': 'typescript-language-server',
         \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_tsconfig_dir')(lsp#utils#get_buffer_path())) },
+        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_project_root')(lsp#utils#get_buffer_path())) },
         \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
         \ })
   endif
+
+  autocmd! User lsp_server_init call locon#get('init_lsp_server')()
 endif
 
 " --------------------
-"  vim-matchup
+"  auto-pairs
 " --------------------
-if dein#tap('vim-matchup')
-  let g:matchup_matchparen_stopline = 50
-  let g:matchup_delim_stopline = 50
-  let g:matchup_matchparen_deferred = 1
-  let g:matchup_matchparen_hi_surround_always = 1
-  let g:matchup_matchparen_hi_background = 1
-  let g:matchup_matchparen_timeout = 100
-  let g:matchup_matchparen_insert_timeout = 50
+if dein#tap('ale')
+  let g:ale_linters = {}
+  for [s:s, s:fts] in items(g:my_lsp_language_server_filetypes)
+    for s:ft in s:fts
+      let g:ale_linters[s:ft] = []
+    endfor
+  endfor
 endif
 
 " --------------------
@@ -606,6 +578,12 @@ if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
   call deoplete#custom#source('lsp', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
+  call deoplete#custom#source('_', 'min_pattern_length', 1)
+  call deoplete#custom#source('_', 'converters', [
+        \ 'remove_overlap',
+        \ 'converter_truncate_menu',
+        \ 'converter_truncate_abbr',
+        \ 'converter_remove_paren'])
 endif
 
 " --------------------
@@ -613,6 +591,7 @@ endif
 " --------------------
 if dein#tap('deoplete-vim-lsp')
   let g:deoplete#sources#vim_lsp#show_info = 1
+  let g:deoplete#sources#vim_lsp#debounce = 100
 endif
 
 " --------------------
@@ -678,13 +657,12 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>p       defx#do_action('paste')
 
     nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer>b             :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
+    nnoremap <silent><buffer><BS>             :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
     nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
     nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
-    nnoremap <silent><buffer><expr><BS>    defx#do_action('call', 'MyDefxSuitableMove')
 
     if dein#tap('deol.nvim')
       nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
@@ -786,14 +764,11 @@ endif
 " lightline.
 " --------------------
 if dein#tap('lightline.vim')
-  let g:lightline_thema_map = {
-        \ 'snow': 'snow_dark'
-        \ }
   let g:lightline = {}
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = has_key(g:lightline_thema_map, g:colors_name) ? g:lightline_thema_map[g:colors_name] : 'default'
+  let g:lightline.colorscheme = 'snow_dark'
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['branch', 'close']]
@@ -841,7 +816,6 @@ if dein#tap('denite.nvim')
           \ ''
           \ ])
   endif
-  call denite#custom#source('file/rec', 'matchers', ['matcher/substring'])
   call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
 
   if executable('jvgrep')
@@ -857,17 +831,18 @@ if dein#tap('denite.nvim')
     call denite#custom#var('grep', 'final_opts', [])
   endif
 
-  call denite#custom#option('default,grep', 'winheight', 12)
-  call denite#custom#option('default,grep', 'vertical_preview', v:true)
-  call denite#custom#option('default,grep', 'highlight_mode_insert', 'None')
-  call denite#custom#option('default,grep', 'highlight_matched_char', 'None')
-  call denite#custom#option('default,grep', 'highlight_matched_range', 'None')
-  call denite#custom#option('default,grep', 'highlight_preview_line', 'None')
-  call denite#custom#option('default,grep', 'mode', 'normal')
-  call denite#custom#option('default,grep', 'updatetime', 500)
-  call denite#custom#option('default,grep', 'skiptime', 500)
-  call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
+  call denite#custom#option('grep', 'quit', v:false)
+  call denite#custom#option('_', 'winheight', 12)
+  call denite#custom#option('_', 'vertical_preview', v:true)
+  call denite#custom#option('_', 'highlight_mode_insert', 'None')
+  call denite#custom#option('_', 'highlight_matched_char', 'None')
+  call denite#custom#option('_', 'highlight_matched_range', 'None')
+  call denite#custom#option('_', 'highlight_preview_line', 'None')
+  call denite#custom#option('_', 'mode', 'normal')
+  call denite#custom#option('_', 'updatetime', 500)
+  call denite#custom#option('_', 'skiptime', 500)
+  call denite#custom#source('_', 'matchers', ['matcher/substring'])
 
   if dein#tap('vim-qfreplace')
     function! s:denite_replace_action(context)
