@@ -6,7 +6,10 @@ endif
 let g:loaded_matchparen = 1
 let g:loaded_python_provider = 1
 let g:python_host_skip_check = 1
+let g:python_host_prog = 'python3'
 let g:python3_host_skip_check = 1
+let g:python3_host_prog = 'python3.6'
+
 
 " ########################################################################################################################
 " Install Setting.
@@ -25,7 +28,7 @@ let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/context_filetype.vim')
-  call dein#add('Shougo/defx.nvim')
+  call dein#add('Shougo/defx.nvim', { 'rev': 'tree' })
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
@@ -46,13 +49,13 @@ if dein#load_state(dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
   call dein#add('lighttiger2505/deoplete-vim-lsp')
-  call dein#add('luochen1990/rainbow')
   call dein#add('nightsense/snow')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('ryanoasis/vim-devicons')
+  call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
   call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
   call dein#add('thinca/vim-qfreplace')
@@ -172,7 +175,6 @@ let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
-nnoremap <Leader>! :<C-u>q!<CR>
 nnoremap <Leader>w :<C-u>w<CR>
 nmap ; :
 nmap : ;
@@ -187,7 +189,7 @@ nnoremap < <<<Esc>
 nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
-cnoremap <Tab> <C-l>
+" cnoremap <Tab> <C-l>
 nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
       \ dein#tap('vim-quickhl') ? 'QuickhlManualReset' : 'nohlsearch',
       \ dein#tap('vim-quickhl') ? 'QuickhlCwordDisable' : 'nohlsearch',
@@ -213,7 +215,6 @@ nmap <Tab> %
 vmap <Tab> %
 inoremap <C-l> <C-o>l
 inoremap <C-h> <C-o>h
-inoremap <C-Space> <C-n>
 inoremap <expr>] pumvisible() ? "\<C-n>" : "]"
 inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
@@ -278,11 +279,22 @@ if dein#tap('vim-quickrun')
 endif
 
 if dein#tap('defx.nvim')
-  nnoremap <F2> :<C-u>Defx -auto-cd -toggle -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`<CR>
+  nnoremap <F2> :<C-u>call OpenDefx()<CR>
+  function! OpenDefx()
+    let s:path = expand('%:p:h')
+    let s:winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
+    let s:choise = choosewin#start(s:winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
+    if len(s:choise) > 0
+      execute printf('%swincmd w', s:choise[1])
+      call defx#call_action('cd', [s:path])
+    else
+      Defx -auto-cd -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`
+    endif
+  endfunction
 endif
 
 if dein#tap('unite.vim') && dein#tap('vim-versions')
-  nnoremap <expr><F8> printf(':<C-u>Unite versions:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
+  nnoremap <expr><Leader>b printf(':<C-u>Unite versions/git/branch:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
   nnoremap <expr><F6> printf(':<C-u>UniteVersions status:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 endif
@@ -314,7 +326,7 @@ endif
 " pairs.
 let g:my_pairs = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<': '>', '>': '<'}
 function! MyPairEnterMapping()
-  if MyPairIsBetween()
+  if MyPairIsSandwiched()
     return "\<CR>\<Up>\<End>\<CR>"
   endif
   return "\<CR>"
@@ -480,14 +492,7 @@ else
 endif
 
 " --------------------
-"  rainbow
-" --------------------
-if dein#tap('rainbow')
-  let g:rainbow_active = 1
-endif
-
-" --------------------
-"  rainbow
+"  vim-unmatchparen
 " --------------------
 if dein#tap('vim-unmatchparen')
   let g:unmatchparen#disable_filetypes = ['vim']
@@ -591,14 +596,12 @@ endif
 " --------------------
 if dein#tap('deoplete-vim-lsp')
   let g:deoplete#sources#vim_lsp#show_info = 1
-  let g:deoplete#sources#vim_lsp#debounce = 100
 endif
 
 " --------------------
 " neomru.vim.
 " --------------------
 if dein#tap('neomru.vim')
-  let g:neomru#directory_mru_ignore_pattern = join(['\.config'], '\|')
   let g:neomru#directory_mru_limit = 50
   let g:neomru#file_mru_limit = 50
 endif
@@ -642,10 +645,12 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>x       defx#do_action('execute_system')
 
     " move.
-    nnoremap <silent><buffer><expr>h       defx#do_action('cd', ['..'])
+    nnoremap <silent><buffer><expr>h       defx#is_directory() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
     nnoremap <silent><buffer><expr>j       'j'
     nnoremap <silent><buffer><expr>k       'k'
+    nnoremap <silent><buffer><expr>l       defx#is_directory() ? defx#do_action('open_tree') : defx#do_action('open', 'MyDefxOpen')
     nnoremap <silent><buffer><expr>~       defx#do_action('cd')
+    nnoremap <silent><buffer><expr>\       defx#do_action('cd', ['/'])
 
     " manimpulates.
     nnoremap <silent><buffer><expr>K       defx#do_action('new_directory')
@@ -878,8 +883,6 @@ if dein#tap('denite.nvim')
         \ ['upgrade: dein:deps', 'call dein#update()']
         \ ]
   call denite#custom#var('menu', 'menus', s:menus)
-
-  highlight! clear deniteMatched
 endif
 
 " ########################################################################################################################
@@ -887,20 +890,6 @@ endif
 " ########################################################################################################################
 augroup vimrc
   autocmd!
-
-  autocmd! BufReadPost * call s:buf_read_post()
-  function! s:buf_read_post()
-    for [s:exts, s:ft] in [
-          \ ['log', 'log'],
-          \ ['ejs', 'html'],
-          \ ['vue', 'html'],
-          \ ['tsx', 'typescript.tsx']
-          \ ]
-      if index(split(s:exts, ','), expand('%:e')) >= 0
-        execute printf('setlocal filetype=%s', s:ft)
-      endif
-    endfor
-  endfunction
 
   autocmd! FileType * call s:file_type()
   function! s:file_type()
@@ -986,13 +975,6 @@ augroup vimrc
   endfunction
   doautocmd ColorScheme
 
-  " VimEnter.
-  autocmd! VimEnter * call s:vim_enter()
-  function! s:vim_enter()
-    map <Nul> <C-Space>
-    map! <Nul> <C-Space>
-  endfunction
-
   " BufEnter.
   autocmd! BufEnter * call s:buf_enter()
   function! s:buf_enter()
@@ -1005,7 +987,6 @@ augroup vimrc
   autocmd! TermOpen term://* call s:term_open()
   function! s:term_open()
     tnoremap <buffer><silent><Esc> <C-\><C-n>
-    let &buftype = 'nofile'
   endfunction
 
   " WinEnter"
@@ -1021,7 +1002,7 @@ augroup vimrc
   function! s:cmdwin_enter()
     nnoremap <buffer><silent><Esc> :<C-u>q<CR>
     nnoremap <buffer>a             A
-    nnoremap <buffer><silent>dd :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
+    nnoremap <buffer><silent>dd    :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
     startinsert!
   endfunction
 
