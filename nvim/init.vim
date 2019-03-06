@@ -28,7 +28,6 @@ let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/context_filetype.vim')
-  call dein#add('Shougo/defx.nvim', { 'rev': 'tree' })
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
@@ -39,6 +38,8 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('airblade/vim-gitgutter')
+  call dein#add('hrsh7th/defx.nvim')
+  call dein#add('hrsh7th/deoplete-vim-lsp')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
@@ -48,7 +49,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
-  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('nightsense/snow')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
@@ -625,7 +625,7 @@ if dein#tap('defx.nvim')
         \ 'columns': 'mark:icons:filename:type',
         \ })
   call defx#custom#column('mark', {
-        \ 'directory_icon': ' ',
+        \ 'directory_icon': '+',
         \ 'readonly_icon': ' ',
         \ 'root_icon': ' ',
         \ 'selected_icon': '*',
@@ -638,17 +638,17 @@ if dein#tap('defx.nvim')
     setlocal winfixwidth
 
     " open
-    nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'MyDefxOpen')
-    nnoremap <silent><buffer><expr>l       defx#do_action('open', 'MyDefxOpen')
-    nnoremap <silent><buffer><expr>v       defx#do_action('open', 'MyDefxVsplit')
-    nnoremap <silent><buffer><expr>s       defx#do_action('open', 'MyDefxSplit')
+    nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'DefxEdit')
+    nnoremap <silent><buffer><expr>l       defx#do_action('open', 'DefxEdit')
+    nnoremap <silent><buffer><expr>v       defx#do_action('open', 'DefxVsplit')
+    nnoremap <silent><buffer><expr>s       defx#do_action('open', 'DefxSplit')
     nnoremap <silent><buffer><expr>x       defx#do_action('execute_system')
 
     " move.
-    nnoremap <silent><buffer><expr>h       defx#is_directory() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
+    nnoremap <silent><buffer><expr>h       defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
     nnoremap <silent><buffer><expr>j       'j'
     nnoremap <silent><buffer><expr>k       'k'
-    nnoremap <silent><buffer><expr>l       defx#is_directory() ? defx#do_action('open_tree') : defx#do_action('open', 'MyDefxOpen')
+    nnoremap <silent><buffer><expr>l       defx#is_directory() ? defx#do_action('open_tree') . 'j' : defx#do_action('open', 'DefxEdit')
     nnoremap <silent><buffer><expr>~       defx#do_action('cd')
     nnoremap <silent><buffer><expr>\       defx#do_action('cd', ['/'])
 
@@ -662,7 +662,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>p       defx#do_action('paste')
 
     nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>             :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
+    nnoremap <silent><buffer><BS>          :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
     nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
@@ -697,25 +697,24 @@ if dein#tap('defx.nvim')
     let g:defx_icons_column_length = 2
   endif
 
-  command! -nargs=* -range MyDefxOpen call s:defx_open_command('edit', <q-args>)
-  command! -nargs=* -range MyDefxVsplit call s:defx_open_command('vsplit', <q-args>)
-  command! -nargs=* -range MyDefxSplit call s:defx_open_command('split', <q-args>)
-  function! s:defx_open_command(cmd, path)
-    let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-    if len(s:winnrs) > 1
-      for s:winnr in s:winnrs
-        if index(['deol', 'defx', 'denite'], getbufvar(winbufnr(s:winnr), '&filetype')) == -1
-          execute printf('%swincmd w', s:winnr)
-          execute printf('%s %s', a:cmd, a:path)
-          return
-        endif
-      endfor
+  command! -nargs=* -range DefxEdit call DefxOpen('edit', <q-args>)
+  command! -nargs=* -range DefxVsplit call DefxOpen('vsplit', <q-args>)
+  command! -nargs=* -range DefxSplit call DefxOpen('split', <q-args>)
+  function! DefxOpen(cmd, path)
+    let s:winnrs = filter(
+          \ range(1, tabpagewinnr(tabpagenr(), '$')),
+          \ { i, wnr -> index(['deol', 'defx', 'denite', 'unite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
+
+    if len(s:winnrs) > 0
+      execute printf('%swincmd w', s:winnrs[0])
+      execute printf('%s %s', a:cmd, a:path)
+      return
     endif
     execute printf('edit %s', a:path)
   endfunction
 
   " TODO: not work
-  function! MyDefxSuitableMove(context)
+  function! DefxSuitableMove(context)
     let s:current = b:defx.paths[0]
     let s:project = MyProjectRootDetect(s:current)
     let s:vsc_root = MyProjectRootDetect(s:current, { 'ignore_project_root_vars': 1 })
