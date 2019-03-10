@@ -28,6 +28,7 @@ let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/context_filetype.vim')
+  call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
@@ -38,8 +39,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('airblade/vim-gitgutter')
-  call dein#add('hrsh7th/defx.nvim')
-  call dein#add('hrsh7th/deoplete-vim-lsp')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-unmatchparen')
@@ -49,6 +48,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
+  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('nightsense/snow')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
@@ -58,8 +58,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
   call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
+  call dein#add('thinca/vim-prettyprint')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
+  call dein#add('thinca/vim-themis')
   call dein#add('tpope/vim-fugitive')
   call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
@@ -101,7 +103,7 @@ set completeopt-=preview
 set noerrorbells
 set novisualbell
 set t_vb=
-set clipboard+=unnamed
+set clipboard+=unnamedplus
 set isfname-==
 set isfname+=\\
 set diffopt=filler,iwhite
@@ -109,6 +111,7 @@ set wildchar=]
 set splitright
 set splitbelow
 set tags=./tags;,./.tags;
+set synmaxcol=512
 set mouse=n
 if has('persistent_undo')
   set undodir=~/.vimundo
@@ -470,6 +473,17 @@ if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
 endif
 
+" --------------------
+"  locon
+" --------------------
+if dein#tap('vim-themis')
+  let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
+  let $THEMIS_VIM = 'nvim'
+endif
+
+" --------------------
+"  locon
+" --------------------
 if dein#tap('vim-locon')
   call locon#def('find_project_root', { path -> fnamemodify(finddir('.git', path . ';'), ':p:h') })
   call locon#def('filename_converters', {})
@@ -517,6 +531,7 @@ endif
 " --------------------
 if dein#tap('vim-lsp')
   let g:lsp_signs_enabled = 1
+  let g:lsp_virtual_text_enabled = 0
   let g:lsp_diagnostics_enabled = 1
   let g:lsp_diagnostics_echo_cursor = 1
   let g:lsp_signs_error = { 'text': "\uf071" }
@@ -524,11 +539,6 @@ if dein#tap('vim-lsp')
   let g:lsp_signs_information = { 'text': "\uf449" }
   let g:lsp_signs_hint = { 'text': "\uf400" }
   let g:lsp_insert_text_enabled = 0
-
-  highlight! link LspErrorText SignColumn
-  highlight! link LspWarningText SignColumn
-  highlight! link LspInformationText SignColumn
-  highlight! link LspHintText SignColumn
 
   let g:my_lsp_language_server_filetypes = {}
 
@@ -638,39 +648,39 @@ if dein#tap('defx.nvim')
     setlocal winfixwidth
 
     " open
-    nnoremap <silent><buffer><expr><CR>    defx#do_action('open', 'DefxEdit')
-    nnoremap <silent><buffer><expr>l       defx#do_action('open', 'DefxEdit')
-    nnoremap <silent><buffer><expr>v       defx#do_action('open', 'DefxVsplit')
-    nnoremap <silent><buffer><expr>s       defx#do_action('open', 'DefxSplit')
-    nnoremap <silent><buffer><expr>x       defx#do_action('execute_system')
+    nnoremap <silent><buffer><expr><Tab>     defx#do_action('call', 'DefxSuitableMove')
+    nnoremap <silent><buffer><expr><CR>      defx#do_action('open', 'DefxEdit')
+    nnoremap <silent><buffer><expr>v         defx#do_action('open', 'DefxVsplit')
+    nnoremap <silent><buffer><expr>s         defx#do_action('open', 'DefxSplit')
+    nnoremap <silent><buffer><expr>x         defx#do_action('execute_system')
 
     " move.
-    nnoremap <silent><buffer><expr>h       defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
-    nnoremap <silent><buffer><expr>j       'j'
-    nnoremap <silent><buffer><expr>k       'k'
-    nnoremap <silent><buffer><expr>l       defx#is_directory() ? defx#do_action('open_tree') . 'j' : defx#do_action('open', 'DefxEdit')
-    nnoremap <silent><buffer><expr>~       defx#do_action('cd')
-    nnoremap <silent><buffer><expr>\       defx#do_action('cd', ['/'])
+    nnoremap <silent><buffer><expr>h         defx#do_action('call', 'DefxCloseTree')
+    nnoremap <silent><buffer><expr>j         'j'
+    nnoremap <silent><buffer><expr>k         'k'
+    nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : defx#do_action('open', 'DefxEdit')
+    nnoremap <silent><buffer><expr>~         defx#do_action('cd')
+    nnoremap <silent><buffer><expr>\         defx#do_action('cd', ['/'])
 
     " manimpulates.
-    nnoremap <silent><buffer><expr>K       defx#do_action('new_directory')
-    nnoremap <silent><buffer><expr>N       defx#do_action('new_file')
-    nnoremap <silent><buffer><expr>c       defx#do_action('copy')
-    nnoremap <silent><buffer><expr>m       defx#do_action('move')
-    nnoremap <silent><buffer><expr>d       defx#do_action('remove')
-    nnoremap <silent><buffer><expr>r       defx#do_action('rename')
-    nnoremap <silent><buffer><expr>p       defx#do_action('paste')
+    nnoremap <silent><buffer><expr>K         defx#do_action('new_directory')
+    nnoremap <silent><buffer><expr>N         defx#do_action('new_file')
+    nnoremap <silent><buffer><expr>c         defx#do_action('copy')
+    nnoremap <silent><buffer><expr>m         defx#do_action('move')
+    nnoremap <silent><buffer><expr>D         defx#do_action('remove')
+    nnoremap <silent><buffer><expr>r         defx#do_action('rename')
+    nnoremap <silent><buffer><expr>p         defx#do_action('paste')
 
-    nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>          :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
-    nnoremap <silent><buffer><expr><F5>    MyProjectRootDecide()
-    nnoremap <silent><buffer><expr>.       defx#do_action('toggle_ignored_files')
-    nnoremap <silent><buffer><expr>@       defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><expr><C-l>   defx#do_action('redraw')
-    nnoremap <silent><buffer><Leader><CR>  :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
+    nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
+    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
+    nnoremap <silent><buffer><expr><F5>      MyProjectRootDecide()
+    nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
+    nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
+    nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
+    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
-      nnoremap <buffer>H :<C-u>call MyPopupDeol(getcwd())<CR>
+      nnoremap <buffer>H :<C-u>call MyPopupDeol(b:defx.paths[0])<CR>
     endif
   endfunction
 
@@ -713,25 +723,47 @@ if dein#tap('defx.nvim')
     execute printf('edit %s', a:path)
   endfunction
 
-  " TODO: not work
   function! DefxSuitableMove(context)
-    let s:current = b:defx.paths[0]
-    let s:project = MyProjectRootDetect(s:current)
-    let s:vsc_root = MyProjectRootDetect(s:current, { 'ignore_project_root_vars': 1 })
+    let s:current = s:trim_right(b:defx.paths[0], '/')
+    let s:workspace = s:trim_right(MyProjectRootDetect(s:current, {}), '/')
+    let s:vcs_root = s:trim_right(MyProjectRootDetect(s:current, { 'ignore_project_root_vars': 1 }), '/')
 
-    if s:current === s:prject
-      call defx#do_action('cd', [s:vcs_root])
+    if s:current == s:workspace
+      call defx#call_action('cd', [s:vcs_root])
       return
     endif
-    call defx#do_action('cd', [s:project])
+    call defx#call_action('cd', [s:workspace])
+  endfunction
+
+  function! DefxCloseTree(_)
+    " candidate is opend tree?
+    if defx#is_opened_tree()
+      return defx#call_action('close_tree')
+    endif
+
+    " parent is root?
+    let s:candidate = defx#get_candidate()
+    let s:parent = fnamemodify(s:candidate['action__path'], s:candidate['is_directory'] ? ':p:h:h' : ':p:h')
+    if s:trim_right(s:parent, '/') == s:trim_right(b:defx.paths[0], '/')
+      return defx#call_action('cd', ['..'])
+    endif
+
+    " move to parent.
+    call defx#call_action('search', s:parent)
+
+    " if you want close_tree immediately, enable below line.
+    call defx#call_action('close_tree')
   endfunction
 
   function! MyPopupDeol(cwd)
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 15split
       setlocal winfixheight
+      call deol#start(printf('-cwd=%s', a:cwd))
+    else
+      let t:deol['cwd'] = ''
+      call deol#start(printf('-cwd=%s', a:cwd))
     endif
-    call deol#start(printf('-cwd=%s', a:cwd))
   endfunction
 endif
 
@@ -846,7 +878,7 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'mode', 'normal')
   call denite#custom#option('_', 'updatetime', 500)
   call denite#custom#option('_', 'skiptime', 500)
-  call denite#custom#source('_', 'matchers', ['matcher/substring'])
+  call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
   if dein#tap('vim-qfreplace')
     function! s:denite_replace_action(context)
@@ -874,7 +906,7 @@ if dein#tap('denite.nvim')
   let s:menus.string.command_candidates = [
         \ ['format: reverse lines', 'g/^/m0'],
         \ ['format: remove ^M', '%s///g'],
-        \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r/g | silent! %s/=/\r\t=/g'],
+        \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r&/g | silent! %s/=/\r=/g'],
         \ ['format: to smb', 'silent! %s/\\/\//g | silent! %s/^\(smb:\/\/\|\/\/\)\?/smb:\/\//g']
         \ ]
   let s:menus.vim = {'description': 'vim runtime.'}
@@ -979,6 +1011,14 @@ augroup vimrc
   function! s:buf_enter()
     if exists('t:my_project_root_dir')
       execute printf('cd! %s', fnameescape(t:my_project_root_dir))
+    endif
+  endfunction
+
+  " BufRead
+  autocmd! BufRead * call s:buf_read()
+  function! s:buf_read()
+    if line("'\"") > 0 && line("'\"") <= line('$')
+      normal! g`""
     endif
   endfunction
 
