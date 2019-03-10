@@ -66,7 +66,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
-  call dein#local('~/Development/workspace/LocalVimPlugins')
+  call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
 endif
@@ -665,6 +665,7 @@ if dein#tap('defx.nvim')
     " manimpulates.
     nnoremap <silent><buffer><expr>K         defx#do_action('new_directory')
     nnoremap <silent><buffer><expr>N         defx#do_action('new_file')
+    nnoremap <silent><buffer><expr><Leader>N defx#do_action('new_multiple_files')
     nnoremap <silent><buffer><expr>c         defx#do_action('copy')
     nnoremap <silent><buffer><expr>m         defx#do_action('move')
     nnoremap <silent><buffer><expr>D         defx#do_action('remove')
@@ -736,22 +737,26 @@ if dein#tap('defx.nvim')
   endfunction
 
   function! DefxCloseTree(_)
-    " candidate is opend tree?
-    if defx#is_opened_tree()
-      return defx#call_action('close_tree')
+    " if cursor candidate is opened tree, close it.
+    let s:a = defx#get_candidate()
+    if s:a['is_opened_tree']
+      call defx#call_action('close_tree')
+      let s:b = defx#get_candidate()
+      if (s:a['is_opened_tree'] != s:b['is_opened_tree']) || (s:a['action__path'] != s:b['action__path'])
+        return
+      endif
     endif
 
-    " parent is root?
     let s:candidate = defx#get_candidate()
+
+    " parent check.
     let s:parent = fnamemodify(s:candidate['action__path'], s:candidate['is_directory'] ? ':p:h:h' : ':p:h')
     if s:trim_right(s:parent, '/') == s:trim_right(b:defx.paths[0], '/')
       return defx#call_action('cd', ['..'])
     endif
 
-    " move to parent.
+    " close tree.
     call defx#call_action('search', s:parent)
-
-    " if you want close_tree immediately, enable below line.
     call defx#call_action('close_tree')
   endfunction
 
@@ -1010,7 +1015,10 @@ augroup vimrc
   autocmd! BufEnter * call s:buf_enter()
   function! s:buf_enter()
     if exists('t:my_project_root_dir')
-      execute printf('cd! %s', fnameescape(t:my_project_root_dir))
+      try
+        execute printf('cd! %s', fnameescape(t:my_project_root_dir))
+      catch
+      endtry
     endif
   endfunction
 
