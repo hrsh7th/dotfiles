@@ -41,7 +41,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('airblade/vim-gitgutter')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
-  call dein#add('hrsh7th/vim-unmatchparen')
   call dein#add('hrsh7th/vim-versions')
   call dein#add('itchyny/lightline.vim')
   call dein#add('kmnk/denite-dirmark')
@@ -66,7 +65,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
-  call dein#local('~/Develop/LocalVimPlugins')
+  call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
 endif
@@ -298,7 +297,7 @@ endif
 
 if dein#tap('unite.vim') && dein#tap('vim-versions')
   nnoremap <expr><Leader>b printf(':<C-u>Unite versions/git/branch:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
-  nnoremap <expr><F6> printf(':<C-u>UniteVersions status:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
+  nnoremap <F6> :<C-u>Denite gitto/status<CR>
   nnoremap <F7> :<C-u>UniteVersions log:%<CR>
 endif
 
@@ -477,8 +476,10 @@ endif
 "  locon
 " --------------------
 if dein#tap('vim-themis')
-  let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
-  let $THEMIS_VIM = 'nvim'
+  if has('vim_starting')
+    let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
+    let $THEMIS_VIM = 'nvim'
+  endif
 endif
 
 " --------------------
@@ -503,13 +504,6 @@ if dein#tap('snow')
   colorscheme snow
 else
   colorscheme ron
-endif
-
-" --------------------
-"  vim-unmatchparen
-" --------------------
-if dein#tap('vim-unmatchparen')
-  let g:unmatchparen#disable_filetypes = ['vim']
 endif
 
 " --------------------
@@ -565,6 +559,25 @@ if dein#tap('ale')
       let g:ale_linters[s:ft] = []
     endfor
   endfor
+endif
+
+" --------------------
+" vim-gitto
+" --------------------
+if dein#tap('vim-gitto')
+  let g:gitto#config = {}
+  function g:gitto#config.get_buffer_path()
+    if exists('b:denite_context')
+      return fnamemodify(bufname(winbufnr(b:denite_context.prev_winid)), ':p')
+    endif
+    if exists('b:defx')
+      return b:defx.paths[0]
+    endif
+    if exists('t:my_project_root_dir')
+      return t:my_project_root_dir
+    endif
+    return expand('%:p')
+  endfunction
 endif
 
 " --------------------
@@ -635,9 +648,9 @@ if dein#tap('defx.nvim')
         \ 'columns': 'mark:icons:filename:type',
         \ })
   call defx#custom#column('mark', {
-        \ 'directory_icon': '+',
+        \ 'directory_icon': '',
         \ 'readonly_icon': ' ',
-        \ 'root_icon': ' ',
+        \ 'root_icon': '',
         \ 'selected_icon': '*',
         \ 'length': 1,
         \ })
@@ -655,7 +668,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>x         defx#do_action('execute_system')
 
     " move.
-    nnoremap <silent><buffer><expr>h         defx#do_action('call', 'DefxCloseTree')
+    nnoremap <silent><buffer><expr>h         defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
     nnoremap <silent><buffer><expr>j         'j'
     nnoremap <silent><buffer><expr>k         'k'
     nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : defx#do_action('open', 'DefxEdit')
@@ -734,30 +747,6 @@ if dein#tap('defx.nvim')
       return
     endif
     call defx#call_action('cd', [s:workspace])
-  endfunction
-
-  function! DefxCloseTree(_)
-    " if cursor candidate is opened tree, close it.
-    let s:a = defx#get_candidate()
-    if s:a['is_opened_tree']
-      call defx#call_action('close_tree')
-      let s:b = defx#get_candidate()
-      if (s:a['is_opened_tree'] != s:b['is_opened_tree']) || (s:a['action__path'] != s:b['action__path'])
-        return
-      endif
-    endif
-
-    let s:candidate = defx#get_candidate()
-
-    " parent check.
-    let s:parent = fnamemodify(s:candidate['action__path'], s:candidate['is_directory'] ? ':p:h:h' : ':p:h')
-    if s:trim_right(s:parent, '/') == s:trim_right(b:defx.paths[0], '/')
-      return defx#call_action('cd', ['..'])
-    endif
-
-    " close tree.
-    call defx#call_action('search', s:parent)
-    call defx#call_action('close_tree')
   endfunction
 
   function! MyPopupDeol(cwd)
@@ -846,6 +835,7 @@ if dein#tap('denite.nvim')
   call denite#custom#map('insert', '<Esc>', '<denite:enter_mode:normal>')
   call denite#custom#map('insert', '<Tab>', '<denite:choose_action>')
 
+  " file/rec custom
   if executable('ag')
     call denite#custom#var('file/rec', 'command', [
           \ 'ag',
@@ -859,6 +849,7 @@ if dein#tap('denite.nvim')
   endif
   call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
 
+  " grep custom
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
     call denite#custom#var('grep', 'default_opts', [
@@ -871,8 +862,11 @@ if dein#tap('denite.nvim')
     call denite#custom#var('grep', 'separator', [])
     call denite#custom#var('grep', 'final_opts', [])
   endif
+  call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
+  call denite#custom#option('gitto/log', 'reversed', v:true)
+  call denite#custom#option('gitto/log', 'cursor-pos', '$')
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 12)
   call denite#custom#option('_', 'vertical_preview', v:true)
@@ -885,6 +879,9 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'skiptime', 500)
   call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
+  call denite#custom#action('gitto/status', 'delete', { context -> map(context['targets'], { k, v -> delete(v['action__path']) }) })
+
+  " qfreplace custom
   if dein#tap('vim-qfreplace')
     function! s:denite_replace_action(context)
       let s:qflist = []
@@ -997,7 +994,7 @@ augroup vimrc
     endtry
 
     " fix indent.
-    if filereadable(expand('%')) && exists(':Findent')
+    if filereadable(expand('%')) && exists(':Findent') && &buftype == ''
       Findent --no-messages --no-warnings --chunksize=100
     endif
   endfunction
