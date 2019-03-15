@@ -36,12 +36,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('Shougo/unite.vim')
   call dein#add('StanAngeloff/php.vim')
   call dein#add('airblade/vim-gitgutter')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
-  call dein#add('hrsh7th/vim-versions')
   call dein#add('itchyny/lightline.vim')
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-icons')
@@ -61,7 +59,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
-  call dein#add('tpope/vim-fugitive')
   call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
@@ -295,10 +292,8 @@ if dein#tap('defx.nvim')
   endfunction
 endif
 
-if dein#tap('unite.vim') && dein#tap('vim-versions')
-  nnoremap <expr><Leader>b printf(':<C-u>Unite versions/git/branch:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {'ignore_project_root_vars': 1}))
-  nnoremap <F6> :<C-u>Denite gitto/status<CR>
-  nnoremap <F7> :<C-u>UniteVersions log:%<CR>
+if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
+  nnoremap <Leader><BS> :<C-u>Denite gitto<CR>
 endif
 
 if dein#tap('vim-quickhl')
@@ -365,7 +360,6 @@ function! MyProjectRootDetect(path, option)
 
   let path = a:path
   let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
-  let path = exists('b:unite.prev_bufnr') ? fnamemodify(bufname(b:unite.prev_bufnr), ':p') : path
 
   while path != '/'
     for detect in g:project_root_detectors
@@ -393,7 +387,6 @@ function! MyProjectRootDecide()
 
   let path = MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})
   let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
-  let path = exists('b:unite.prev_bufnr') ? fnamemodify(bufname(b:unite.prev_bufnr), ':p') : path
   let t:my_project_root_dir = path
 
   execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
@@ -450,16 +443,10 @@ endfunction
 " get git branch name.
 function! GitBranch()
   try
-    if dein#tap('vim-fugitive')
-      if exists('t:my_project_root_dir')
-        if fugitive#is_git_dir(fugitive#extract_git_dir(t:my_project_root_dir))
-          return fugitive#repo(fugitive#extract_git_dir(t:my_project_root_dir)).head()
-        endif
-      endif
-    endif
+    return gitto#do('branch#current')().name
   catch /.*/
   endtry
-  return ''
+  return 'not in git repo'
 endfunction
 
 " ########################################################################################################################
@@ -573,6 +560,9 @@ if dein#tap('vim-gitto')
     if exists('b:defx')
       return b:defx.paths[0]
     endif
+    if exists('t:deol')
+      return t:deol.cwd
+    endif
     if exists('t:my_project_root_dir')
       return t:my_project_root_dir
     endif
@@ -581,18 +571,7 @@ if dein#tap('vim-gitto')
 endif
 
 " --------------------
-" vim-versions.
-" --------------------
-if dein#tap('vim-versions')
-  if !exists('g:versions#info')
-    let g:versions#info = {}
-  endif
-  let g:versions#info.git = '%b'
-  let g:versions#info.svn = '%b'
-endif
-
-" --------------------
-" vim-versions.
+" echodoc.vim.
 " --------------------
 if dein#tap('echodoc.vim')
   let g:echodoc#enable_at_startup = 1
@@ -634,7 +613,6 @@ endif
 " --------------------
 if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
-  let g:deol#enable_dir_changed = 0
 
   autocmd! FileType deol call s:deol_setting()
   function! s:deol_setting()
@@ -727,7 +705,7 @@ if dein#tap('defx.nvim')
   function! DefxOpen(cmd, path)
     let s:winnrs = filter(
           \ range(1, tabpagewinnr(tabpagenr(), '$')),
-          \ { i, wnr -> index(['deol', 'defx', 'denite', 'unite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
+          \ { i, wnr -> index(['deol', 'defx', 'denite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
 
     if len(s:winnrs) > 0
       execute printf('%swincmd w', s:winnrs[0])
@@ -758,35 +736,6 @@ if dein#tap('defx.nvim')
       let t:deol['cwd'] = ''
       call deol#start(printf('-cwd=%s', a:cwd))
     endif
-  endfunction
-endif
-
-" --------------------
-" unite.vim.
-" --------------------
-if dein#tap('unite.vim')
-  let g:unite_data_directory = expand("~/.unite")
-  let g:unite_source_rec_min_cache_files = 0
-  let g:unite_source_rec_max_cache_files = 100000
-  let g:unite_source_grep_recursive_opt = '-ri'
-
-  call unite#custom#profile('default', 'context', {'no_start_insert': 1, 'auto_resume': 1, 'start_insert': 0, 'winheight': 12, 'direction': 'botright', 'max_multi_lines': 1})
-  call unite#custom#profile('grep', 'context', {'no_quit' : 1})
-  call unite#custom#source('file_rec', 'ignore_pattern', join(['\.git\/', '\.svn\/', '\/\(image\|img\)\/', 'node_modules', 'vendor'], '\|'))
-  call unite#custom#default_action('directory', 'cd')
-
-  autocmd! FileType unite call s:unite_setting()
-  function! s:unite_setting()
-    unmap <buffer><Leader>
-    nmap <buffer><Esc>     <Plug>(unite_all_exit)
-    nmap <buffer>q         <Plug>(unite_all_exit)
-    nmap <buffer>:q        <Plug>(unite_all_exit)
-    nmap <buffer><Leader>q <Plug>(unite_all_exit)
-    nmap <buffer>@         <Plug>(unite_toggle_mark_current_candidate)
-    nmap <buffer>a         G<Plug>(unite_append_end)
-    nmap <buffer>i         <Plug>(unite_insert_enter)
-    nnoremap <silent><buffer><expr>v unite#do_action('vsplit')
-    nnoremap <silent><buffer><expr>s unite#do_action('split')
   endfunction
 endif
 
@@ -822,6 +771,7 @@ if dein#tap('denite.nvim')
   call denite#custom#map('normal', '<Space>k', '<denite:wincmd:p>')
   call denite#custom#map('normal', '<Space>l', '<denite:wincmd:l>')
   call denite#custom#map('normal', '<C-l>', '<denite:redraw>')
+  call denite#custom#map('normal', '<C-h>', '<denite:restore_sources>')
   call denite#custom#map('normal', 'q', '<denite:quit>')
   call denite#custom#map('normal', 'i', '<denite:enter_mode:insert>')
   call denite#custom#map('normal', 'a', '<denite:enter_mode:insert>')
@@ -865,8 +815,6 @@ if dein#tap('denite.nvim')
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
-  call denite#custom#option('gitto/log', 'reversed', v:true)
-  call denite#custom#option('gitto/log', 'cursor-pos', '$')
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 12)
   call denite#custom#option('_', 'vertical_preview', v:true)
@@ -877,6 +825,7 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'mode', 'normal')
   call denite#custom#option('_', 'updatetime', 500)
   call denite#custom#option('_', 'skiptime', 500)
+  call denite#custom#option('_', 'auto_resize', v:true)
   call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
   call denite#custom#action('gitto/status', 'delete', { context -> map(context['targets'], { k, v -> delete(v['action__path']) }) })
@@ -962,7 +911,7 @@ augroup vimrc
     " fix layout.
     let s:current_winnr = tabpagewinnr(tabpagenr())
     try
-      for s:ft in ['defx', 'deol', 'denite', 'unite']
+      for s:ft in ['defx', 'deol', 'denite']
         let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
         if len(s:winnrs) > 1
           for s:winnr in s:winnrs
@@ -977,11 +926,6 @@ augroup vimrc
               break
             endif
             if s:ft == 'denite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-              execute printf('silent noautocmd %swincmd w', s:winnr)
-              execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
-              break
-            endif
-            if s:ft == 'unite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
               execute printf('silent noautocmd %swincmd w', s:winnr)
               execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
               break
