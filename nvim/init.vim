@@ -1,7 +1,7 @@
-scriptencoding utf-8
 if has('vim_starting')
   set encoding=utf-8
 endif
+scriptencoding utf-8
 
 let g:loaded_matchparen = 1
 let g:loaded_python_provider = 1
@@ -10,6 +10,7 @@ let g:python_host_prog = 'python3'
 let g:python3_host_skip_check = 1
 let g:python3_host_prog = 'python3.6'
 
+let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
 
 " ########################################################################################################################
 " Install Setting.
@@ -27,7 +28,6 @@ let &runtimepath = &runtimepath . ',' . dein.dir.install
 
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
-  call dein#add('Shougo/context_filetype.vim')
   call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
@@ -45,12 +45,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('leafgarland/typescript-vim')
-  call dein#add('lighttiger2505/deoplete-vim-lsp')
-  call dein#add('nightsense/snow')
+  call dein#add('natebosch/vim-lsc')
+  call dein#add('nightsense/cosmic_latte')
   call dein#add('pangloss/vim-javascript')
   call dein#add('peitalin/vim-jsx-typescript')
-  call dein#add('prabirshrestha/async.vim')
-  call dein#add('prabirshrestha/vim-lsp')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
@@ -74,6 +72,10 @@ endif
 filetype plugin indent on
 syntax enable
 
+augroup vimrc
+  autocmd!
+augroup END
+
 " ########################################################################################################################
 " Terminal Colors Setting
 " ########################################################################################################################
@@ -95,6 +97,7 @@ set virtualedit=all
 set scrolloff=3
 set sidescrolloff=3
 set scrollback=2000
+set complete=.
 set completeopt-=preview
 set noerrorbells
 set novisualbell
@@ -145,7 +148,7 @@ set incsearch
 set hlsearch
 set ignorecase
 set smartcase
-set suffixesadd=.php,.tpl,.ts,.tsx,.css,.scss,.rb,.java,.json,.md,.as,.js
+set suffixesadd=.php,.tpl,.ts,.tsx,.css,.scss,.rb,.java,.json,.md,.as,.js,.jpg,.jpeg,.gif,.png,.vim
 set matchpairs=(:),[:],{:}
 set path+=./;/
 set inccommand=split
@@ -249,9 +252,9 @@ nnoremap cir ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 nnoremap <C-j> gJ
 
 " gf.
-nnoremap <expr>gf<CR> MyProjectRootFindFile(expand('<cfile>'), 'edit')
-nnoremap <expr>gfs MyProjectRootFindFile(expand('<cfile>'), 'split')
-nnoremap <expr>gfv MyProjectRootFindFile(expand('<cfile>'), 'vsplit')
+nnoremap gf<CR> :<C-u>EffortGF<CR>
+nnoremap gfs :<C-u>split EffortGF<CR>
+nnoremap gfv :<C-u>vertical EffortGF<CR>
 
 " pairs.
 inoremap <expr><CR> MyPairEnterMapping()
@@ -307,10 +310,9 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite buffer file_mru<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {}))
-  nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})))
+  nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
+  nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
-
   nnoremap <Leader><Leader>m :<C-u>Denite -resume<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
@@ -352,32 +354,14 @@ function! MyPairIsBetween()
 endfunction
 
 " project.
-let g:project_root_detectors = ['.svn', '.git', 'package.json', 'composer.json']
 function! MyProjectRootDetect(path, option)
   if exists('t:my_project_root_dir') && !exists('a:option.ignore_project_root_vars')
     return t:my_project_root_dir
   endif
 
-  let path = a:path
-  let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
-
-  while path != '/'
-    for detect in g:project_root_detectors
-      let target = printf('%s/%s', s:trim_right(path, '/'), detect)
-      if isdirectory(target) || filereadable(target)
-        return path
-      endif
-    endfor
-    let path = fnamemodify(path, ':p:h:h')
-  endwhile
-  return MyExpandCurrentBuffer(':p:h')
-endfunction
-
-function! MyExpandCurrentBuffer(opt)
-  if &buftype == 'terminal'
-    return getcwd()
-  endif
-  return expand('%' . a:opt)
+  let path = locon#get('get_buffer_path')()
+  let root = locon#get('find_project_root')(path)
+  return filereadable(path) && strlen(root) ? root : path " path がファイルであり、root が確定できたなら、root を利用する
 endfunction
 
 function! MyProjectRootDecide()
@@ -385,54 +369,8 @@ function! MyProjectRootDecide()
     unlet t:my_project_root_dir
   endif
 
-  let path = MyProjectRootDetect(MyExpandCurrentBuffer(':p'), {})
-  let path = exists('b:defx.paths[0]') ? fnamemodify(b:defx.paths[0], ':p') : path
-  let t:my_project_root_dir = path
-
+  let t:my_project_root_dir = MyProjectRootDetect(locon#get('get_buffer_path')(), {})
   execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
-endfunction
-
-function! MyProjectRootFindFile(filepath, command)
-  let path = MyProjectRootDetect(MyExpandCurrentBuffer(''), {'ignore_project_root_vars': 1})
-  let filepath = a:filepath
-  let filepath = substitute(filepath, '\.[^\.]*$', '', 'g')
-  let filepath = substitute(filepath, '\.\|\\', '/', 'g')
-  let filepath = substitute(filepath, '^[\./]*', '', 'g')
-  for name in keys(locon#get('filename_converters'))
-    let filepath = locon#get('filename_converters')[name]({'path': path, 'filepath': filepath})
-  endfor
-
-  let filedirs = split(fnamemodify(filepath, ':h'), '/')
-  let bufferdirs = split(fnamemodify(expand('%:p:h'), ':h'), '/')
-  let search_path = '/' . join(s:remove_tail_paths(bufferdirs, filedirs), '/')
-
-  if exists('g:my_debug')
-    echomsg 'target file   name: ' . a:filepath
-    echomsg 'modified file name: ' . filepath
-    echomsg 'project root   dir: ' . path
-    echomsg 'upward start   dir: ' . expand('%:p:h')
-    echomsg 'upward end     dir: ' . search_path
-  endif
-
-  let result = ''
-  let result = result != '' ? result : findfile(filepath, search_path . '**')
-  let result = result != '' ? result : findfile(filepath . '/index', search_path . '**')
-  let result = result != '' ? result : findfile(filepath, path . '**')
-  let result = result != '' ? result : findfile(filepath . '/index', path . '**')
-  if strlen(result)
-    return printf(":\<C-u>%s %s\<CR>", a:command, fnameescape(result))
-  endif
-endfunction
-
-" remove tail paths.
-function! s:remove_tail_paths(dirs, removes)
-  let s:dirs = a:dirs
-  for s:r in reverse(a:removes)
-    if s:dirs[len(s:dirs) - 1] == s:r
-      call remove(s:dirs, len(s:dirs) - 1)
-    endif
-  endfor
-  return s:dirs
 endfunction
 
 " trim right.
@@ -443,10 +381,25 @@ endfunction
 " get git branch name.
 function! GitBranch()
   try
-    return gitto#do('branch#current')().name
+    return gitto#do('repo#head')()
   catch /.*/
   endtry
-  return 'not in git repo'
+  return 'no-git'
+endfunction
+
+function! LscStatus()
+  let servers = lsc#server#current()
+  if len(servers)
+    return join(map(servers, { k, v -> printf('LSC:%s', v.status) }), '|')
+  endif
+  return 'no-lsc'
+endfunction
+
+function! CWD()
+  if exists('t:my_project_root_dir')
+    return fnamemodify(t:my_project_root_dir, ':~')
+  endif
+  return 'no-cwd'
 endfunction
 
 " ########################################################################################################################
@@ -473,11 +426,41 @@ endif
 "  locon
 " --------------------
 if dein#tap('vim-locon')
-  call locon#def('find_project_root', { path -> fnamemodify(finddir('.git', path . ';'), ':p:h') })
-  call locon#def('filename_converters', {})
+  function! s:find_project_root(path)
+    let path = fnamemodify(a:path, ':p')
+    while path !=# ''
+      for marker in ['.git', 'tsconfig.json', 'package.json']
+        let candidate = resolve(path . '/' . marker)
+        if filereadable(candidate) || isdirectory(candidate)
+          return path
+        endif
+      endfor
+      let path = substitute(path, '/[^/]*$', '', 'g')
+    endwhile
+    return ''
+  endfunction
+  call locon#def('find_project_root', funcref('s:find_project_root'))
+
+  function! s:get_buffer_path()
+    if exists('b:denite_context')
+      return fnamemodify(bufname(winbufnr(b:denite_context.prev_winid)), ':p')
+    endif
+    if exists('b:defx')
+      return b:defx.paths[0]
+    endif
+    if exists('t:deol') && &filetype ==# 'deol'
+      return t:deol.cwd
+    endif
+    if exists('t:my_project_root_dir')
+      return t:my_project_root_dir
+    endif
+    return expand('%:p')
+  endfunction
+  call locon#def('get_buffer_path', funcref('s:get_buffer_path'))
+
+  call locon#def('effort_gf_converters', {})
   call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
   call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
-  call locon#def('init_lsp_server', { -> '' })
 
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
@@ -487,11 +470,17 @@ endif
 " --------------------
 "  colorscheme
 " --------------------
-if dein#tap('snow')
-  colorscheme snow
+if dein#tap('cosmic_latte')
+  colorscheme cosmic_latte
 else
   colorscheme ron
 endif
+
+" --------------------
+" effort_gf
+" --------------------
+let g:effort_gf#config = {}
+let g:effort_gf#config.converters = locon#get('effort_gf_converters')
 
 " --------------------
 "  vim-gitgutter
@@ -508,32 +497,49 @@ if dein#tap('vim-gitgutter')
 endif
 
 " --------------------
-" vim-lsp
+" vim-lsc
 " --------------------
-if dein#tap('vim-lsp')
-  let g:lsp_signs_enabled = 1
-  let g:lsp_virtual_text_enabled = 0
-  let g:lsp_diagnostics_enabled = 1
-  let g:lsp_diagnostics_echo_cursor = 1
-  let g:lsp_signs_error = { 'text': "\uf071" }
-  let g:lsp_signs_warning = { 'text': "\uf071" }
-  let g:lsp_signs_information = { 'text': "\uf449" }
-  let g:lsp_signs_hint = { 'text': "\uf400" }
-  let g:lsp_insert_text_enabled = 0
-
-  let g:my_lsp_language_server_filetypes = {}
-
-  if executable('typescript-language-server')
-    let g:my_lsp_language_server_filetypes['typescript-language-server'] = ['typescript', 'typescript.tsx', 'javascript', 'javascript.tsx']
-    autocmd! User lsp_setup call lsp#register_server({
-        \ 'name': 'typescript-language-server',
-        \ 'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_project_root')(lsp#utils#get_buffer_path())) },
-        \ 'whitelist': g:my_lsp_language_server_filetypes['typescript-language-server']
-        \ })
-  endif
-
-  autocmd! User lsp_server_init call locon#get('init_lsp_server')()
+if dein#tap('vim-lsc')
+  let g:typescript_language_server = {
+        \   'command': 'typescript-language-server --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+        \     },
+        \   }
+        \ }
+  let g:intelephense = {
+        \   'command': 'node $NVM_BIN/../lib/node_modules/intelephense/lib/intelephense.js --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'initializationOptions': {
+        \         'storagePath': expand('~/.cache/intelephense')
+        \       },
+        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+        \     }
+        \   }
+        \ }
+  let g:lsc_server_commands = {
+        \   'typescript': g:typescript_language_server,
+        \   'typescript.tsx': g:typescript_language_server,
+        \   'javascript': g:typescript_language_server,
+        \   'javascript.tsx': g:typescript_language_server,
+        \   'php': g:intelephense
+        \ }
+  let g:lsc_auto_map = {
+        \   'defaults': v:false,
+        \   'GoToDefinition': 'gf<CR>',
+        \   'GoToDefinitionSplit': ['gfs', 'gfv :vertical'],
+        \   'FindReferences': '<Leader>g',
+        \   'FindCodeActions': '<Leader><CR>',
+        \   'Rename': '<Leader>r',
+        \   'ShowHover': '<Leader>i',
+        \   'SignatureHelp': '<Leader>o',
+        \ }
+  let g:lsc_enable_autocomplete = v:false
+  let g:lsc_enable_snippet_support = v:true
 endif
 
 " --------------------
@@ -541,11 +547,11 @@ endif
 " --------------------
 if dein#tap('ale')
   let g:ale_linters = {}
-  for [s:s, s:fts] in items(g:my_lsp_language_server_filetypes)
-    for s:ft in s:fts
+  if exists('g:lsc_server_commands')
+    for s:ft in keys(g:lsc_server_commands)
       let g:ale_linters[s:ft] = []
     endfor
-  endfor
+  endif
 endif
 
 " --------------------
@@ -553,21 +559,7 @@ endif
 " --------------------
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
-  function g:gitto#config.get_buffer_path()
-    if exists('b:denite_context')
-      return fnamemodify(bufname(winbufnr(b:denite_context.prev_winid)), ':p')
-    endif
-    if exists('b:defx')
-      return b:defx.paths[0]
-    endif
-    if exists('t:deol')
-      return t:deol.cwd
-    endif
-    if exists('t:my_project_root_dir')
-      return t:my_project_root_dir
-    endif
-    return expand('%:p')
-  endfunction
+  let g:gitto#config.get_buffer_path = locon#get('get_buffer_path')
 endif
 
 " --------------------
@@ -583,7 +575,7 @@ endif
 " --------------------
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#source('lsp', 'rank', 2000)
+  call deoplete#custom#source('lsc', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
   call deoplete#custom#source('_', 'converters', [
@@ -591,13 +583,6 @@ if dein#tap('deoplete.nvim')
         \ 'converter_truncate_menu',
         \ 'converter_truncate_abbr',
         \ 'converter_remove_paren'])
-endif
-
-" --------------------
-" deoplete-vim-lsp
-" --------------------
-if dein#tap('deoplete-vim-lsp')
-  let g:deoplete#sources#vim_lsp#show_info = 1
 endif
 
 " --------------------
@@ -613,11 +598,12 @@ endif
 " --------------------
 if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
+  let g:deol#enable_dir_changed = 0
 
-  autocmd! FileType deol call s:deol_setting()
+  autocmd! vimrc FileType deol call s:deol_setting()
   function! s:deol_setting()
     setlocal nobuflisted
-    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', MyExpandCurrentBuffer(':p:h')))<CR>
+    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', locon#get('get_buffer_path')))<CR>
   endfunction
 endif
 
@@ -633,7 +619,7 @@ if dein#tap('defx.nvim')
         \ 'length': 1,
         \ })
 
-  autocmd FileType defx call s:defx_setting()
+  autocmd vimrc FileType defx call s:defx_setting()
   function! s:defx_setting() abort
     setlocal nonumber
     setlocal winfixwidth
@@ -747,16 +733,21 @@ if dein#tap('lightline.vim')
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = 'snow_dark'
+  let g:lightline.colorscheme = 'cosmic_latte_dark'
+  let g:lightline.active = {}
+  let g:lightline.active.left = [['readonly', 'filename', 'modified']]
+  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsc']]
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
-  let g:lightline.tabline.right = [['branch', 'close']]
+  let g:lightline.tabline.right = [['cwd', 'branch', 'close']]
   let g:lightline.component_function = {}
   let g:lightline.component_function.branch = 'GitBranch'
-  let g:lightline.separator = { 'left': '', 'right': '' }
-  let g:lightline.subseparator = { 'left': '', 'right': '' }
+  let g:lightline.component_function.lsc = 'LscStatus'
+  let g:lightline.component_function.cwd = 'CWD'
+  let g:lightline.separator = { 'left': '', 'right': '' }
+  let g:lightline.subseparator = { 'left': '', 'right': '' }
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
-  let g:lightline.tabline_subseparator = { 'left': '', 'right': '' }
+  let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
 endif
 
 " --------------------
@@ -817,18 +808,20 @@ if dein#tap('denite.nvim')
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 12)
+  call denite#custom#option('_', 'winminheight', 6)
   call denite#custom#option('_', 'vertical_preview', v:true)
-  call denite#custom#option('_', 'highlight_mode_insert', 'None')
-  call denite#custom#option('_', 'highlight_matched_char', 'None')
-  call denite#custom#option('_', 'highlight_matched_range', 'None')
-  call denite#custom#option('_', 'highlight_preview_line', 'None')
   call denite#custom#option('_', 'mode', 'normal')
   call denite#custom#option('_', 'updatetime', 500)
   call denite#custom#option('_', 'skiptime', 500)
   call denite#custom#option('_', 'auto_resize', v:true)
+  call denite#custom#option('_', 'unique', v:true)
   call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
-  call denite#custom#action('gitto/status', 'delete', { context -> map(context['targets'], { k, v -> delete(v['action__path']) }) })
+  call denite#custom#action(
+        \ 'gitto/status',
+        \ 'delete_',
+        \ { context -> map(context['targets'], { k, v -> delete(v['action__path'], 'rf') }) },
+        \ { 'is_quit': v:false, 'is_redraw': v:true })
 
   " qfreplace custom
   if dein#tap('vim-qfreplace')
@@ -870,129 +863,84 @@ endif
 " ########################################################################################################################
 " AutoCmd Setting.
 " ########################################################################################################################
-augroup vimrc
-  autocmd!
+autocmd! vimrc FileType * call s:file_type()
+function! s:file_type()
+  if index(['log'], getbufvar(bufnr('%'), '&filetype')) >= 0
+    setlocal tabstop=28
+  endif
 
-  autocmd! FileType * call s:file_type()
-  function! s:file_type()
-    " apply lsp mappings.
-    for [s:v, s:filetypes] in items(g:my_lsp_language_server_filetypes)
-      if index(s:filetypes, getbufvar(bufnr('%'), '&filetype')) >= 0
-        nnoremap <buffer><Leader><CR> :<C-u>LspCodeAction<CR>
-        nnoremap <buffer><Leader>g    :<C-u>LspReferences<CR>
-        nnoremap <buffer>gf<CR>       :<C-u>LspDefinition<CR>
-        nnoremap <buffer>gfs          :<C-u>sp  \| LspDefinition<CR>
-        nnoremap <buffer>gfv          :<C-u>vsp \| LspDefinition<CR>
-        nnoremap <buffer><Leader>r    :<C-u>LspRename<CR>
-        nnoremap <buffer><Leader>i    :<C-u>LspHover<CR>
-        setlocal omnifunc=lsp#complete
-        break
+  " fix layout.
+  let s:current_winnr = tabpagewinnr(tabpagenr())
+  try
+    for s:ft in ['defx', 'deol', 'denite']
+      let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
+      if len(s:winnrs) > 1
+        for s:winnr in s:winnrs
+          if s:ft ==# 'defx' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+            execute printf('silent noautocmd %swincmd w', s:winnr)
+            execute printf('silent noautocmd vertical resize %s', 35)
+            break
+          endif
+          if s:ft ==# 'deol' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+            execute printf('silent noautocmd %swincmd w', s:winnr)
+            execute printf('silent noautocmd wincmd K | silent noautocmd resize %s', 12)
+            break
+          endif
+          if s:ft ==# 'denite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
+            execute printf('silent noautocmd %swincmd w', s:winnr)
+            execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
+            break
+          endif
+        endfor
       endif
     endfor
+    silent noautocmd execute printf('%swincmd w', s:current_winnr)
+  catch
+  endtry
 
-    " alias filetype.
-    if index(['atlas'], getbufvar(bufnr('%'), '&filetype')) >= 0
-      setlocal filetype=actionscript
-    endif
-    if index(['js', 'jsx'], getbufvar(bufnr('%'), '&filetype')) >= 0
-      setlocal filetype=javascript
-    endif
-    if index(['ts', 'tsx', 'as'], getbufvar(bufnr('%'), '&filetype')) >= 0
-      setlocal filetype=typescript
-    endif
-    if index(['log'], getbufvar(bufnr('%'), '&filetype')) >= 0
-      setlocal tabstop=28
-    endif
-    if index(['php'], getbufvar(bufnr('%'), '&filetype')) >= 0
-      setlocal noexpandtab
-      setlocal completefunc=phpcomplete_extended#CompletePHP
-    endif
+  " fix indent.
+  if filereadable(expand('%')) && exists(':Findent') && &buftype ==# ''
+    Findent --no-messages --no-warnings --chunksize=100
+  endif
+endfunction
 
-    " fix layout.
-    let s:current_winnr = tabpagewinnr(tabpagenr())
-    try
-      for s:ft in ['defx', 'deol', 'denite']
-        let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-        if len(s:winnrs) > 1
-          for s:winnr in s:winnrs
-            if s:ft == 'defx' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-              execute printf('silent noautocmd %swincmd w', s:winnr)
-              execute printf('silent noautocmd vertical resize %s', 35)
-              break
-            endif
-            if s:ft == 'deol' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-              execute printf('silent noautocmd %swincmd w', s:winnr)
-              execute printf('silent noautocmd wincmd K | silent noautocmd resize %s', 12)
-              break
-            endif
-            if s:ft == 'denite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-              execute printf('silent noautocmd %swincmd w', s:winnr)
-              execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
-              break
-            endif
-          endfor
-        endif
-      endfor
-      silent noautocmd execute printf('%swincmd w', s:current_winnr)
-    catch
-    endtry
+" ColorScheme
+autocmd! vimrc ColorScheme * call s:color_scheme()
+function! s:color_scheme()
+  highlight! link VertSplit StatusLineNC
+  highlight! link SignColumn StatusLineNC
+  highlight! link LineNr StatusLineNC
+endfunction
+doautocmd ColorScheme
 
-    " fix indent.
-    if filereadable(expand('%')) && exists(':Findent') && &buftype == ''
-      Findent --no-messages --no-warnings --chunksize=100
-    endif
-  endfunction
+" BufRead
+autocmd! vimrc BufRead * call s:buf_read()
+function! s:buf_read()
+  if line("'\"") > 0 && line("'\"") <= line('$')
+    normal! g`""
+  endif
+endfunction
 
-  " ColorScheme
-  autocmd! ColorScheme * call s:color_scheme()
-  function! s:color_scheme()
-    highlight! link VertSplit StatusLineNC
-    highlight! link SignColumn StatusLineNC
-    highlight! link LineNr StatusLineNC
-  endfunction
-  doautocmd ColorScheme
+" TermOpen.
+autocmd! vimrc TermOpen term://* call s:term_open()
+function! s:term_open()
+  tnoremap <buffer><silent><Esc> <C-\><C-n>
+endfunction
 
-  " BufEnter.
-  autocmd! BufEnter * call s:buf_enter()
-  function! s:buf_enter()
-    if exists('t:my_project_root_dir')
-      try
-        execute printf('cd! %s', fnameescape(t:my_project_root_dir))
-      catch
-      endtry
-    endif
-  endfunction
+" WinEnter"
+autocmd! vimrc WinEnter * call s:win_enter()
+function! s:win_enter()
+  if &previewwindow
+    setlocal wrap
+  endif
+endfunction
 
-  " BufRead
-  autocmd! BufRead * call s:buf_read()
-  function! s:buf_read()
-    if line("'\"") > 0 && line("'\"") <= line('$')
-      normal! g`""
-    endif
-  endfunction
-
-  " TermOpen.
-  autocmd! TermOpen term://* call s:term_open()
-  function! s:term_open()
-    tnoremap <buffer><silent><Esc> <C-\><C-n>
-  endfunction
-
-  " WinEnter"
-  autocmd! WinEnter * call s:win_enter()
-  function! s:win_enter()
-    if &previewwindow
-      setlocal wrap
-    endif
-  endfunction
-
-  " CmdwinEnter.
-  autocmd! CmdwinEnter * call s:cmdwin_enter()
-  function! s:cmdwin_enter()
-    nnoremap <buffer><silent><Esc> :<C-u>q<CR>
-    nnoremap <buffer>a             A
-    nnoremap <buffer><silent>dd    :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
-    startinsert!
-  endfunction
-
-augroup END
+" CmdwinEnter.
+autocmd! vimrc CmdwinEnter * call s:cmdwin_enter()
+function! s:cmdwin_enter()
+  nnoremap <buffer><silent><Esc> :<C-u>q<CR>
+  nnoremap <buffer>a             A
+  nnoremap <buffer><silent>dd    :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
+  startinsert!
+endfunction
 
