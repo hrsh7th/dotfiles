@@ -32,11 +32,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete.nvim')
+  call dein#add('Shougo/deoplete.nvim', { 'rev': 'callback' })
   call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('StanAngeloff/php.vim')
   call dein#add('airblade/vim-gitgutter')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -48,12 +47,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
-  call dein#add('leafgarland/typescript-vim')
   call dein#add('natebosch/vim-lsc')
   call dein#add('nightsense/cosmic_latte')
-  call dein#add('pangloss/vim-javascript')
-  call dein#add('peitalin/vim-jsx-typescript')
   call dein#add('ryanoasis/vim-devicons')
+  call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
   call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
@@ -287,12 +284,12 @@ endif
 if dein#tap('defx.nvim')
   nnoremap <F2> :<C-u>call OpenDefx()<CR>
   function! OpenDefx()
-    let s:path = expand('%:p:h')
-    let s:winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
-    let s:choise = choosewin#start(s:winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
-    if len(s:choise) > 0
-      execute printf('%swincmd w', s:choise[1])
-      call defx#call_action('cd', [s:path])
+    let path = expand('%:p:h')
+    let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
+    let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
+    if len(choise) > 0
+      execute printf('%swincmd w', choise[1])
+      call defx#call_action('cd', [path])
     else
       Defx -auto-cd -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`
     endif
@@ -513,8 +510,17 @@ if dein#tap('vim-lsc')
         \     },
         \   }
         \ }
+  let g:css_languageserver = {
+        \   'command': 'css-languageserver --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+        \     },
+        \   },
+        \ }
   let g:intelephense = {
-        \   'command': 'node $NVM_BIN/../lib/node_modules/intelephense/lib/intelephense.js --stdio',
+        \   'command': 'intelephense --stdio',
         \   'suppress_stderr': v:true,
         \   'message_hooks': {
         \     'initialize': {
@@ -528,9 +534,12 @@ if dein#tap('vim-lsc')
   let g:lsc_server_commands = {
         \   'typescript': g:typescript_language_server,
         \   'typescript.tsx': g:typescript_language_server,
+        \   'typescript.jsx': g:typescript_language_server,
         \   'javascript': g:typescript_language_server,
         \   'javascript.tsx': g:typescript_language_server,
-        \   'php': g:intelephense
+        \   'javascript.jsx': g:typescript_language_server,
+        \   'php': g:intelephense,
+        \   'css': g:css_languageserver
         \ }
   let g:lsc_auto_map = {
         \   'defaults': v:false,
@@ -607,20 +616,18 @@ if dein#tap('deol.nvim')
   autocmd! vimrc FileType deol call s:deol_setting()
   function! s:deol_setting()
     setlocal nobuflisted
-    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', locon#get('get_buffer_path')))<CR>
+    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', locon#get('get_buffer_path')()))<CR>
   endfunction
 endif
 
 if dein#tap('defx.nvim')
+  if dein#tap('defx-icons')
+    let g:defx_icons_enable_syntax_highlight = 1
+    let g:defx_icons_column_length = 2
+  endif
+
   call defx#custom#option('_', {
-        \ 'columns': 'mark:icons:filename:type',
-        \ })
-  call defx#custom#column('mark', {
-        \ 'directory_icon': '',
-        \ 'readonly_icon': ' ',
-        \ 'root_icon': '',
-        \ 'selected_icon': '*',
-        \ 'length': 1,
+        \   'columns': 'mark:icons:filename:type',
         \ })
 
   autocmd vimrc FileType defx call s:defx_setting()
@@ -667,26 +674,18 @@ if dein#tap('defx.nvim')
   endfunction
 
   if dein#tap('denite.nvim')
-    " create 'change_cwd' action.
     function! s:action(context)
-      " for denite dirmark.
       if exists('a:context["targets"][0]["action__path"]')
         call defx#call_action('cd', a:context['targets'][0]['action__path'])
         return
       endif
 
-      " for defx/history's command.
       if exists('a:context["targets"][0]["word"]')
         call defx#call_action('cd', a:context['targets'][0]['word'])
         return
       endif
     endfunction
     call denite#custom#action('dirmark,command,directory', 'change_cwd', function('s:action'))
-  endif
-
-  if dein#tap('defx-icons')
-    let g:defx_icons_enable_syntax_highlight = 1
-    let g:defx_icons_column_length = 2
   endif
 
   command! -nargs=* -range DefxEdit call DefxOpen('edit', <q-args>)
@@ -706,15 +705,15 @@ if dein#tap('defx.nvim')
   endfunction
 
   function! DefxSuitableMove(context)
-    let s:current = s:trim_right(b:defx.paths[0], '/')
-    let s:workspace = s:trim_right(MyProjectRootDetect(s:current, {}), '/')
-    let s:vcs_root = s:trim_right(MyProjectRootDetect(s:current, { 'ignore_project_root_vars': 1 }), '/')
+    let current = s:trim_right(b:defx.paths[0], '/')
+    let workspace = s:trim_right(MyProjectRootDetect(current, {}), '/')
+    let vcs_root = s:trim_right(locon#get('find_project_root')(current), '/')
 
-    if s:current == s:workspace
-      call defx#call_action('cd', [s:vcs_root])
+    if current == workspace
+      call defx#call_action('cd', [vcs_root])
       return
     endif
-    call defx#call_action('cd', [s:workspace])
+    call defx#call_action('cd', [workspace])
   endfunction
 
   function! MyPopupDeol(cwd)
@@ -783,13 +782,13 @@ if dein#tap('denite.nvim')
   " file/rec custom
   if executable('ag')
     call denite#custom#var('file/rec', 'command', [
-          \ 'ag',
-          \ '--follow',
+          \   'ag',
+          \   '--follow',
           \ ] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }) + [
-          \ '--nocolor',
-          \ '--nogroup',
-          \ '-g',
-          \ ''
+          \   '--nocolor',
+          \   '--nogroup',
+          \   '-g',
+          \   ''
           \ ])
   endif
   call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
@@ -797,11 +796,7 @@ if dein#tap('denite.nvim')
   " grep custom
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
-    call denite#custom#var('grep', 'default_opts', [
-          \ '-i',
-          \ '--exclude',
-          \ join(locon#get('ignore_greps'), '|')
-          \ ])
+    call denite#custom#var('grep', 'default_opts', ['-i', '--exclude', join(locon#get('ignore_greps'), '|')])
     call denite#custom#var('grep', 'recursive_opts', ['-R'])
     call denite#custom#var('grep', 'pattern_opt', [])
     call denite#custom#var('grep', 'separator', [])
@@ -821,33 +816,6 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'unique', v:true)
   call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
-  call denite#custom#action(
-        \ 'gitto/status',
-        \ 'delete_',
-        \ { context -> map(context['targets'], { k, v -> delete(v['action__path'], 'rf') }) },
-        \ { 'is_quit': v:false, 'is_redraw': v:true })
-
-  " qfreplace custom
-  if dein#tap('vim-qfreplace')
-    function! s:denite_replace_action(context)
-      let s:qflist = []
-      for s:target in a:context['targets']
-        if !has_key(s:target, 'action__path') | continue | endif
-        if !has_key(s:target, 'action__line') | continue | endif
-        if !has_key(s:target, 'action__text') | continue | endif
-
-        call add(s:qflist, {
-              \ 'filename': s:target['action__path'],
-              \ 'lnum': s:target['action__line'],
-              \ 'text': s:target['action__text']
-              \ })
-      endfor
-      call setqflist(s:qflist)
-      call qfreplace#start('')
-    endfunction
-    call denite#custom#action('file', 'qfreplace', function('s:denite_replace_action'))
-  endif
-
   " menu.
   let s:menus = {}
   let s:menus.string = {'description': 'string utilities.'}
@@ -862,6 +830,33 @@ if dein#tap('denite.nvim')
         \ ['upgrade: dein:deps', 'call dein#update()']
         \ ]
   call denite#custom#var('menu', 'menus', s:menus)
+
+  " gitto/status delete action
+  if dein#tap('vim-denite-gitto')
+    call denite#custom#action(
+          \ 'gitto/status',
+          \ 'delete_',
+          \ { context -> map(context['targets'], { k, v -> delete(v['action__path'], 'rf') }) },
+          \ { 'is_quit': v:false, 'is_redraw': v:true })
+  endif
+
+  " qfreplace custom
+  if dein#tap('vim-qfreplace')
+    function! s:denite_replace_action(context)
+      let qflist = a:context['targets']
+      let qflist = filter(qflist, { k, v -> has_key(v, 'action__path') })
+      let qflist = filter(qflist, { k, v -> has_key(v, 'action__line') })
+      let qflist = filter(qflist, { k, v -> has_key(v, 'action__text') })
+      let qflist = map(qflist, { k, v -> {
+            \   'filename': v.action__path,
+            \   'lnum': v.action__line,
+            \   'text': v.action__text,
+            \ } })
+      call setqflist(qflist)
+      call qfreplace#start('')
+    endfunction
+    call denite#custom#action('file', 'qfreplace', function('s:denite_replace_action'))
+  endif
 endif
 
 " ########################################################################################################################
@@ -869,11 +864,6 @@ endif
 " ########################################################################################################################
 autocmd! vimrc FileType * call s:file_type()
 function! s:file_type()
-  if index(['log'], getbufvar(bufnr('%'), '&filetype')) >= 0
-    setlocal tabstop=28
-  endif
-
-  " fix layout.
   let s:current_winnr = tabpagewinnr(tabpagenr())
   try
     for s:ft in ['defx', 'deol', 'denite']
