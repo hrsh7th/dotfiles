@@ -32,7 +32,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete.nvim', { 'rev': 'callback' })
+  call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
@@ -112,6 +112,7 @@ set splitright
 set splitbelow
 set tags=./tags;,./.tags;
 set synmaxcol=512
+set lazyredraw
 set mouse=n
 if has('persistent_undo')
   set undodir=~/.vimundo
@@ -137,7 +138,7 @@ set number
 set list
 set listchars=tab:>-,trail:^
 set pumheight=50
-set nocursorline
+set cursorline
 set noshowmode
 set ambiwidth=double
 set fillchars+=vert:\ ,eob:\ 
@@ -166,6 +167,7 @@ set expandtab
 set tabstop=2
 set softtabstop=2
 set backspace=2
+set regexpengine=1
 set whichwrap=b,s,h,l,<,>,[,]
 
 " ########################################################################################################################
@@ -531,6 +533,15 @@ if dein#tap('vim-lsc')
         \     }
         \   }
         \ }
+  let g:rls = {
+        \   'command': 'rustup run stable rls',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+        \     }
+        \   }
+        \ }
   let g:lsc_server_commands = {
         \   'typescript': g:typescript_language_server,
         \   'typescript.tsx': g:typescript_language_server,
@@ -539,7 +550,8 @@ if dein#tap('vim-lsc')
         \   'javascript.tsx': g:typescript_language_server,
         \   'javascript.jsx': g:typescript_language_server,
         \   'php': g:intelephense,
-        \   'css': g:css_languageserver
+        \   'css': g:css_languageserver,
+        \   'rust': g:rls,
         \ }
   let g:lsc_auto_map = {
         \   'defaults': v:false,
@@ -591,11 +603,6 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#source('lsc', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
-  call deoplete#custom#source('_', 'converters', [
-        \ 'remove_overlap',
-        \ 'converter_truncate_menu',
-        \ 'converter_truncate_abbr',
-        \ 'converter_remove_paren'])
 endif
 
 " --------------------
@@ -804,6 +811,10 @@ if dein#tap('denite.nvim')
   endif
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
+  " buffer custom
+  call denite#custom#source('buffer', 'matchers', ['matcher/ignore_current_buffer'])
+
+  " default
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 12)
