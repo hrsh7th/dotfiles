@@ -3,10 +3,34 @@ if has('vim_starting')
 endif
 scriptencoding utf-8
 
-let g:loaded_matchparen = 1
+" disable runtime plugins.
+let g:loaded_2html_plugin      = 1
+let g:loaded_getscript         = 1
+let g:loaded_getscriptPlugin   = 1
+let g:loaded_gzip              = 1
+let g:loaded_logipat           = 1
+let g:loaded_logiPat           = 1
+let g:loaded_matchparen        = 1
+let g:loaded_netrw             = 1
+let g:loaded_netrwFileHandlers = 1
+let g:loaded_netrwPlugin       = 1
+let g:loaded_netrwSettings     = 1
+let g:loaded_rrhelper          = 1
+let g:loaded_spellfile_plugin  = 1
+let g:loaded_sql_completion    = 1
+let g:loaded_syntax_completion = 1
+let g:loaded_tar               = 1
+let g:loaded_tarPlugin         = 1
+let g:loaded_vimball           = 1
+let g:loaded_vimballPlugin     = 1
+let g:loaded_zip               = 1
+let g:loaded_zipPlugin         = 1
+let g:vimsyn_embed             = 1
+
+" python settings.
 let g:loaded_python_provider = 1
 let g:python_host_skip_check = 1
-let g:python_host_prog = 'python3'
+let g:python_host_prog = 'python2'
 let g:python3_host_skip_check = 1
 let g:python3_host_prog = 'python3.6'
 
@@ -25,7 +49,6 @@ if !isdirectory(dein.dir.install)
 endif
 
 let &runtimepath = &runtimepath . ',' . dein.dir.install
-
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/defx.nvim')
@@ -33,10 +56,9 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
-  call dein#add('Shougo/echodoc.vim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('airblade/vim-gitgutter')
+  call dein#add('arcticicestudio/nord-vim')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
@@ -48,7 +70,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('natebosch/vim-lsc')
-  call dein#add('nightsense/cosmic_latte')
+  call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
@@ -80,10 +102,9 @@ augroup END
 " ########################################################################################################################
 " Terminal Colors Setting
 " ########################################################################################################################
-let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-let base16colorspace=256
+let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
+let $TERM = 'xterm256-color'
 set t_Co=256
-let $TERM='xterm256-color'
 set termguicolors
 
 " ########################################################################################################################
@@ -206,14 +227,16 @@ nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>
 " Buffer, Window, Tab Moving.
 " --------------------
 " buffer.
-nnoremap H 15h
-nnoremap J 8j
-nnoremap K 8k
-nnoremap L 15l
-vnoremap H 15h
-vnoremap J 8j
-vnoremap K 8k
-vnoremap L 15l
+nnoremap H 20h
+nnoremap J 10j
+nnoremap K 10k
+nnoremap L 20l
+
+vnoremap H 20h
+vnoremap J 10j
+vnoremap K 10k
+vnoremap L 20l
+
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
 nmap <Tab> %
@@ -249,7 +272,7 @@ vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 
 " replace word by register.
-nnoremap cir ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
+nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
 " join line.
 nnoremap <C-j> gJ
@@ -303,8 +326,8 @@ if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitt
 endif
 
 if dein#tap('vim-quickhl')
-  nmap <Leader>m <Plug>(quickhl-manual-this)
-  vmap <Leader>m <Plug>(quickhl-manual-this)
+  nmap @ <Plug>(quickhl-manual-this)
+  vmap @ <Plug>(quickhl-manual-this)
 endif
 
 if dein#tap('open-browser.vim')
@@ -316,11 +339,15 @@ if dein#tap('denite.nvim')
   nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
   nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader><Leader>m :<C-u>Denite -resume<CR>
+  vnoremap <Leader>0 :<C-u>Denite menu<CR>
+  nnoremap <Leader>m :<C-u>Denite -resume<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
 
+if dein#tap('git-messenger.vim')
+  nmap gi <Plug>(git-messenger)
+endif
 
 " ########################################################################################################################
 " Function.
@@ -416,6 +443,14 @@ if dein#tap('dein.vim')
 endif
 
 " --------------------
+"  git-messenger.vim
+" --------------------
+if dein#tap('git-messenger.vim')
+  let g:git_messenger_include_diff = v:true
+  let g:git_messenger_always_into_popup = v:true
+endif
+
+" --------------------
 "  locon
 " --------------------
 if dein#tap('vim-themis')
@@ -473,8 +508,8 @@ endif
 " --------------------
 "  colorscheme
 " --------------------
-if dein#tap('cosmic_latte')
-  colorscheme cosmic_latte
+if dein#tap('nord-vim')
+  colorscheme nord
 else
   colorscheme ron
 endif
@@ -484,20 +519,6 @@ endif
 " --------------------
 let g:effort_gf#config = {}
 let g:effort_gf#config.converters = locon#get('effort_gf_converters')
-
-" --------------------
-"  vim-gitgutter
-" --------------------
-if dein#tap('vim-gitgutter')
-  let g:gitgutter_override_sign_column_highlight = 0
-  let g:gitgutter_map_keys = 0
-  let g:gitgutter_diff_args = '-w'
-  let g:gitgutter_sign_added = "\uf055"
-  let g:gitgutter_sign_modified = "\uf459"
-  let g:gitgutter_sign_removed = "\uf458"
-  let g:gitgutter_sign_removed_first_line = "\uf458"
-  let g:gitgutter_sign_modified_removed = "\uf459"
-endif
 
 " --------------------
 " vim-lsc
@@ -628,13 +649,8 @@ if dein#tap('deol.nvim')
 endif
 
 if dein#tap('defx.nvim')
-  if dein#tap('defx-icons')
-    let g:defx_icons_enable_syntax_highlight = 1
-    let g:defx_icons_column_length = 2
-  endif
-
   call defx#custom#option('_', {
-        \   'columns': 'mark:icons:filename:type',
+        \   'columns': 'mark:indent:icons:filename:type',
         \ })
 
   autocmd vimrc FileType defx call s:defx_setting()
@@ -653,7 +669,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>h         defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
     nnoremap <silent><buffer><expr>j         'j'
     nnoremap <silent><buffer><expr>k         'k'
-    nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : defx#do_action('open', 'DefxEdit')
+    nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : 'l'
     nnoremap <silent><buffer><expr>~         defx#do_action('cd')
     nnoremap <silent><buffer><expr>\         defx#do_action('cd', ['/'])
 
@@ -743,7 +759,7 @@ if dein#tap('lightline.vim')
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = 'cosmic_latte_dark'
+  let g:lightline.colorscheme = 'nord'
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
   let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsc']]
@@ -831,7 +847,8 @@ if dein#tap('denite.nvim')
   let s:menus = {}
   let s:menus.string = {'description': 'string utilities.'}
   let s:menus.string.command_candidates = [
-        \ ['format: reverse lines', 'g/^/m0'],
+        \ ['format: remove empty line', "'<,'>g/^$/d"],
+        \ ['format: remove trailling space', "'<,'>s/\\s*$//g"],
         \ ['format: remove ^M', '%s///g'],
         \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r&/g | silent! %s/=/\r=/g'],
         \ ['format: to smb', 'silent! %s/\\/\//g | silent! %s/^\(smb:\/\/\|\/\/\)\?/smb:\/\//g']
@@ -875,6 +892,7 @@ endif
 " ########################################################################################################################
 autocmd! vimrc FileType * call s:file_type()
 function! s:file_type()
+  " fix layout.
   let s:current_winnr = tabpagewinnr(tabpagenr())
   try
     for s:ft in ['defx', 'deol', 'denite']
@@ -909,7 +927,7 @@ function! s:file_type()
   endif
 endfunction
 
-" ColorScheme
+" ColorScheme.
 autocmd! vimrc ColorScheme * call s:color_scheme()
 function! s:color_scheme()
   highlight! link VertSplit StatusLineNC
@@ -932,7 +950,7 @@ function! s:term_open()
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
-" WinEnter"
+" WinEnter.
 autocmd! vimrc WinEnter * call s:win_enter()
 function! s:win_enter()
   if &previewwindow
