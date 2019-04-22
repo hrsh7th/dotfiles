@@ -59,6 +59,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
+  call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
@@ -275,7 +276,7 @@ vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
 " join line.
-nnoremap <C-j> gJ
+nnoremap gj gJ
 
 " gf.
 nnoremap gf<CR> :<C-u>EffortGF<CR>
@@ -316,7 +317,7 @@ if dein#tap('defx.nvim')
       execute printf('%swincmd w', choise[1])
       call defx#call_action('cd', [path])
     else
-      Defx -auto-cd -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`
+      Defx -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`
     endif
   endfunction
 endif
@@ -401,6 +402,11 @@ function! MyProjectRootDecide()
 
   let t:my_project_root_dir = MyProjectRootDetect(locon#get('get_buffer_path')(), {})
   execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
+  execute printf('cd %s', fnameescape(t:my_project_root_dir))
+
+  if dein#tap('neomru.vim')
+    call neomru#append(fnameescape(t:my_project_root_dir))
+  endif
 endfunction
 
 " trim right.
@@ -624,6 +630,12 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#source('lsc', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
+
+  if dein#tap('deoplete-tabnine')
+    call deoplete#custom#var('tabnine', {
+          \ 'max_num_results': 5,
+          \ })
+  endif
 endif
 
 " --------------------
@@ -689,10 +701,10 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
-    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -auto-cd -new `expand('%:p:h')`<CR>
+    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
-      nnoremap <buffer>H :<C-u>call MyPopupDeol(b:defx.paths[0])<CR>
+      nnoremap <buffer>H :<C-u>call DeolPopup(b:defx.paths[0])<CR>
     endif
   endfunction
 
@@ -739,7 +751,7 @@ if dein#tap('defx.nvim')
     call defx#call_action('cd', [workspace])
   endfunction
 
-  function! MyPopupDeol(cwd)
+  function! DeolPopup(cwd)
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 15split
       setlocal winfixheight
