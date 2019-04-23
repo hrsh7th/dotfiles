@@ -59,6 +59,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
+  call dein#add('easymotion/vim-easymotion')
   call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -70,6 +71,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/vim-findent')
+  call dein#add('machakann/vim-sandwich')
   call dein#add('natebosch/vim-lsc')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
@@ -216,7 +218,6 @@ nnoremap < <<<Esc>
 nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
-" cnoremap <Tab> <C-l>
 nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
       \ dein#tap('vim-quickhl') ? 'QuickhlManualReset' : 'nohlsearch',
       \ dein#tap('vim-quickhl') ? 'QuickhlCwordDisable' : 'nohlsearch',
@@ -350,6 +351,10 @@ if dein#tap('git-messenger.vim')
   nmap gi <Plug>(git-messenger)
 endif
 
+if dein#tap('vim-easymotion')
+  nmap <CR> <Plug>(easymotion-bd-w)
+endif
+
 " ########################################################################################################################
 " Function.
 " ########################################################################################################################
@@ -456,6 +461,11 @@ if dein#tap('git-messenger.vim')
   let g:git_messenger_always_into_popup = v:true
 endif
 
+if dein#tap('vim-easymotion')
+  let g:EasyMotion_add_search_history = v:false
+  let g:EasyMotion_keys = 'abcdefghijklmnopqrstuvwy'
+endif
+
 " --------------------
 "  locon
 " --------------------
@@ -548,18 +558,6 @@ if dein#tap('vim-lsc')
         \     },
         \   },
         \ }
-  let g:intelephense = {
-        \   'command': 'intelephense --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'initializationOptions': {
-        \         'storagePath': expand('~/.cache/intelephense')
-        \       },
-        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
-        \     }
-        \   }
-        \ }
   let g:rls = {
         \   'command': 'rustup run stable rls',
         \   'suppress_stderr': v:true,
@@ -573,10 +571,6 @@ if dein#tap('vim-lsc')
         \   'typescript': g:typescript_language_server,
         \   'typescript.tsx': g:typescript_language_server,
         \   'typescript.jsx': g:typescript_language_server,
-        \   'javascript': g:typescript_language_server,
-        \   'javascript.tsx': g:typescript_language_server,
-        \   'javascript.jsx': g:typescript_language_server,
-        \   'php': g:intelephense,
         \   'css': g:css_languageserver,
         \   'rust': g:rls,
         \ }
@@ -697,6 +691,7 @@ if dein#tap('defx.nvim')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
+    nnoremap <silent><buffer><F3>            :<C-u>Denite -default-action=change_cwd directory_rec<CR>
     nnoremap <silent><buffer><expr><F5>      MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
@@ -826,7 +821,6 @@ if dein#tap('denite.nvim')
           \   ''
           \ ])
   endif
-  call denite#custom#source('file/rec', 'sorters', ['sorter/word'])
 
   " grep custom
   if executable('jvgrep')
@@ -837,12 +831,19 @@ if dein#tap('denite.nvim')
     call denite#custom#var('grep', 'separator', [])
     call denite#custom#var('grep', 'final_opts', [])
   endif
+
+  " converters
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
-  " buffer custom
-  call denite#custom#source('buffer', 'matchers', ['matcher/ignore_current_buffer'])
+  " sorter
+  call denite#custom#source('buffer,file_mru', 'sorters', [])
+  call denite#custom#source('file/rec', 'sorters', ['sorter/rank'])
 
-  " default
+  " matchers
+  call denite#custom#source('buffer', 'matchers', ['matcher/ignore_current_buffer'])
+  call denite#custom#source('_', 'matchers', ['matcher/regexp'])
+
+  " settings
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 12)
@@ -853,7 +854,6 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'skiptime', 500)
   call denite#custom#option('_', 'auto_resize', v:true)
   call denite#custom#option('_', 'unique', v:true)
-  call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
   " menu.
   let s:menus = {}
