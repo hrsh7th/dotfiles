@@ -53,13 +53,12 @@ if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
-  call dein#add('Shougo/denite.nvim')
+  call dein#add('Shougo/denite.nvim', { 'rev': 'ui' })
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
-  call dein#add('easymotion/vim-easymotion')
   call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -324,7 +323,7 @@ if dein#tap('defx.nvim')
 endif
 
 if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
-  nnoremap <Leader><BS> :<C-u>Denite gitto<CR>
+  nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
 endif
 
 if dein#tap('vim-quickhl')
@@ -337,7 +336,7 @@ if dein#tap('open-browser.vim')
 endif
 
 if dein#tap('denite.nvim')
-  nnoremap <BS> :<C-u>Denite buffer file_mru<CR>
+  nnoremap <BS> :<C-u>Denite file_mru<CR>
   nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
   nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
@@ -422,7 +421,7 @@ endfunction
 " get git branch name.
 function! GitBranch()
   try
-    return gitto#do('repo#head')()
+    return gitto#run('repo#head')
   catch /.*/
   endtry
   return 'no-git'
@@ -461,11 +460,6 @@ if dein#tap('git-messenger.vim')
   let g:git_messenger_always_into_popup = v:true
 endif
 
-if dein#tap('vim-easymotion')
-  let g:EasyMotion_add_search_history = v:false
-  let g:EasyMotion_keys = 'abcdefghijklmnopqrstuvwy'
-endif
-
 " --------------------
 "  locon
 " --------------------
@@ -496,17 +490,11 @@ if dein#tap('vim-locon')
   call locon#def('find_project_root', funcref('s:find_project_root'))
 
   function! s:get_buffer_path()
-    if exists('b:denite_context')
-      return fnamemodify(bufname(winbufnr(b:denite_context.prev_winid)), ':p')
-    endif
     if exists('b:defx')
       return b:defx.paths[0]
     endif
     if exists('t:deol') && &filetype ==# 'deol'
       return t:deol.cwd
-    endif
-    if exists('t:my_project_root_dir')
-      return t:my_project_root_dir
     endif
     return expand('%:p')
   endfunction
@@ -549,14 +537,14 @@ if dein#tap('vim-lsc')
         \     },
         \   }
         \ }
-  let g:css_languageserver = {
-        \   'command': 'css-languageserver --stdio',
+  let g:intelephense = {
+        \   'command': 'intelephense --stdio',
         \   'suppress_stderr': v:true,
         \   'message_hooks': {
         \     'initialize': {
         \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
-        \     },
-        \   },
+        \     }
+        \   }
         \ }
   let g:rls = {
         \   'command': 'rustup run stable rls',
@@ -571,8 +559,8 @@ if dein#tap('vim-lsc')
         \   'typescript': g:typescript_language_server,
         \   'typescript.tsx': g:typescript_language_server,
         \   'typescript.jsx': g:typescript_language_server,
-        \   'css': g:css_languageserver,
         \   'rust': g:rls,
+        \   'php': g:intelephense,
         \ }
   let g:lsc_auto_map = {
         \   'defaults': v:false,
@@ -592,12 +580,13 @@ endif
 "  auto-pairs
 " --------------------
 if dein#tap('ale')
+  let g:ale_disable_linters = keys(get(g:, 'lsc_server_commands', {}))
+  let g:ale_disable_linters += ['css']
+
   let g:ale_linters = {}
-  if exists('g:lsc_server_commands')
-    for s:ft in keys(g:lsc_server_commands)
-      let g:ale_linters[s:ft] = []
-    endfor
-  endif
+  for s:ft in g:ale_disable_linters
+    let g:ale_linters[s:ft] = []
+  endfor
 endif
 
 " --------------------
@@ -606,14 +595,6 @@ endif
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = locon#get('get_buffer_path')
-endif
-
-" --------------------
-" echodoc.vim.
-" --------------------
-if dein#tap('echodoc.vim')
-  let g:echodoc#enable_at_startup = 1
-  let g:echodoc#type = 'echo'
 endif
 
 " --------------------
@@ -651,6 +632,17 @@ if dein#tap('deol.nvim')
   function! s:deol_setting()
     setlocal nobuflisted
     nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', locon#get('get_buffer_path')()))<CR>
+  endfunction
+
+  function! DeolPopup(cwd)
+    if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
+      topleft 15split
+      setlocal winfixheight
+      call deol#start(printf('-cwd=%s', a:cwd))
+    else
+      let t:deol['cwd'] = ''
+      call deol#start(printf('-cwd=%s', a:cwd))
+    endif
   endfunction
 endif
 
@@ -745,17 +737,6 @@ if dein#tap('defx.nvim')
     endif
     call defx#call_action('cd', [workspace])
   endfunction
-
-  function! DeolPopup(cwd)
-    if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
-      topleft 15split
-      setlocal winfixheight
-      call deol#start(printf('-cwd=%s', a:cwd))
-    else
-      let t:deol['cwd'] = ''
-      call deol#start(printf('-cwd=%s', a:cwd))
-    endif
-  endfunction
 endif
 
 " --------------------
@@ -788,26 +769,22 @@ endif
 " --------------------
 if dein#tap('denite.nvim')
   " common.
-  call denite#custom#map('normal', '<Esc>', '<denite:quit>')
-  call denite#custom#map('normal', '<Tab>', '<denite:choose_action>')
-  call denite#custom#map('normal', '<Space>h', '<denite:wincmd:h>')
-  call denite#custom#map('normal', '<Space>j', '<denite:wincmd:j>')
-  call denite#custom#map('normal', '<Space>k', '<denite:wincmd:p>')
-  call denite#custom#map('normal', '<Space>l', '<denite:wincmd:l>')
-  call denite#custom#map('normal', '<C-l>', '<denite:redraw>')
-  call denite#custom#map('normal', '<C-h>', '<denite:restore_sources>')
-  call denite#custom#map('normal', 'q', '<denite:quit>')
-  call denite#custom#map('normal', 'i', '<denite:enter_mode:insert>')
-  call denite#custom#map('normal', 'a', '<denite:enter_mode:insert>')
-  call denite#custom#map('normal', 'v', '<denite:do_action:vsplitswitch>')
-  call denite#custom#map('normal', 's', '<denite:do_action:splitswitch>')
-  call denite#custom#map('normal', 'h', '<prompt:move_caret_to_left>')
-  call denite#custom#map('normal', 'l', '<prompt:move_caret_to_right>')
-  call denite#custom#map('normal', '0', '<prompt:move_caret_to_head>')
-  call denite#custom#map('normal', '$', '<prompt:move_caret_to_tail>')
-  call denite#custom#map('normal', '@', '<denite:toggle_select_down>')
-  call denite#custom#map('insert', '<Esc>', '<denite:enter_mode:normal>')
-  call denite#custom#map('insert', '<Tab>', '<denite:choose_action>')
+  autocmd vimrc FileType denite call s:denite_setting()
+  function! s:denite_setting() abort
+	  nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
+	  nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
+	  nnoremap <silent><buffer><expr>q       denite#do_map('quit')
+    nnoremap <silent><buffer><expr><Esc>   denite#do_map('quit')
+	  nnoremap <silent><buffer><expr><Tab>   denite#do_map('choose_action')
+	  nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
+	  nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
+    nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
+	  nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
+	  nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
+	  nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
+	  nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
+	  nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
+  endfunction
 
   " file/rec custom
   if executable('ag')
@@ -836,23 +813,27 @@ if dein#tap('denite.nvim')
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
   " sorter
-  call denite#custom#source('buffer,file_mru', 'sorters', [])
+  call denite#custom#source('buffer,file_mru,directory_mru', 'sorters', [])
   call denite#custom#source('file/rec', 'sorters', ['sorter/rank'])
 
   " matchers
-  call denite#custom#source('buffer', 'matchers', ['matcher/ignore_current_buffer'])
+  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/regexp'])
   call denite#custom#source('_', 'matchers', ['matcher/regexp'])
 
-  " settings
+  " filter
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
+
+  " option.
   call denite#custom#option('grep', 'quit', v:false)
-  call denite#custom#option('_', 'winheight', 12)
-  call denite#custom#option('_', 'winminheight', 6)
+  " call denite#custom#option('_', 'winwidth', float2nr(&columns * 0.7))
+  " call denite#custom#option('_', 'winheight', float2nr(&lines * 0.6))
+  " call denite#custom#option('_', 'winrow', (&lines / 2) - float2nr(&lines * 0.6 / 2))
+  " call denite#custom#option('_', 'wincol', (&columns / 2) - float2nr(&columns * 0.7 / 2))
+  " call denite#custom#option('_', 'split', 'floating')
+  call denite#custom#option('_', 'winheight', 8)
   call denite#custom#option('_', 'vertical_preview', v:true)
-  call denite#custom#option('_', 'mode', 'normal')
   call denite#custom#option('_', 'updatetime', 500)
   call denite#custom#option('_', 'skiptime', 500)
-  call denite#custom#option('_', 'auto_resize', v:true)
   call denite#custom#option('_', 'unique', v:true)
 
   " menu.
@@ -904,35 +885,6 @@ endif
 " ########################################################################################################################
 autocmd! vimrc FileType * call s:file_type()
 function! s:file_type()
-  " fix layout.
-  let s:current_winnr = tabpagewinnr(tabpagenr())
-  try
-    for s:ft in ['defx', 'deol', 'denite']
-      let s:winnrs = range(1, tabpagewinnr(tabpagenr(), '$'))
-      if len(s:winnrs) > 1
-        for s:winnr in s:winnrs
-          if s:ft ==# 'defx' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-            execute printf('silent noautocmd %swincmd w', s:winnr)
-            execute printf('silent noautocmd vertical resize %s', 35)
-            break
-          endif
-          if s:ft ==# 'deol' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-            execute printf('silent noautocmd %swincmd w', s:winnr)
-            execute printf('silent noautocmd wincmd K | silent noautocmd resize %s', 12)
-            break
-          endif
-          if s:ft ==# 'denite' && s:ft == getbufvar(winbufnr(s:winnr), '&filetype')
-            execute printf('silent noautocmd %swincmd w', s:winnr)
-            execute printf('silent noautocmd wincmd J | silent noautocmd resize %s', 12)
-            break
-          endif
-        endfor
-      endif
-    endfor
-    silent noautocmd execute printf('%swincmd w', s:current_winnr)
-  catch
-  endtry
-
   " fix indent.
   if filereadable(expand('%')) && exists(':Findent') && &buftype ==# ''
     Findent --no-messages --no-warnings --chunksize=100
