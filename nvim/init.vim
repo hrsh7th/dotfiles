@@ -51,9 +51,9 @@ endif
 let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
-  call dein#add('Shougo/defx.nvim')
+  call dein#add('Shougo/defx.nvim', { 'rev': 'session' })
   call dein#add('Shougo/dein.vim')
-  call dein#add('Shougo/denite.nvim', { 'rev': 'ui' })
+  call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
@@ -69,6 +69,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('itchyny/lightline.vim')
   call dein#add('kmnk/denite-dirmark')
   call dein#add('kristijanhusak/defx-icons')
+  call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
   call dein#add('natebosch/vim-lsc')
@@ -130,7 +131,7 @@ set clipboard+=unnamedplus
 set isfname-==
 set isfname+=\\
 set diffopt=filler,iwhite
-set wildchar=]
+set wildchar=<Tab>
 set splitright
 set splitbelow
 set tags=./tags;,./.tags;
@@ -150,6 +151,7 @@ set shell=bash
 set shortmess+=I
 set modeline
 set modelines=2
+set wildoptions=pum
 set wildmenu
 set wildmode=longest:full
 set title
@@ -317,7 +319,7 @@ if dein#tap('defx.nvim')
       execute printf('%swincmd w', choise[1])
       call defx#call_action('cd', [path])
     else
-      Defx -split=vertical -direction=topleft -winwidth=35 `expand('%:p:h')`
+      Defx -split=vertical -direction=topleft -winwidth=35 -session-file=`expand('~/.defx_session')` `expand('%:p:h')`
     endif
   endfunction
 endif
@@ -337,8 +339,8 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite file_mru<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite -auto-resume file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
-  nnoremap <expr>gr printf(':<C-u>Denite -auto-resume -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
+  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
+  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
   nnoremap <Leader>m :<C-u>Denite -resume<CR>
@@ -405,11 +407,9 @@ function! MyProjectRootDecide()
   endif
 
   let t:my_project_root_dir = MyProjectRootDetect(locon#get('get_buffer_path')(), {})
-  execute printf('tchdir %s', fnameescape(t:my_project_root_dir))
-  execute printf('cd %s', fnameescape(t:my_project_root_dir))
 
-  if dein#tap('neomru.vim')
-    call neomru#append(fnameescape(t:my_project_root_dir))
+  if exists('b:defx')
+    call defx#call_action('add_session', [b:defx.paths[0]])
   endif
 endfunction
 
@@ -555,10 +555,14 @@ if dein#tap('vim-lsc')
         \     }
         \   }
         \ }
+
   let g:lsc_server_commands = {
         \   'typescript': g:typescript_language_server,
         \   'typescript.tsx': g:typescript_language_server,
         \   'typescript.jsx': g:typescript_language_server,
+        \   'javascript': g:typescript_language_server,
+        \   'javascript.tsx': g:typescript_language_server,
+        \   'javascript.jsx': g:typescript_language_server,
         \   'rust': g:rls,
         \   'php': g:intelephense,
         \ }
@@ -682,8 +686,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>p         defx#do_action('paste')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=change_cwd dirmark directory_mru<CR>
-    nnoremap <silent><buffer><F3>            :<C-u>Denite -default-action=change_cwd directory_rec<CR>
+    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session defx/history<CR>
     nnoremap <silent><buffer><expr><F5>      MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
@@ -694,21 +697,6 @@ if dein#tap('defx.nvim')
       nnoremap <buffer>H :<C-u>call DeolPopup(b:defx.paths[0])<CR>
     endif
   endfunction
-
-  if dein#tap('denite.nvim')
-    function! s:action(context)
-      if exists('a:context["targets"][0]["action__path"]')
-        call defx#call_action('cd', a:context['targets'][0]['action__path'])
-        return
-      endif
-
-      if exists('a:context["targets"][0]["word"]')
-        call defx#call_action('cd', a:context['targets'][0]['word'])
-        return
-      endif
-    endfunction
-    call denite#custom#action('dirmark,command,directory', 'change_cwd', function('s:action'))
-  endif
 
   command! -nargs=* -range DefxEdit call DefxOpen('edit', <q-args>)
   command! -nargs=* -range DefxVsplit call DefxOpen('vsplit', <q-args>)
@@ -782,8 +770,13 @@ if dein#tap('denite.nvim')
 	  nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
 	  nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
 	  nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
+	  nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
 	  nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
 	  nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
+  endfunction
+  autocmd vimrc FileType denite-filter call s:denite_filter_setting()
+  function! s:denite_filter_setting() abort
+    nnoremap <silent><buffer><Esc>         q
   endfunction
 
   " file/rec custom
@@ -813,12 +806,12 @@ if dein#tap('denite.nvim')
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
 
   " sorter
-  call denite#custom#source('buffer,file_mru,directory_mru', 'sorters', [])
-  call denite#custom#source('file/rec', 'sorters', ['sorter/rank'])
+  call denite#custom#source('buffer,file_mru', 'sorters', [])
+  call denite#custom#source('_', 'sorters', ['sorter/sublime'])
 
   " matchers
-  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/regexp'])
-  call denite#custom#source('_', 'matchers', ['matcher/regexp'])
+  call denite#custom#source('buffer,file_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/fuzzy'])
+  call denite#custom#source('_', 'matchers', ['matcher/fuzzy'])
 
   " filter
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
