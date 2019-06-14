@@ -17,7 +17,8 @@ let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/dein.vim')
-  call dein#add('Shougo/denite.nvim', { 'rev': 'ui' })
+  call dein#add('Shougo/denite.nvim')
+  call dein#add('Shougo/defx.nvim', { 'rev': 'session' })
   call dein#end()
 endif
 

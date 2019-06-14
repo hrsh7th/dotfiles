@@ -59,6 +59,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
+  call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -408,8 +409,14 @@ function! MyProjectRootDecide()
 
   let t:my_project_root_dir = MyProjectRootDetect(locon#get('get_buffer_path')(), {})
 
+  execute printf('tcd %s', t:my_project_root_dir)
+
   if exists('b:defx')
     call defx#call_action('add_session', [b:defx.paths[0]])
+  endif
+  if dein#tap('neomru.vim')
+    call neomru#append(t:my_project_root_dir)
+    NeoMRUReload
   endif
 endfunction
 
@@ -460,6 +467,10 @@ if dein#tap('git-messenger.vim')
   let g:git_messenger_always_into_popup = v:true
 endif
 
+if dein#tap('vim-devicons')
+  let g:webdevicons_enable_denite = v:false
+endif
+
 " --------------------
 "  locon
 " --------------------
@@ -501,7 +512,7 @@ if dein#tap('vim-locon')
   call locon#def('get_buffer_path', funcref('s:get_buffer_path'))
 
   call locon#def('effort_gf_converters', {})
-  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', '*.svg', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
+  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
   call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
 
   if filereadable(expand('$HOME/.vimrc.local'))
@@ -668,7 +679,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>x         defx#do_action('execute_system')
 
     " move.
-    nnoremap <silent><buffer><expr>h         defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..'])
+    nnoremap <silent><buffer><expr>h         defx#get_candidate()['level'] > 0 ? defx#do_action('close_tree') : (defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..']))
     nnoremap <silent><buffer><expr>j         'j'
     nnoremap <silent><buffer><expr>k         'k'
     nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : 'l'
@@ -686,12 +697,12 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>p         defx#do_action('paste')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session defx/history<CR>
+    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session directory_mru defx/history<CR>
     nnoremap <silent><buffer><expr><F5>      MyProjectRootDecide()
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
-    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new `expand('%:p:h')`<CR>
+    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new -session-file=`expand('~/.defx_session')` `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
       nnoremap <buffer>H :<C-u>call DeolPopup(b:defx.paths[0])<CR>
@@ -776,7 +787,8 @@ if dein#tap('denite.nvim')
   endfunction
   autocmd vimrc FileType denite-filter call s:denite_filter_setting()
   function! s:denite_filter_setting() abort
-    nnoremap <silent><buffer><Esc>         q
+    nnoremap <silent><buffer><Esc> q
+    imap <silent><buffer><Esc> <C-o>0<C-o>D<CR>
   endfunction
 
   " file/rec custom
@@ -804,13 +816,14 @@ if dein#tap('denite.nvim')
 
   " converters
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
+  call denite#custom#source('file/rec,file_mru', 'converters', ['converter/prioritize_basename'])
 
   " sorter
-  call denite#custom#source('buffer,file_mru', 'sorters', [])
+  call denite#custom#source('buffer,file_mru,directory_mru', 'sorters', [])
   call denite#custom#source('_', 'sorters', ['sorter/sublime'])
 
   " matchers
-  call denite#custom#source('buffer,file_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/fuzzy'])
+  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/fuzzy'])
   call denite#custom#source('_', 'matchers', ['matcher/fuzzy'])
 
   " filter
@@ -844,6 +857,12 @@ if dein#tap('denite.nvim')
         \ ['upgrade: dein:deps', 'call dein#update()']
         \ ]
   call denite#custom#var('menu', 'menus', s:menus)
+
+  " execute custom action.
+  function! s:denite_execute_action(context)
+    call defx#call_action('cd', [a:context['targets'][0]['action__path']])
+  endfunction
+  call denite#custom#action('directory', 'execute', function('s:denite_execute_action'))
 
   " gitto/status delete action
   if dein#tap('vim-denite-gitto')
