@@ -51,7 +51,7 @@ endif
 let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
-  call dein#add('Shougo/defx.nvim', { 'rev': 'session' })
+  call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
@@ -59,11 +59,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
+  call dein#add('cohama/lexima.vim')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
-  call dein#add('hrsh7th/deoplete-vim-lsc')
   call dein#add('hrsh7th/vim-denite-gitto')
-  call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
@@ -73,7 +72,8 @@ if dein#load_state(dein.dir.install)
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('natebosch/vim-lsc')
+  call dein#add('prabirshrestha/async.vim')
+  call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
@@ -84,7 +84,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
-  call dein#add('tpope/vim-surround')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
   call dein#local('~/Development/workspace/LocalVimPlugins')
@@ -128,7 +127,7 @@ set completeopt-=preview
 set noerrorbells
 set novisualbell
 set t_vb=
-set clipboard+=unnamedplus
+set clipboard+=unnamedplus,unnamed
 set isfname-==
 set isfname+=\\
 set diffopt=filler,iwhite
@@ -139,10 +138,8 @@ set tags=./tags;,./.tags;
 set synmaxcol=512
 set lazyredraw
 set mouse=n
-if has('persistent_undo')
-  set undodir=~/.vimundo
-  set undofile
-endif
+set undodir=~/.vimundo
+set undofile
 set pastetoggle=<F9>
 set shell=bash
 
@@ -208,7 +205,8 @@ nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>w :<C-u>w<CR>
 nmap ; :
-nmap : ;
+vmap ; :
+xmap ; :
 nnoremap = ^
 vnoremap = ^
 nnoremap + =
@@ -235,7 +233,6 @@ nnoremap H 20h
 nnoremap J 10j
 nnoremap K 10k
 nnoremap L 20l
-
 vnoremap H 20h
 vnoremap J 10j
 vnoremap K 10k
@@ -262,12 +259,6 @@ nnoremap <Leader>L :<C-u>tabnext<CR>
 nnoremap <Leader>H :<C-u>tabprev<CR>
 
 " --------------------
-" CmdWindow.
-" --------------------
-nnoremap : q:
-xnoremap : q:
-
-" --------------------
 " Utility.
 " --------------------
 " handy replace.
@@ -280,22 +271,6 @@ nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
 " join line.
 nnoremap gj gJ
-
-" gf.
-nnoremap gf<CR> :<C-u>EffortGF<CR>
-nnoremap gfs :<C-u>split EffortGF<CR>
-nnoremap gfv :<C-u>vertical EffortGF<CR>
-
-" pairs.
-inoremap <expr><CR> MyPairEnterMapping()
-inoremap <expr><BS> MyPairBackSpaceMapping()
-imap <expr><Tab> MyPairIsBetween() ? '<Right>' : '<Tab>'
-inoremap [ []<Left>
-inoremap ( ()<Left>
-inoremap { {}<Left>
-inoremap ' ''<Left>
-inoremap " ""<Left>
-inoremap < <><Left>
 
 " --------------------
 " Project.
@@ -353,44 +328,9 @@ if dein#tap('git-messenger.vim')
   nmap gi <Plug>(git-messenger)
 endif
 
-if dein#tap('vim-easymotion')
-  nmap <CR> <Plug>(easymotion-bd-w)
-endif
-
 " ########################################################################################################################
 " Function.
 " ########################################################################################################################
-" pairs.
-let g:my_pairs = {'(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '<': '>', '>': '<'}
-function! MyPairEnterMapping()
-  if MyPairIsSandwiched()
-    return "\<CR>\<Up>\<End>\<CR>"
-  endif
-  return "\<CR>"
-endfunction
-function! MyPairBackSpaceMapping()
-  if MyPairIsSandwiched()
-    return "\<Right>\<BS>\<BS>"
-  endif
-  return "\<BS>"
-endfunction
-function! MyPairIsSandwiched()
-  if exists("g:my_pairs[getline('.')[col('.') - 2]]")
-    if getline('.')[col('.') - 1] == g:my_pairs[getline('.')[col('.') - 2]]
-      return 1
-    endif
-  endif
-  return 0
-endfunction
-function! MyPairIsBetween()
-  for left_paren in keys(g:my_pairs)
-    if getline('.')[col('.') - 1] == g:my_pairs[left_paren]
-      return searchpair(left_paren, '', g:my_pairs[left_paren], 'bW')
-    endif
-  endfor
-  return 0
-endfunction
-
 " project.
 function! MyProjectRootDetect(path, option)
   if exists('t:my_project_root_dir') && !exists('a:option.ignore_project_root_vars')
@@ -434,14 +374,6 @@ function! GitBranch()
   return 'no-git'
 endfunction
 
-function! LscStatus()
-  let servers = lsc#server#current()
-  if len(servers)
-    return join(map(servers, { k, v -> printf('LSC:%s', v.status) }), '|')
-  endif
-  return 'no-lsc'
-endfunction
-
 function! CWD()
   if exists('t:my_project_root_dir')
     return fnamemodify(t:my_project_root_dir, ':~')
@@ -452,16 +384,19 @@ endfunction
 " ########################################################################################################################
 " Plugin Setting.
 " ########################################################################################################################
-" --------------------
-"  dein
-" --------------------
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
 endif
 
-" --------------------
-"  git-messenger.vim
-" --------------------
+if dein#tap('lexima.vim')
+  let g:lexima_enable_nvim_accept_pum_with_enter = v:false
+  call lexima#add_rule({ 'char': '<Tab>', 'except': '#)', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'except': '#}', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'except': '#]', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'except': '#"', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'except': '#' + "'", 'leave': 1 })
+endif
+
 if dein#tap('git-messenger.vim')
   let g:git_messenger_include_diff = v:true
   let g:git_messenger_always_into_popup = v:true
@@ -471,9 +406,6 @@ if dein#tap('vim-devicons')
   let g:webdevicons_enable_denite = v:false
 endif
 
-" --------------------
-"  locon
-" --------------------
 if dein#tap('vim-themis')
   if has('vim_starting')
     let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
@@ -481,9 +413,6 @@ if dein#tap('vim-themis')
   endif
 endif
 
-" --------------------
-"  locon
-" --------------------
 if dein#tap('vim-locon')
   function! s:find_project_root(path)
     let path = fnamemodify(a:path, ':p')
@@ -511,7 +440,6 @@ if dein#tap('vim-locon')
   endfunction
   call locon#def('get_buffer_path', funcref('s:get_buffer_path'))
 
-  call locon#def('effort_gf_converters', {})
   call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
   call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
 
@@ -520,83 +448,81 @@ if dein#tap('vim-locon')
   endif
 endif
 
-" --------------------
-"  colorscheme
-" --------------------
 if dein#tap('nord-vim')
   colorscheme nord
 else
   colorscheme ron
 endif
 
-" --------------------
-" effort_gf
-" --------------------
-let g:effort_gf#config = {}
-let g:effort_gf#config.converters = locon#get('effort_gf_converters')
+if dein#tap('vim-lsp')
+  let g:lsp_log_file = '/tmp/lsp.log'
+  let g:lsp_diagnostics_echo_cursor = v:true
 
-" --------------------
-" vim-lsc
-" --------------------
-if dein#tap('vim-lsc')
-  let g:typescript_language_server = {
-        \   'command': 'typescript-language-server --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+  let g:lsp_server_definitions = {}
+  let g:lsp_server_definitions['typescript-language-server'] = {
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
+        \   'whitelist': ['typescript', 'typescript.tsx']
+        \ }
+  let g:lsp_server_definitions['intelephense'] = {
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
+        \   'whitelist': ['php']
+        \ }
+  let g:lsp_server_definitions['rls'] = {
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run stable rls'] },
+        \   'whitelist': ['rust']
+        \ }
+  let g:lsp_server_definitions['diagnostic-languageserver'] = {
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
+        \   'whitelist': ['javascript', 'javascipt.jsx', 'typescript', 'typescript.tsx'],
+        \   'initialization_options': {
+        \     'linters': {
+        \       'eslint': {
+        \         'sourceName': 'eslint',
+        \         'command': 'eslint_d',
+        \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'formatLines': 1,
+        \         'formatPattern': [
+        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+        \           {
+        \             'line': 1,
+        \             'column': 2,
+        \             'message': [4, ' [', 5, ']' ],
+        \             'security': 3
+        \           }
+        \         ]
+        \       },
         \     },
-        \   }
-        \ }
-  let g:intelephense = {
-        \   'command': 'intelephense --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
-        \     }
-        \   }
-        \ }
-  let g:rls = {
-        \   'command': 'rustup run stable rls',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(locon#get('find_project_root')(locon#get('get_buffer_path')())) }
+        \     'filetypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.jsx': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint'
         \     }
         \   }
         \ }
 
-  let g:lsc_server_commands = {
-        \   'typescript': g:typescript_language_server,
-        \   'typescript.tsx': g:typescript_language_server,
-        \   'typescript.jsx': g:typescript_language_server,
-        \   'javascript': g:typescript_language_server,
-        \   'javascript.tsx': g:typescript_language_server,
-        \   'javascript.jsx': g:typescript_language_server,
-        \   'rust': g:rls,
-        \   'php': g:intelephense,
-        \ }
-  let g:lsc_auto_map = {
-        \   'defaults': v:false,
-        \   'GoToDefinition': 'gf<CR>',
-        \   'GoToDefinitionSplit': ['gfs', 'gfv :vertical'],
-        \   'FindReferences': '<Leader>g',
-        \   'FindCodeActions': '<Leader><CR>',
-        \   'Rename': '<Leader>r',
-        \   'ShowHover': '<Leader>i',
-        \   'SignatureHelp': '<Leader>o',
-        \ }
-  let g:lsc_enable_autocomplete = v:false
-  let g:lsc_enable_snippet_support = v:true
+  autocmd! vimrc User lsp_setup call s:setup_lsp()
+  function! s:setup_lsp()
+    for [k, v] in items(g:lsp_server_definitions)
+      if executable(k)
+        call lsp#register_server({
+              \ 'name': k,
+              \ 'cmd': v.cmd,
+              \ 'whitelist': v.whitelist,
+              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_project_root')(locon#get('get_buffer_path')())) },
+              \ 'initialization_options': get(v, 'initialization_options', {})
+              \ })
+      endif
+    endfor
+  endfunction
 endif
 
-" --------------------
-"  auto-pairs
-" --------------------
 if dein#tap('ale')
-  let g:ale_disable_linters = keys(get(g:, 'lsc_server_commands', {}))
-  let g:ale_disable_linters += ['css']
+  let g:ale_disable_linters = ['css']
+  for [k, v] in items(g:lsp_server_definitions) 
+    let g:ale_disable_linters += v.whitelist
+  endfor
 
   let g:ale_linters = {}
   for s:ft in g:ale_disable_linters
@@ -604,20 +530,13 @@ if dein#tap('ale')
   endfor
 endif
 
-" --------------------
-" vim-gitto
-" --------------------
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = locon#get('get_buffer_path')
 endif
 
-" --------------------
-" deoplete.nvim.
-" --------------------
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#source('lsc', 'rank', 2000)
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
 
@@ -628,17 +547,11 @@ if dein#tap('deoplete.nvim')
   endif
 endif
 
-" --------------------
-" neomru.vim.
-" --------------------
 if dein#tap('neomru.vim')
   let g:neomru#directory_mru_limit = 50
   let g:neomru#file_mru_limit = 50
 endif
 
-" --------------------
-" deol.nvim.
-" --------------------
 if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
   let g:deol#enable_dir_changed = 0
@@ -689,7 +602,6 @@ if dein#tap('defx.nvim')
     " manimpulates.
     nnoremap <silent><buffer><expr>K         defx#do_action('new_directory')
     nnoremap <silent><buffer><expr>N         defx#do_action('new_file')
-    nnoremap <silent><buffer><expr><Leader>N defx#do_action('new_multiple_files')
     nnoremap <silent><buffer><expr>c         defx#do_action('copy')
     nnoremap <silent><buffer><expr>m         defx#do_action('move')
     nnoremap <silent><buffer><expr>D         defx#do_action('remove')
@@ -738,9 +650,6 @@ if dein#tap('defx.nvim')
   endfunction
 endif
 
-" --------------------
-" lightline.
-" --------------------
 if dein#tap('lightline.vim')
   let g:lightline = {}
   let g:lightline.enable = {}
@@ -749,13 +658,12 @@ if dein#tap('lightline.vim')
   let g:lightline.colorscheme = 'nord'
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
-  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsc']]
+  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype']]
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['cwd', 'branch', 'close']]
   let g:lightline.component_function = {}
   let g:lightline.component_function.branch = 'GitBranch'
-  let g:lightline.component_function.lsc = 'LscStatus'
   let g:lightline.component_function.cwd = 'CWD'
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
@@ -763,9 +671,6 @@ if dein#tap('lightline.vim')
   let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
 endif
 
-" --------------------
-" denite.nvim.
-" --------------------
 if dein#tap('denite.nvim')
   " common.
   autocmd vimrc FileType denite call s:denite_setting()
@@ -831,11 +736,6 @@ if dein#tap('denite.nvim')
 
   " option.
   call denite#custom#option('grep', 'quit', v:false)
-  " call denite#custom#option('_', 'winwidth', float2nr(&columns * 0.7))
-  " call denite#custom#option('_', 'winheight', float2nr(&lines * 0.6))
-  " call denite#custom#option('_', 'winrow', (&lines / 2) - float2nr(&lines * 0.6 / 2))
-  " call denite#custom#option('_', 'wincol', (&columns / 2) - float2nr(&columns * 0.7 / 2))
-  " call denite#custom#option('_', 'split', 'floating')
   call denite#custom#option('_', 'winheight', 8)
   call denite#custom#option('_', 'vertical_preview', v:true)
   call denite#custom#option('_', 'updatetime', 500)
@@ -901,9 +801,22 @@ function! s:file_type()
   if filereadable(expand('%')) && exists(':Findent') && &buftype ==# ''
     Findent --no-messages --no-warnings --chunksize=100
   endif
+
+  " lsp mapping.
+  if dein#tap('vim-lsp')
+    for [k, v] in items(g:lsp_server_definitions)
+      if executable(k)
+        nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
+        nnoremap <Leader>i    :<C-u>LspHover<CR>
+        nnoremap <Leader>r    :<C-u>LspRename<CR>
+        nnoremap gf<CR>       :<C-u>LspDefinition<CR>
+        nnoremap gfv          :<C-u>vsplit \| LspDefinition<CR>
+        nnoremap gfs          :<C-u>split  \| LspDefinition<CR>
+      endif
+    endfor
+  endif
 endfunction
 
-" ColorScheme.
 autocmd! vimrc ColorScheme * call s:color_scheme()
 function! s:color_scheme()
   highlight! link VertSplit StatusLineNC
@@ -912,7 +825,6 @@ function! s:color_scheme()
 endfunction
 doautocmd ColorScheme
 
-" BufRead
 autocmd! vimrc BufRead * call s:buf_read()
 function! s:buf_read()
   if line("'\"") > 0 && line("'\"") <= line('$')
@@ -920,26 +832,15 @@ function! s:buf_read()
   endif
 endfunction
 
-" TermOpen.
 autocmd! vimrc TermOpen term://* call s:term_open()
 function! s:term_open()
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
-" WinEnter.
 autocmd! vimrc WinEnter * call s:win_enter()
 function! s:win_enter()
   if &previewwindow
     setlocal wrap
   endif
-endfunction
-
-" CmdwinEnter.
-autocmd! vimrc CmdwinEnter * call s:cmdwin_enter()
-function! s:cmdwin_enter()
-  nnoremap <buffer><silent><Esc> :<C-u>q<CR>
-  nnoremap <buffer>a             A
-  nnoremap <buffer><silent>dd    :<C-u>call histdel(getcmdwintype(), line('.') - line('$'))<CR>dd
-  startinsert!
 endfunction
 
