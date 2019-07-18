@@ -389,12 +389,20 @@ if dein#tap('dein.vim')
 endif
 
 if dein#tap('lexima.vim')
-  let g:lexima_enable_nvim_accept_pum_with_enter = v:false
-  call lexima#add_rule({ 'char': '<Tab>', 'except': '#)', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'except': '#}', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'except': '#]', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'except': '#"', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'except': '#' + "'", 'leave': 1 })
+  let g:lexima_enable_nvim_accept_pum_with_enter = 0
+  call lexima#add_rule({ 'char': '<', 'input_after': '>' })
+  call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
+  call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
+  call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
+
+  call lexima#add_rule({ 'char': '<Tab>', 'at': ')',  'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\}', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\]', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '"',  'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': "'",  'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '`',  'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '<',  'leave': 1 })
 endif
 
 if dein#tap('git-messenger.vim')
@@ -455,7 +463,6 @@ else
 endif
 
 if dein#tap('vim-lsp')
-  let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_diagnostics_echo_cursor = v:true
 
   let g:lsp_server_definitions = {}
