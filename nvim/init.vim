@@ -79,7 +79,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
-  call dein#add('tbodt/deoplete-tabnine', { 'build': './install.sh' })
   call dein#add('thinca/vim-prettyprint')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
@@ -222,8 +221,7 @@ nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>
       \ dein#tap('vim-quickhl') ? 'QuickhlManualReset' : 'nohlsearch',
       \ dein#tap('vim-quickhl') ? 'QuickhlCwordDisable' : 'nohlsearch',
       \ 'nohlsearch',
-      \ 'redraw!'
-      \ )
+      \ 'redraw!')
 
 " --------------------
 " Buffer, Window, Tab Moving.
@@ -354,31 +352,40 @@ function! MyProjectRootDecide()
   if exists('b:defx')
     call defx#call_action('add_session', [b:defx.paths[0]])
   endif
+
   if dein#tap('neomru.vim')
     call neomru#append(t:my_project_root_dir)
     NeoMRUReload
   endif
 endfunction
 
-" trim right.
 function! s:trim_right(str, trim)
   return substitute(a:str, printf('%s$', a:trim), '', 'g')
 endfunction
 
-" get git branch name.
 function! GitBranch()
   try
     return gitto#run('repo#head')
   catch /.*/
   endtry
-  return 'no-git'
+  return 'no git'
 endfunction
 
 function! CWD()
   if exists('t:my_project_root_dir')
     return fnamemodify(t:my_project_root_dir, ':~')
   endif
-  return 'no-cwd'
+  return 'no cwd'
+endfunction
+
+function! LSP()
+  if dein#tap('vim-lsp')
+    try
+      return stridx(lsp#get_server_status(), ': running') >= 0 ? 'running' : 'no lsp'
+    catch /.*/
+    endtry
+  endif
+  return 'no lsp'
 endfunction
 
 " ########################################################################################################################
@@ -389,20 +396,21 @@ if dein#tap('dein.vim')
 endif
 
 if dein#tap('lexima.vim')
-  let g:lexima_enable_nvim_accept_pum_with_enter = 0
+  let g:lexima_nvim_accept_pum_with_enter = 0
+
   call lexima#add_rule({ 'char': '<', 'input_after': '>' })
   call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
   call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
   call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
   call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
 
-  call lexima#add_rule({ 'char': '<Tab>', 'at': ')',  'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\}', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\]', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '"',  'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': "'",  'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '`',  'leave': 1 })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '<',  'leave': 1 })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': "\\%#\\s*'", 'input': "\<Left>\<C-o>f'\<Right>" })
 endif
 
 if dein#tap('git-messenger.vim')
@@ -462,25 +470,23 @@ else
   colorscheme ron
 endif
 
+let g:lsp_server_definitions = []
 if dein#tap('vim-lsp')
+  let g:lsp_signs_error = { 'text' : "\uf071" }
+  let g:lsp_signs_warning = { 'text' : "\uf071" }
+  let g:lsp_signs_information = { 'text' : "\uf449" }
+  let g:lsp_signs_hint = { 'text' : "\uf400" }
   let g:lsp_diagnostics_echo_cursor = v:true
 
-  let g:lsp_server_definitions = {}
-  let g:lsp_server_definitions['typescript-language-server'] = {
+  let g:lsp_server_definitions += [{
+        \   'executable': 'typescript-language-server',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \   'whitelist': ['typescript', 'typescript.tsx']
-        \ }
-  let g:lsp_server_definitions['intelephense'] = {
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
-        \   'whitelist': ['php']
-        \ }
-  let g:lsp_server_definitions['rls'] = {
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run stable rls'] },
-        \   'whitelist': ['rust']
-        \ }
-  let g:lsp_server_definitions['diagnostic-languageserver'] = {
+        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx']
+        \ }]
+  let g:lsp_server_definitions += [{
+        \   'executable': 'diagnostic-languageserver',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
-        \   'whitelist': ['javascript', 'javascipt.jsx', 'typescript', 'typescript.tsx'],
+        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx'],
         \   'initialization_options': {
         \     'linters': {
         \       'eslint': {
@@ -505,21 +511,53 @@ if dein#tap('vim-lsp')
         \       'javascript.jsx': 'eslint',
         \       'typescript': 'eslint',
         \       'typescript.tsx': 'eslint'
+        \     },
+        \     'formatters': {
+        \       'eslint': {
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'command': 'eslint_d',
+        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+        \         'isStdout': v:true,
+        \         'isStderr': v:true,
+        \       }
+        \     },
+        \     'formatFiletypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.jsx': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint'
         \     }
         \   }
-        \ }
+        \ }]
+  let g:lsp_server_definitions += [{
+        \   'executable': 'intelephense',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
+        \   'whitelist': ['php']
+        \ }]
+  let g:lsp_server_definitions += [{
+        \   'executable': 'rls',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run stable rls'] },
+        \   'whitelist': ['rust']
+        \ }]
+
+  highlight! link LspErrorText ErrorMsg
+  highlight! link LspWarningText WarningMsg
+  highlight! link LspHintText NormalFloat
+  highlight! link LspInformationText Folded
 
   autocmd! vimrc User lsp_setup call s:setup_lsp()
   function! s:setup_lsp()
-    for [k, v] in items(g:lsp_server_definitions)
-      if executable(k)
+    let priority = 0 " Specifying to use server for `LspDocumentFormat`.
+    for server in g:lsp_server_definitions
+      if executable(server.executable)
         call lsp#register_server({
-              \ 'name': k,
-              \ 'cmd': v.cmd,
-              \ 'whitelist': v.whitelist,
+              \ 'name': priority . '_' . server.executable,
+              \ 'cmd': server.cmd,
+              \ 'whitelist': server.whitelist,
               \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_project_root')(locon#get('get_buffer_path')())) },
-              \ 'initialization_options': get(v, 'initialization_options', {})
+              \ 'initialization_options': get(server, 'initialization_options', {})
               \ })
+        let priority = priority + 1
       endif
     endfor
   endfunction
@@ -527,8 +565,8 @@ endif
 
 if dein#tap('ale')
   let g:ale_disable_linters = ['css']
-  for [k, v] in items(g:lsp_server_definitions) 
-    let g:ale_disable_linters += v.whitelist
+  for server in g:lsp_server_definitions
+    let g:ale_disable_linters += server.whitelist
   endfor
 
   let g:ale_linters = {}
@@ -546,12 +584,6 @@ if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
-
-  if dein#tap('deoplete-tabnine')
-    call deoplete#custom#var('tabnine', {
-          \ 'max_num_results': 5,
-          \ })
-  endif
 endif
 
 if dein#tap('neomru.vim')
@@ -665,13 +697,14 @@ if dein#tap('lightline.vim')
   let g:lightline.colorscheme = 'nord'
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
-  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype']]
+  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsp']]
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['cwd', 'branch', 'close']]
   let g:lightline.component_function = {}
   let g:lightline.component_function.branch = 'GitBranch'
   let g:lightline.component_function.cwd = 'CWD'
+  let g:lightline.component_function.lsp = 'LSP'
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
@@ -811,11 +844,13 @@ function! s:file_type()
 
   " lsp mapping.
   if dein#tap('vim-lsp')
-    for [k, v] in items(g:lsp_server_definitions)
-      if executable(k)
+    for server in g:lsp_server_definitions
+      if executable(server.executable)
         nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
         nnoremap <Leader>i    :<C-u>LspHover<CR>
         nnoremap <Leader>r    :<C-u>LspRename<CR>
+        nnoremap <Leader>g    :<C-u>LspReferences<CR>
+        nnoremap <Leader>f    :<C-u>LspDocumentFormatSync<CR>
         nnoremap gf<CR>       :<C-u>LspDefinition<CR>
         nnoremap gfv          :<C-u>vsplit \| LspDefinition<CR>
         nnoremap gfs          :<C-u>split  \| LspDefinition<CR>
