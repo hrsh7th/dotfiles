@@ -14,7 +14,7 @@ if !isdirectory(dein.dir.install)
   call system(printf('git clone https://github.com/Shougo/dein.vim %s', shellescape(dein.dir.install)))
 endif
 
-let &runtimepath = &runtimepath . ',' . dein.dir.install
+let &runtimepath = &runtimepath . ',' . dein.dir.install . ',' . expand('~/.config/nvim')
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
   call dein#add('Shougo/defx.nvim')
@@ -24,7 +24,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('arcticicestudio/nord-vim')
+  call dein#add('gruvbox-community/gruvbox')
   call dein#add('cohama/lexima.vim')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
@@ -67,46 +67,46 @@ augroup vimrc
   autocmd!
 augroup END
 
-set termguicolors
 set updatetime=500
 set autoread
 set hidden
 set nobackup
 set noswapfile
 set virtualedit=all
+set clipboard=unnamed,unnamedplus
+set lazyredraw
+set shell=bash
 set scrolloff=3
 set sidescrolloff=3
 set scrollback=2000
 set complete=w
 set completeopt=menu
 set belloff=all
-set clipboard=unnamed,unnamedplus
+set synmaxcol=512
+set undodir=~/.vimundo
+set undofile
 set isfname-==
 set isfname+=\\
 set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
-set wildchar=<Tab>
+
+set mouse=n
+set termguicolors
 set splitright
 set splitbelow
-set synmaxcol=512
-set lazyredraw
-set mouse=n
-set undodir=~/.vimundo
-set undofile
-set shell=bash
-
 set nowrap
 set number
 set cursorline
 set modeline
 set modelines=2
-set wildoptions=pum
 set wildmenu
 set wildmode=longest:full
+set wildchar=<Tab>
+set wildoptions=pum
+set pumheight=50
 set showtabline=2
 set cmdheight=2
 set laststatus=2
 set list
-set pumheight=50
 set noshowmode
 set ambiwidth=double
 set title
@@ -197,7 +197,7 @@ nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
 nnoremap gj gJ
 
-nnoremap <expr><F5> MyProjectRootDecide()
+nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
@@ -234,8 +234,8 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite file_mru<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', MyProjectRootDetect(locon#get('get_buffer_path'), {}))
-  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', fnameescape(MyProjectRootDetect(locon#get('get_buffer_path'), {})))
+  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', vimrc#get_cwd())
+  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
   nnoremap <Leader>m :<C-u>Denite -resume<CR>
@@ -246,64 +246,6 @@ endif
 if dein#tap('git-messenger.vim')
   nmap gi <Plug>(git-messenger)
 endif
-
-function! MyProjectRootDetect(path, option)
-  if exists('t:my_project_root_dir') && !exists('a:option.ignore_project_root_vars')
-    return t:my_project_root_dir
-  endif
-
-  let path = locon#get('get_buffer_path')()
-  let root = locon#get('find_project_root')(path)
-  return filereadable(path) && strlen(root) ? root : path " path がファイルであり、root が確定できたなら、root を利用する
-endfunction
-
-function! MyProjectRootDecide()
-  if exists('t:my_project_root_dir')
-    unlet t:my_project_root_dir
-  endif
-
-  let t:my_project_root_dir = MyProjectRootDetect(locon#get('get_buffer_path')(), {})
-
-  execute printf('tcd %s', t:my_project_root_dir)
-
-  if exists('b:defx')
-    call defx#call_action('add_session', [b:defx.paths[0]])
-  endif
-
-  if dein#tap('neomru.vim')
-    call neomru#append(t:my_project_root_dir)
-    NeoMRUReload
-  endif
-endfunction
-
-function! s:trim_right(str, trim)
-  return substitute(a:str, printf('%s$', a:trim), '', 'g')
-endfunction
-
-function! GitBranch()
-  try
-    return gitto#run('repo#head')
-  catch /.*/
-  endtry
-  return 'no git'
-endfunction
-
-function! CWD()
-  if exists('t:my_project_root_dir')
-    return fnamemodify(t:my_project_root_dir, ':~')
-  endif
-  return 'no cwd'
-endfunction
-
-function! LSP()
-  if dein#tap('vim-lsp')
-    try
-      return stridx(lsp#get_server_status(), ': running') >= 0 ? 'running' : 'no lsp'
-    catch /.*/
-    endtry
-  endif
-  return 'no lsp'
-endfunction
 
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
@@ -344,42 +286,15 @@ if dein#tap('vim-themis')
 endif
 
 if dein#tap('vim-locon')
-  function! s:find_project_root(path)
-    let path = fnamemodify(a:path, ':p')
-    while path !=# ''
-      for marker in ['.git', 'tsconfig.json', 'package.json']
-        let candidate = resolve(path . '/' . marker)
-        if filereadable(candidate) || isdirectory(candidate)
-          return path
-        endif
-      endfor
-      let path = substitute(path, '/[^/]*$', '', 'g')
-    endwhile
-    return ''
-  endfunction
-  call locon#def('find_project_root', funcref('s:find_project_root'))
-
-  function! s:get_buffer_path()
-    if exists('b:defx')
-      return b:defx.paths[0]
-    endif
-    if exists('t:deol') && &filetype ==# 'deol'
-      return t:deol.cwd
-    endif
-    return expand('%:p')
-  endfunction
-  call locon#def('get_buffer_path', funcref('s:get_buffer_path'))
-
   call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
   call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
-
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
   endif
 endif
 
-if dein#tap('nord-vim')
-  colorscheme nord
+if dein#tap('gruvbox')
+  colorscheme gruvbox
 else
   colorscheme ron
 endif
@@ -391,6 +306,11 @@ if dein#tap('vim-lsp')
   let g:lsp_signs_information = { 'text' : "\uf449" }
   let g:lsp_signs_hint = { 'text' : "\uf400" }
   let g:lsp_diagnostics_echo_cursor = v:true
+
+  highlight! link LspErrorText ErrorMsg
+  highlight! link LspWarningText WarningMsg
+  highlight! link LspHintText NormalFloat
+  highlight! link LspInformationText Folded
 
   let g:lsp_server_definitions += [{
         \   'executable': 'typescript-language-server',
@@ -454,11 +374,6 @@ if dein#tap('vim-lsp')
         \   'whitelist': ['rust']
         \ }]
 
-  highlight! link LspErrorText ErrorMsg
-  highlight! link LspWarningText WarningMsg
-  highlight! link LspHintText NormalFloat
-  highlight! link LspInformationText Folded
-
   autocmd! vimrc User lsp_setup call s:setup_lsp()
   function! s:setup_lsp()
     let priority = 0 " Specifying to use server for `LspDocumentFormat`.
@@ -468,7 +383,7 @@ if dein#tap('vim-lsp')
               \ 'name': priority . '_' . server.executable,
               \ 'cmd': server.cmd,
               \ 'whitelist': server.whitelist,
-              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(locon#get('find_project_root')(locon#get('get_buffer_path')())) },
+              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(vimrc#get_project_root()) },
               \ 'initialization_options': get(server, 'initialization_options', {})
               \ })
         let priority = priority + 1
@@ -491,7 +406,7 @@ endif
 
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
-  let g:gitto#config.get_buffer_path = locon#get('get_buffer_path')
+  let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
 endif
 
 if dein#tap('deoplete.nvim')
@@ -512,7 +427,7 @@ if dein#tap('deol.nvim')
   autocmd! vimrc FileType deol call s:deol_setting()
   function! s:deol_setting()
     setlocal nobuflisted
-    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', locon#get('get_buffer_path')()))<CR>
+    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', vimrc#get_buffer_path()))<CR>
   endfunction
 
   function! DeolPopup(cwd)
@@ -563,7 +478,7 @@ if dein#tap('defx.nvim')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session directory_mru defx/history<CR>
-    nnoremap <silent><buffer><expr><F5>      MyProjectRootDecide()
+    nnoremap <silent><buffer><F5>            :<C-u>call vimrc#detect_cwd()<CR>
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
@@ -591,15 +506,15 @@ if dein#tap('defx.nvim')
   endfunction
 
   function! DefxSuitableMove(context)
-    let current = s:trim_right(b:defx.paths[0], '/')
-    let workspace = s:trim_right(MyProjectRootDetect(current, {}), '/')
-    let vcs_root = s:trim_right(locon#get('find_project_root')(current), '/')
+    let current = vimrc#trim_right(b:defx.paths[0], '/')
+    let cwd = vimrc#trim_right(vimrc#get_cwd(), '/')
+    let root = vimrc#trim_right(vimrc#get_project_root(current), '/')
 
-    if current == workspace
-      call defx#call_action('cd', [vcs_root])
+    if current == cwd
+      call defx#call_action('cd', [root])
       return
     endif
-    call defx#call_action('cd', [workspace])
+    call defx#call_action('cd', [cwd])
   endfunction
 endif
 
@@ -608,21 +523,45 @@ if dein#tap('lightline.vim')
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = 'nord'
+  let g:lightline.colorscheme = 'gruvbox'
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
   let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsp']]
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
-  let g:lightline.tabline.right = [['cwd', 'branch', 'close']]
+  let g:lightline.tabline.right = [['cwd', 'git']]
   let g:lightline.component_function = {}
-  let g:lightline.component_function.branch = 'GitBranch'
+  let g:lightline.component_function.git = 'Git'
   let g:lightline.component_function.cwd = 'CWD'
   let g:lightline.component_function.lsp = 'LSP'
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
   let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
+
+  function! Git()
+    if dein#tap('vim-gitto')
+      try
+        return gitto#run('repo#head')
+      catch /.*/
+      endtry
+    endif
+    return 'no git'
+  endfunction
+
+  function! CWD()
+    return vimrc#get_cwd()
+  endfunction
+
+  function! LSP()
+    if dein#tap('vim-lsp')
+      try
+        return stridx(lsp#get_server_status(), ': running') >= 0 ? 'running' : 'no lsp'
+      catch /.*/
+      endtry
+    endif
+    return 'no lsp'
+  endfunction
 endif
 
 if dein#tap('denite.nvim')
@@ -673,6 +612,9 @@ if dein#tap('denite.nvim')
     call denite#custom#var('grep', 'final_opts', [])
   endif
 
+  " filter custom
+  call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
+
   " converters
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
   call denite#custom#source('file/rec,file_mru', 'converters', ['converter/prioritize_basename'])
@@ -684,9 +626,6 @@ if dein#tap('denite.nvim')
   " matchers
   call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/fuzzy'])
   call denite#custom#source('_', 'matchers', ['matcher/fuzzy'])
-
-  " filter
-  call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
 
   " option.
   call denite#custom#option('grep', 'quit', v:false)
@@ -712,13 +651,13 @@ if dein#tap('denite.nvim')
         \ ]
   call denite#custom#var('menu', 'menus', s:menus)
 
-  " execute custom action.
+  " execute action.
   function! s:denite_execute_action(context)
     call defx#call_action('cd', [a:context['targets'][0]['action__path']])
   endfunction
   call denite#custom#action('directory', 'execute', function('s:denite_execute_action'))
 
-  " gitto/status delete action
+  " delete action
   if dein#tap('vim-denite-gitto')
     function! s:denite_delete_action(context)
       if index(['y', 'ye', 'yes'], input('delete?(yes/no): ')) >= 0
@@ -730,7 +669,7 @@ if dein#tap('denite.nvim')
     call denite#custom#action('gitto/status', 'delete', function('s:denite_delete_action'), { 'is_quit': v:false, 'is_redraw': v:true })
   endif
 
-  " qfreplace custom
+  " qfreplace action
   if dein#tap('vim-qfreplace')
     function! s:denite_replace_action(context)
       let qflist = a:context['targets']
