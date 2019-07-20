@@ -3,42 +3,8 @@ if has('vim_starting')
 endif
 scriptencoding utf-8
 
-" disable runtime plugins.
-let g:loaded_2html_plugin      = 1
-let g:loaded_getscript         = 1
-let g:loaded_getscriptPlugin   = 1
-let g:loaded_gzip              = 1
-let g:loaded_logipat           = 1
-let g:loaded_logiPat           = 1
-let g:loaded_matchparen        = 1
-let g:loaded_netrw             = 1
-let g:loaded_netrwFileHandlers = 1
-let g:loaded_netrwPlugin       = 1
-let g:loaded_netrwSettings     = 1
-let g:loaded_rrhelper          = 1
-let g:loaded_spellfile_plugin  = 1
-let g:loaded_sql_completion    = 1
-let g:loaded_syntax_completion = 1
-let g:loaded_tar               = 1
-let g:loaded_tarPlugin         = 1
-let g:loaded_vimball           = 1
-let g:loaded_vimballPlugin     = 1
-let g:loaded_zip               = 1
-let g:loaded_zipPlugin         = 1
-let g:vimsyn_embed             = 1
-
-" python settings.
-let g:loaded_python_provider = 1
-let g:python_host_skip_check = 1
-let g:python_host_prog = 'python2'
-let g:python3_host_skip_check = 1
-let g:python3_host_prog = 'python3.6'
-
 let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
 
-" ########################################################################################################################
-" Install Setting.
-" ########################################################################################################################
 let dein = {}
 let dein.dir = {}
 let dein.dir.install = $XDG_CONFIG_HOME . '/dein/repos/github.com/Shougo/dein.vim'
@@ -101,17 +67,7 @@ augroup vimrc
   autocmd!
 augroup END
 
-" ########################################################################################################################
-" Terminal Colors Setting
-" ########################################################################################################################
-let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
-let $TERM = 'xterm256-color'
-set t_Co=256
 set termguicolors
-
-" ########################################################################################################################
-" General Setting
-" ########################################################################################################################
 set updatetime=500
 set autoread
 set hidden
@@ -121,83 +77,63 @@ set virtualedit=all
 set scrolloff=3
 set sidescrolloff=3
 set scrollback=2000
-set complete=.
-set completeopt-=preview
-set noerrorbells
-set novisualbell
-set t_vb=
-set clipboard+=unnamedplus,unnamed
+set complete=w
+set completeopt=menu
+set belloff=all
+set clipboard=unnamed,unnamedplus
 set isfname-==
 set isfname+=\\
-set diffopt=filler,iwhite
+set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
 set wildchar=<Tab>
 set splitright
 set splitbelow
-set tags=./tags;,./.tags;
 set synmaxcol=512
 set lazyredraw
 set mouse=n
 set undodir=~/.vimundo
 set undofile
-set pastetoggle=<F9>
 set shell=bash
 
-" ########################################################################################################################
-" Visual Setting.
-" ########################################################################################################################
-set shortmess+=I
+set nowrap
+set number
+set cursorline
 set modeline
 set modelines=2
 set wildoptions=pum
 set wildmenu
 set wildmode=longest:full
-set title
 set showtabline=2
 set cmdheight=2
 set laststatus=2
-set nowrap
-set number
 set list
-set listchars=tab:>-,trail:^
 set pumheight=50
-set cursorline
 set noshowmode
 set ambiwidth=double
+set title
+set shortmess+=I
+set listchars=tab:>-,trail:^
 set fillchars+=vert:\ ,eob:\ 
 
-" ########################################################################################################################
-" Search Setting.
-" ########################################################################################################################
 set incsearch
 set hlsearch
 set ignorecase
 set smartcase
 set suffixesadd=.php,.tpl,.ts,.tsx,.css,.scss,.rb,.java,.json,.md,.as,.js,.jpg,.jpeg,.gif,.png,.vim
 set matchpairs=(:),[:],{:}
-set path+=./;/
 set inccommand=split
 
-" ########################################################################################################################
-" Edit Setting.
-" ########################################################################################################################
 set autoindent
 set cindent
 set smartindent
-set shiftwidth=2
-set textwidth=0
 set expandtab
 set tabstop=2
 set softtabstop=2
+set shiftwidth=2
+set textwidth=0
 set backspace=2
 set regexpengine=1
 set whichwrap=b,s,h,l,<,>,[,]
 
-" ########################################################################################################################
-" Key Setting.
-" ########################################################################################################################
-" --------------------
-" General.
-" --------------------
 let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
@@ -223,10 +159,6 @@ nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>
       \ 'nohlsearch',
       \ 'redraw!')
 
-" --------------------
-" Buffer, Window, Tab Moving.
-" --------------------
-" buffer.
 nnoremap H 20h
 nnoremap J 10j
 nnoremap K 10k
@@ -236,48 +168,37 @@ vnoremap J 10j
 vnoremap K 10k
 vnoremap L 20l
 
-nnoremap <C-h> <C-o>
-nnoremap <C-l> <C-i>
-nmap <Tab> %
-vmap <Tab> %
-inoremap <C-l> <C-o>l
-inoremap <C-h> <C-o>h
-inoremap <expr>] pumvisible() ? "\<C-n>" : "]"
-inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
-nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
-
-" window.
 nnoremap <Leader>h <C-w>h
 nnoremap <Leader>j <C-w>j
 nnoremap <Leader>k <C-w>k
 nnoremap <Leader>l <C-w>l
 
-" tab.
 nnoremap <Leader>L :<C-u>tabnext<CR>
 nnoremap <Leader>H :<C-u>tabprev<CR>
 
-" --------------------
-" Utility.
-" --------------------
-" handy replace.
+nnoremap <C-h> <C-o>
+nnoremap <C-l> <C-i>
+
+inoremap <C-l> <C-o>l
+inoremap <C-h> <C-o>h
+
+nmap <Tab> %
+vmap <Tab> %
+
+inoremap <expr>] pumvisible() ? "\<C-n>" : "]"
+inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
+nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
+
 nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 
-" replace word by register.
 nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
-" join line.
 nnoremap gj gJ
 
-" --------------------
-" Project.
-" --------------------
 nnoremap <expr><F5> MyProjectRootDecide()
 
-" --------------------
-" Plugin Mapping.
-" --------------------
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
@@ -326,10 +247,6 @@ if dein#tap('git-messenger.vim')
   nmap gi <Plug>(git-messenger)
 endif
 
-" ########################################################################################################################
-" Function.
-" ########################################################################################################################
-" project.
 function! MyProjectRootDetect(path, option)
   if exists('t:my_project_root_dir') && !exists('a:option.ignore_project_root_vars')
     return t:my_project_root_dir
@@ -388,9 +305,6 @@ function! LSP()
   return 'no lsp'
 endfunction
 
-" ########################################################################################################################
-" Plugin Setting.
-" ########################################################################################################################
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
 endif
@@ -712,24 +626,24 @@ if dein#tap('lightline.vim')
 endif
 
 if dein#tap('denite.nvim')
-  " common.
   autocmd vimrc FileType denite call s:denite_setting()
   function! s:denite_setting() abort
-	  nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
-	  nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
-	  nnoremap <silent><buffer><expr>q       denite#do_map('quit')
+    nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
+    nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
+    nnoremap <silent><buffer><expr>q       denite#do_map('quit')
     nnoremap <silent><buffer><expr><Esc>   denite#do_map('quit')
-	  nnoremap <silent><buffer><expr><Tab>   denite#do_map('choose_action')
-	  nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
-	  nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
+    nnoremap <silent><buffer><expr><Tab>   denite#do_map('choose_action')
+    nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
+    nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
     nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
-	  nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
-	  nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
-	  nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
-	  nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
-	  nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
-	  nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
+    nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
+    nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
+    nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
+    nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
+    nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
+    nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
   endfunction
+
   autocmd vimrc FileType denite-filter call s:denite_filter_setting()
   function! s:denite_filter_setting() abort
     nnoremap <silent><buffer><Esc> q
@@ -806,11 +720,14 @@ if dein#tap('denite.nvim')
 
   " gitto/status delete action
   if dein#tap('vim-denite-gitto')
-    call denite#custom#action(
-          \ 'gitto/status',
-          \ 'delete_',
-          \ { context -> map(context['targets'], { k, v -> delete(v['action__path'], 'rf') }) },
-          \ { 'is_quit': v:false, 'is_redraw': v:true })
+    function! s:denite_delete_action(context)
+      if index(['y', 'ye', 'yes'], input('delete?(yes/no): ')) >= 0
+        for target in a:context['targets']
+          delete(target['action__path'], 'rf')
+        endfor
+      endif
+    endfunction
+    call denite#custom#action('gitto/status', 'delete', function('s:denite_delete_action'), { 'is_quit': v:false, 'is_redraw': v:true })
   endif
 
   " qfreplace custom
@@ -832,17 +749,14 @@ if dein#tap('denite.nvim')
   endif
 endif
 
-" ########################################################################################################################
-" AutoCmd Setting.
-" ########################################################################################################################
 autocmd! vimrc FileType * call s:file_type()
 function! s:file_type()
-  " fix indent.
-  if filereadable(expand('%')) && exists(':Findent') && &buftype ==# ''
-    Findent --no-messages --no-warnings --chunksize=100
+  if dein#tap('vim-findent')
+    if filereadable(expand('%')) && &buftype ==# ''
+      Findent --no-messages --no-warnings --chunksize=100
+    endif
   endif
 
-  " lsp mapping.
   if dein#tap('vim-lsp')
     for server in g:lsp_server_definitions
       if executable(server.executable)
