@@ -28,7 +28,7 @@ endfunction
 function! vimrc#detect_cwd()
   let path = vimrc#get_buffer_path()
   let root = vimrc#get_project_root()
-  let cwd = filereadable(path) ? root : path
+  let cwd = isdirectory(path) ? path : root
 
   if exists('b:defx')
     call defx#call_action('add_session', [cwd])
@@ -52,6 +52,11 @@ function! vimrc#get_cwd()
   return vimrc#get_project_root()
 endfunction
 
-function! vimrc#trim_right(str, trim)
+function! vimrc#path(str, trim)
   return substitute(a:str, printf('%s$', a:trim), '', 'g')
 endfunction
+
+function! vimrc#is_parent_path(parent, child)
+  return stridx(a:parent, a:child) == 0
+endfunction
+

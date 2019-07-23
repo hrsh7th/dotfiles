@@ -51,6 +51,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
+"  call dein#add('natebosch/vim-lsc')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
@@ -299,8 +300,116 @@ else
   colorscheme ron
 endif
 
-let g:lsp_server_definitions = []
+if dein#tap('vim-lsc')
+  let g:typescript_language_server = {
+        \   'name': 'typescript-language-server',
+        \   'command': 'typescript-language-server --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
+        \     }
+        \   }
+        \ }
+
+   let g:intelephense = {
+         \  'name': 'intelephense',
+        \   'command': 'intelephense --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
+        \     }
+        \   }
+        \ }
+
+   let g:diagnostic_languageserver = {
+        \   'name': 'diagnostic-languageserver',
+        \   'command': 'diagnostic-languageserver --stdio',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'initializationOptions': {
+        \         'linters': {
+        \           'eslint': {
+        \             'sourceName': 'eslint',
+        \             'command': 'eslint_d',
+        \             'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+        \             'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \             'formatLines': 1,
+        \             'formatPattern': [
+        \               '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+        \               {
+        \                 'line': 1,
+        \                 'column': 2,
+        \                 'message': [4, ' [', 5, ']' ],
+        \                 'security': 3
+        \               }
+        \             ]
+        \           },
+        \         },
+        \         'filetypes': {
+        \           'javascript': 'eslint',
+        \           'javascript.jsx': 'eslint',
+        \           'typescript': 'eslint',
+        \           'typescript.tsx': 'eslint'
+        \         },
+        \         'formatters': {
+        \           'eslint': {
+        \             'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \             'command': 'eslint_d',
+        \             'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+        \             'isStdout': v:true,
+        \             'isStderr': v:true,
+        \           }
+        \         },
+        \         'formatFiletypes': {
+        \           'javascript': 'eslint',
+        \           'javascript.jsx': 'eslint',
+        \           'typescript': 'eslint',
+        \           'typescript.tsx': 'eslint'
+        \         }
+        \       },
+        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
+        \     }
+        \   }
+        \ }
+
+ let g:rls = {
+        \   'command': 'rustup run stable rls',
+        \   'suppress_stderr': v:true,
+        \   'message_hooks': {
+        \     'initialize': {
+        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
+        \     },
+        \   }
+        \ }
+
+  let g:lsc_server_commands = {
+        \   'typescript': g:typescript_language_server,
+        \   'typescript.tsx': g:typescript_language_server,
+        \   'typescript.jsx': g:typescript_language_server,
+        \   'javascript': g:typescript_language_server,
+        \   'javascript.tsx': g:typescript_language_server,
+        \   'javascript.jsx': g:typescript_language_server,
+        \   'rust': g:rls,
+        \   'php': g:intelephense,
+        \ }
+
+  let g:lsc_auto_map = {
+        \   'defaults': v:false,
+        \   'GoToDefinition': 'gf<CR>',
+        \   'GoToDefinitionSplit': ['gfs', 'gfv :vertical'],
+        \   'FindReferences': '<Leader>g',
+        \   'FindCodeActions': '<Leader><CR>',
+        \   'Rename': '<Leader>r',
+        \   'ShowHover': '<Leader>i',
+        \   'SignatureHelp': '<Leader>o',
+        \ }
+endif
+
 if dein#tap('vim-lsp')
+  let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_signs_error = { 'text' : "\uf071" }
   let g:lsp_signs_warning = { 'text' : "\uf071" }
   let g:lsp_signs_information = { 'text' : "\uf449" }
@@ -312,10 +421,11 @@ if dein#tap('vim-lsp')
   highlight! link LspHintText NormalFloat
   highlight! link LspInformationText Folded
 
+  let g:lsp_server_definitions = []
   let g:lsp_server_definitions += [{
         \   'executable': 'typescript-language-server',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx']
+        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
         \ }]
   let g:lsp_server_definitions += [{
         \   'executable': 'diagnostic-languageserver',
@@ -377,7 +487,7 @@ if dein#tap('vim-lsp')
   autocmd! vimrc User lsp_setup call s:setup_lsp()
   function! s:setup_lsp()
     let priority = 0 " Specifying to use server for `LspDocumentFormat`.
-    for server in g:lsp_server_definitions
+    for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
         call lsp#register_server({
               \ 'name': priority . '_' . server.executable,
@@ -394,8 +504,11 @@ endif
 
 if dein#tap('ale')
   let g:ale_disable_linters = ['css']
-  for server in g:lsp_server_definitions
+  for server in get(g:, 'lsp_server_definitions', [])
     let g:ale_disable_linters += server.whitelist
+  endfor
+  for filetype in keys(get(g:, 'lsc_server_commands', {}))
+    let g:ale_disable_linters += [filetype]
   endfor
 
   let g:ale_linters = {}
@@ -413,6 +526,9 @@ if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
+  call deoplete#custom#option('ignore_sources', {
+        \ 'denite-filter': ['denite']
+        \ })
 endif
 
 if dein#tap('neomru.vim')
@@ -490,8 +606,8 @@ if dein#tap('defx.nvim')
   endfunction
 
   command! -nargs=* -range DefxEdit call DefxOpen('edit', <q-args>)
-  command! -nargs=* -range DefxVsplit call DefxOpen('vsplit', <q-args>)
-  command! -nargs=* -range DefxSplit call DefxOpen('split', <q-args>)
+  command! -nargs=* -range DefxVsplit call DefxOpen('vnew', <q-args>)
+  command! -nargs=* -range DefxSplit call DefxOpen('new', <q-args>)
   function! DefxOpen(cmd, path)
     let s:winnrs = filter(
           \ range(1, tabpagewinnr(tabpagenr(), '$')),
@@ -506,11 +622,11 @@ if dein#tap('defx.nvim')
   endfunction
 
   function! DefxSuitableMove(context)
-    let current = vimrc#trim_right(b:defx.paths[0], '/')
-    let cwd = vimrc#trim_right(vimrc#get_cwd(), '/')
-    let root = vimrc#trim_right(vimrc#get_project_root(current), '/')
+    let current = vimrc#path(b:defx.paths[0], '/')
+    let cwd = vimrc#path(vimrc#get_cwd(), '/')
+    let root = vimrc#path(vimrc#get_project_root(current), '/')
 
-    if current == cwd
+    if current == cwd || !vimrc#is_parent_path(cwd, current)
       call defx#call_action('cd', [root])
       return
     endif
@@ -690,6 +806,15 @@ endif
 
 autocmd! vimrc FileType * call s:file_type()
 function! s:file_type()
+  let filetype_map = {
+        \ '.*\.d\.ts$': 'typescript.dts'
+        \ }
+  for [k, v] in items(filetype_map)
+    if bufname('%') =~ k
+      execute printf('setlocal filetype=%s', v)
+    endif
+  endfor
+
   if dein#tap('vim-findent')
     if filereadable(expand('%')) && &buftype ==# ''
       Findent --no-messages --no-warnings --chunksize=100
@@ -697,7 +822,7 @@ function! s:file_type()
   endif
 
   if dein#tap('vim-lsp')
-    for server in g:lsp_server_definitions
+    for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
         nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
         nnoremap <Leader>i    :<C-u>LspHover<CR>
