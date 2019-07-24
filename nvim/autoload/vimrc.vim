@@ -60,3 +60,25 @@ function! vimrc#is_parent_path(parent, child)
   return stridx(a:parent, a:child) == 0
 endfunction
 
+function! vimrc#filter_winnrs(winnrs)
+  return filter(a:winnrs, { i, wnr -> index(['deol', 'defx', 'denite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
+endfunction
+
+function! vimrc#switch_buffer(cmd, path)
+  let winnr = bufwinnr(bufnr(a:path))
+  if winnr > -1
+    execute printf('%swincmd w', winnr)
+    execute printf('%s %s', a:cmd, fnameescape(a:path))
+    return
+  endif
+
+  let winnrs = vimrc#filter_winnrs(range(1, tabpagewinnr(tabpagenr(), '$')))
+  if len(winnrs) > 0
+    execute printf('%swincmd w', winnrs[0])
+    execute printf('%s %s', a:cmd, fnameescape(a:path))
+    return
+  endif
+
+  execute printf('edit %s', fnameescape(a:path))
+endfunction
+

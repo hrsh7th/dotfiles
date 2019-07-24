@@ -36,7 +36,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
-  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
@@ -51,7 +50,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
   call dein#add('w0rp/ale')
-"  call dein#add('natebosch/vim-lsc')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
@@ -300,116 +298,7 @@ else
   colorscheme ron
 endif
 
-if dein#tap('vim-lsc')
-  let g:typescript_language_server = {
-        \   'name': 'typescript-language-server',
-        \   'command': 'typescript-language-server --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
-        \     }
-        \   }
-        \ }
-
-   let g:intelephense = {
-         \  'name': 'intelephense',
-        \   'command': 'intelephense --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
-        \     }
-        \   }
-        \ }
-
-   let g:diagnostic_languageserver = {
-        \   'name': 'diagnostic-languageserver',
-        \   'command': 'diagnostic-languageserver --stdio',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'initializationOptions': {
-        \         'linters': {
-        \           'eslint': {
-        \             'sourceName': 'eslint',
-        \             'command': 'eslint_d',
-        \             'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
-        \             'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \             'formatLines': 1,
-        \             'formatPattern': [
-        \               '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-        \               {
-        \                 'line': 1,
-        \                 'column': 2,
-        \                 'message': [4, ' [', 5, ']' ],
-        \                 'security': 3
-        \               }
-        \             ]
-        \           },
-        \         },
-        \         'filetypes': {
-        \           'javascript': 'eslint',
-        \           'javascript.jsx': 'eslint',
-        \           'typescript': 'eslint',
-        \           'typescript.tsx': 'eslint'
-        \         },
-        \         'formatters': {
-        \           'eslint': {
-        \             'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \             'command': 'eslint_d',
-        \             'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
-        \             'isStdout': v:true,
-        \             'isStderr': v:true,
-        \           }
-        \         },
-        \         'formatFiletypes': {
-        \           'javascript': 'eslint',
-        \           'javascript.jsx': 'eslint',
-        \           'typescript': 'eslint',
-        \           'typescript.tsx': 'eslint'
-        \         }
-        \       },
-        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
-        \     }
-        \   }
-        \ }
-
- let g:rls = {
-        \   'command': 'rustup run stable rls',
-        \   'suppress_stderr': v:true,
-        \   'message_hooks': {
-        \     'initialize': {
-        \       'rootUri': { method, params -> lsc#uri#documentUri(vimrc#get_project_root()) }
-        \     },
-        \   }
-        \ }
-
-  let g:lsc_server_commands = {
-        \   'typescript': g:typescript_language_server,
-        \   'typescript.tsx': g:typescript_language_server,
-        \   'typescript.jsx': g:typescript_language_server,
-        \   'javascript': g:typescript_language_server,
-        \   'javascript.tsx': g:typescript_language_server,
-        \   'javascript.jsx': g:typescript_language_server,
-        \   'rust': g:rls,
-        \   'php': g:intelephense,
-        \ }
-
-  let g:lsc_auto_map = {
-        \   'defaults': v:false,
-        \   'GoToDefinition': 'gf<CR>',
-        \   'GoToDefinitionSplit': ['gfs', 'gfv :vertical'],
-        \   'FindReferences': '<Leader>g',
-        \   'FindCodeActions': '<Leader><CR>',
-        \   'Rename': '<Leader>r',
-        \   'ShowHover': '<Leader>i',
-        \   'SignatureHelp': '<Leader>o',
-        \ }
-endif
-
 if dein#tap('vim-lsp')
-  let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_signs_error = { 'text' : "\uf071" }
   let g:lsp_signs_warning = { 'text' : "\uf071" }
   let g:lsp_signs_information = { 'text' : "\uf449" }
@@ -512,8 +401,8 @@ if dein#tap('ale')
   endfor
 
   let g:ale_linters = {}
-  for s:ft in g:ale_disable_linters
-    let g:ale_linters[s:ft] = []
+  for filetype in g:ale_disable_linters
+    let g:ale_linters[filetype] = []
   endfor
 endif
 
@@ -527,7 +416,7 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
   call deoplete#custom#option('ignore_sources', {
-        \ 'denite-filter': ['denite']
+        \ 'denite-filter': ['denite', 'buffer', 'around']
         \ })
 endif
 
@@ -540,8 +429,8 @@ if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
   let g:deol#enable_dir_changed = 0
 
-  autocmd! vimrc FileType deol call s:deol_setting()
-  function! s:deol_setting()
+  autocmd! vimrc FileType deol call s:setup_deol()
+  function! s:setup_deol()
     setlocal nobuflisted
     nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', vimrc#get_buffer_path()))<CR>
   endfunction
@@ -563,8 +452,8 @@ if dein#tap('defx.nvim')
         \   'columns': 'mark:indent:icons:filename:type',
         \ })
 
-  autocmd vimrc FileType defx call s:defx_setting()
-  function! s:defx_setting() abort
+  autocmd vimrc FileType defx call s:setup_defx()
+  function! s:setup_defx() abort
     setlocal nonumber
     setlocal winfixwidth
 
@@ -609,16 +498,7 @@ if dein#tap('defx.nvim')
   command! -nargs=* -range DefxVsplit call DefxOpen('vnew', <q-args>)
   command! -nargs=* -range DefxSplit call DefxOpen('new', <q-args>)
   function! DefxOpen(cmd, path)
-    let s:winnrs = filter(
-          \ range(1, tabpagewinnr(tabpagenr(), '$')),
-          \ { i, wnr -> index(['deol', 'defx', 'denite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
-
-    if len(s:winnrs) > 0
-      execute printf('%swincmd w', s:winnrs[0])
-      execute printf('%s %s', a:cmd, a:path)
-      return
-    endif
-    execute printf('edit %s', a:path)
+    call vimrc#switch_buffer(a:cmd, a:path)
   endfunction
 
   function! DefxSuitableMove(context)
@@ -681,8 +561,8 @@ if dein#tap('lightline.vim')
 endif
 
 if dein#tap('denite.nvim')
-  autocmd vimrc FileType denite call s:denite_setting()
-  function! s:denite_setting() abort
+  autocmd vimrc FileType denite call s:setup_denite()
+  function! s:setup_denite() abort
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>q       denite#do_map('quit')
@@ -691,21 +571,21 @@ if dein#tap('denite.nvim')
     nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
     nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
     nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
-    nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
-    nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
+    nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplit')
+    nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'split')
     nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
     nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
     nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
     nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
   endfunction
 
-  autocmd vimrc FileType denite-filter call s:denite_filter_setting()
-  function! s:denite_filter_setting() abort
+  autocmd vimrc FileType denite-filter call s:setup_denite_filter()
+  function! s:setup_denite_filter() abort
     nnoremap <silent><buffer><Esc> q
     imap <silent><buffer><Esc> <C-o>0<C-o>D<CR>
   endfunction
 
-  " file/rec custom
+  " source var custom
   if executable('ag')
     call denite#custom#var('file/rec', 'command', [
           \   'ag',
@@ -717,8 +597,6 @@ if dein#tap('denite.nvim')
           \   ''
           \ ])
   endif
-
-  " grep custom
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
     call denite#custom#var('grep', 'default_opts', ['-i', '--exclude', join(locon#get('ignore_greps'), '|')])
@@ -772,6 +650,30 @@ if dein#tap('denite.nvim')
     call defx#call_action('cd', [a:context['targets'][0]['action__path']])
   endfunction
   call denite#custom#action('directory', 'execute', function('s:denite_execute_action'))
+
+  " open action.
+  function! s:denite_open_action(context)
+    for target in a:context['targets']
+      call vimrc#switch_buffer('edit', target['action__path'])
+    endfor
+  endfunction
+  call denite#custom#action('openable,file,buffer', 'open', function('s:denite_open_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+
+  " split action.
+  function! s:denite_split_action(context)
+    for target in a:context['targets']
+      call vimrc#switch_buffer('new', target['action__path'])
+    endfor
+  endfunction
+  call denite#custom#action('openable,file,buffer', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+
+  " vsplit action.
+  function! s:denite_vsplit_action(context)
+    for target in a:context['targets']
+      call vimrc#switch_buffer('vnew', target['action__path'])
+    endfor
+  endfunction
+  call denite#custom#action('openable,file,buffer', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
 
   " delete action
   if dein#tap('vim-denite-gitto')
@@ -857,8 +759,8 @@ function! s:term_open()
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
-autocmd! vimrc WinEnter * call s:win_enter()
-function! s:win_enter()
+autocmd! vimrc BufWinEnter * call s:buf_win_enter()
+function! s:buf_win_enter()
   if &previewwindow
     setlocal wrap
   endif
