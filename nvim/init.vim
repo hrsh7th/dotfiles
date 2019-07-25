@@ -683,7 +683,7 @@ if dein#tap('denite.nvim')
     function! s:denite_delete_action(context)
       if index(['y', 'ye', 'yes'], input('delete?(yes/no): ')) >= 0
         for target in a:context['targets']
-          delete(target['action__path'], 'rf')
+          call delete(target['action__path'], 'rf')
         endfor
       endif
     endfunction
