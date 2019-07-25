@@ -36,6 +36,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
+  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
@@ -499,6 +500,8 @@ if dein#tap('defx.nvim')
   command! -nargs=* -range DefxSplit call DefxOpen('new', <q-args>)
   function! DefxOpen(cmd, path)
     call vimrc#switch_buffer(a:cmd, a:path)
+    setlocal nowinfixwidth
+    setlocal nowinfixheight
   endfunction
 
   function! DefxSuitableMove(context)
@@ -654,7 +657,7 @@ if dein#tap('denite.nvim')
   " open action.
   function! s:denite_open_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('edit', target['action__path'])
+      call vimrc#switch_buffer('edit', target['action__path'], a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'open', function('s:denite_open_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -662,7 +665,7 @@ if dein#tap('denite.nvim')
   " split action.
   function! s:denite_split_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('new', target['action__path'])
+      call vimrc#switch_buffer('new', target['action__path'], a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -670,7 +673,7 @@ if dein#tap('denite.nvim')
   " vsplit action.
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('vnew', target['action__path'])
+      call vimrc#switch_buffer('vnew', target['action__path'], a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -689,7 +692,7 @@ if dein#tap('denite.nvim')
 
   " qfreplace action
   if dein#tap('vim-qfreplace')
-    function! s:denite_replace_action(context)
+    function! s:denite_qfreplace_action(context)
       let qflist = a:context['targets']
       let qflist = filter(qflist, { k, v -> has_key(v, 'action__path') })
       let qflist = filter(qflist, { k, v -> has_key(v, 'action__line') })
@@ -702,7 +705,7 @@ if dein#tap('denite.nvim')
       call setqflist(qflist)
       call qfreplace#start('')
     endfunction
-    call denite#custom#action('file', 'qfreplace', function('s:denite_replace_action'))
+    call denite#custom#action('file', 'qfreplace', function('s:denite_qfreplace_action'))
   endif
 endif
 
