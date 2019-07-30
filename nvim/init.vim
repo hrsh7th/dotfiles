@@ -364,6 +364,11 @@ if dein#tap('vim-lsp')
         \   }
         \ }]
   let g:lsp_server_definitions += [{
+        \   'executable': 'vim-language-server',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'vim-language-server --stdio'] },
+        \   'whitelist': ['vim']
+        \ }]
+  let g:lsp_server_definitions += [{
         \   'executable': 'intelephense',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
         \   'whitelist': ['php']
@@ -397,13 +402,13 @@ if dein#tap('ale')
   for server in get(g:, 'lsp_server_definitions', [])
     let g:ale_disable_linters += server.whitelist
   endfor
-  for filetype in keys(get(g:, 'lsc_server_commands', {}))
-    let g:ale_disable_linters += [filetype]
+  for ft in keys(get(g:, 'lsc_server_commands', {}))
+    let g:ale_disable_linters += [ft]
   endfor
 
   let g:ale_linters = {}
-  for filetype in g:ale_disable_linters
-    let g:ale_linters[filetype] = []
+  for ft in g:ale_disable_linters
+    let g:ale_linters[ft] = []
   endfor
 endif
 
@@ -438,7 +443,7 @@ if dein#tap('deol.nvim')
 
   function! DeolPopup(cwd)
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
-      topleft 15split
+      topleft 12split
       setlocal winfixheight
       call deol#start(printf('-cwd=%s', a:cwd))
     else
@@ -499,7 +504,11 @@ if dein#tap('defx.nvim')
   command! -nargs=* -range DefxVsplit call DefxOpen('vnew', <q-args>)
   command! -nargs=* -range DefxSplit call DefxOpen('new', <q-args>)
   function! DefxOpen(cmd, path)
-    call vimrc#switch_buffer(a:cmd, a:path)
+    call vimrc#switch_buffer(a:cmd, {
+          \ 'path': a:path,
+          \ 'line': -1,
+          \ 'col': -1
+          \ })
     setlocal nowinfixwidth
     setlocal nowinfixheight
   endfunction
@@ -638,7 +647,6 @@ if dein#tap('denite.nvim')
   let s:menus.string.command_candidates = [
         \ ['format: remove empty line', "'<,'>g/^$/d"],
         \ ['format: remove trailling space', "'<,'>s/\\s*$//g"],
-        \ ['format: remove ^M', '%s///g'],
         \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r&/g | silent! %s/=/\r=/g'],
         \ ['format: to smb', 'silent! %s/\\/\//g | silent! %s/^\(smb:\/\/\|\/\/\)\?/smb:\/\//g']
         \ ]
@@ -657,7 +665,11 @@ if dein#tap('denite.nvim')
   " open action.
   function! s:denite_open_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('edit', target['action__path'], a:context['prev_winid'])
+      call vimrc#switch_buffer('edit', {
+            \ 'path': target['action__path'],
+            \ 'line': get(target, 'action__line', -1),
+            \ 'col': get(target, 'action__col', -1)
+            \ }, a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'open', function('s:denite_open_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -665,7 +677,11 @@ if dein#tap('denite.nvim')
   " split action.
   function! s:denite_split_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('new', target['action__path'], a:context['prev_winid'])
+      call vimrc#switch_buffer('split', {
+            \ 'path': target['action__path'],
+            \ 'line': get(target, 'action__line', -1),
+            \ 'col': get(target, 'action__col', -1)
+            \ }, a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -673,7 +689,11 @@ if dein#tap('denite.nvim')
   " vsplit action.
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('vnew', target['action__path'], a:context['prev_winid'])
+      call vimrc#switch_buffer('vsplit', {
+            \ 'path': target['action__path'],
+            \ 'line': get(target, 'action__line', -1),
+            \ 'col': get(target, 'action__col', -11)
+            \ }, a:context['prev_winid'])
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })

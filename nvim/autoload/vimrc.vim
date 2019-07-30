@@ -31,7 +31,7 @@ function! vimrc#detect_cwd()
   let cwd = isdirectory(path) ? path : root
 
   if exists('b:defx')
-    call defx#call_action('add_session', [cwd])
+    call defx#call_action('add_session', [root])
   endif
 
   if dein#tap('neomru.vim')
@@ -64,29 +64,35 @@ function! vimrc#filter_winnrs(winnrs)
   return filter(a:winnrs, { i, wnr -> index(['deol', 'defx', 'denite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
 endfunction
 
-function! vimrc#switch_buffer(cmd, path, ...)
+function! vimrc#switch_buffer(cmd, location, ...)
   let prev_winid = get(a:000, 0, win_getid(winnr('#')))
-
-  let winnr = bufwinnr(bufnr(a:path))
-  if winnr > -1
-    execute printf('%swincmd w', winnr)
-    return
-  endif
 
   let winnrs = vimrc#filter_winnrs([win_id2win(prev_winid)])
   if len(winnrs) > 0
     execute printf('%swincmd w', winnrs[0])
-    execute printf('%s %s', a:cmd, fnameescape(a:path))
+    call s:open(a:cmd, a:location)
     return
   endif
 
   let winnrs = vimrc#filter_winnrs(range(1, tabpagewinnr(tabpagenr(), '$')))
   if len(winnrs) > 0
     execute printf('%swincmd w', winnrs[0])
-    execute printf('%s %s', a:cmd, fnameescape(a:path))
+    call s:open(a:cmd, a:location)
     return
   endif
 
-  execute printf('edit %s', fnameescape(a:path))
+  call s:open('edit', a:location)
 endfunction
 
+function! s:open(cmd, location)
+  if bufnr('%') != bufnr(fnameescape(a:location['path'])) || !bufexists(fnameescape(a:location['path']))
+    execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
+  endif
+  if a:location['line'] != -1
+    if a:location['col'] != -1
+      call cursor([a:location['line'], a:location['col']])
+    else
+      call cursor([a:location['line'], 1])
+    endif
+  endif
+endfunction
