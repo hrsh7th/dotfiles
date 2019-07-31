@@ -25,6 +25,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('cohama/lexima.vim')
+  call dein#add('dense-analysis/ale')
   call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
@@ -50,7 +51,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
-  call dein#add('w0rp/ale')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
@@ -95,7 +95,7 @@ set splitright
 set splitbelow
 set nowrap
 set number
-set cursorline
+set nocursorline
 set modeline
 set modelines=2
 set wildmenu
@@ -253,6 +253,8 @@ endif
 
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = 0
+  let g:lexima_no_default_rules = v:true
+  call lexima#set_default_rules()
 
   call lexima#add_rule({ 'char': '<', 'input_after': '>' })
   call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
@@ -312,11 +314,15 @@ if dein#tap('vim-lsp')
   highlight! link LspInformationText Folded
 
   let g:lsp_server_definitions = []
+
+  " npm install -g typescript-language-server
   let g:lsp_server_definitions += [{
         \   'executable': 'typescript-language-server',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
         \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
         \ }]
+
+  " npm install -g diagnostic-languageserver
   let g:lsp_server_definitions += [{
         \   'executable': 'diagnostic-languageserver',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
@@ -363,16 +369,33 @@ if dein#tap('vim-lsp')
         \     }
         \   }
         \ }]
+
+  " npm install -g vim-language-server
   let g:lsp_server_definitions += [{
         \   'executable': 'vim-language-server',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'vim-language-server --stdio'] },
         \   'whitelist': ['vim']
         \ }]
+
+  " pip install python-language-server
   let g:lsp_server_definitions += [{
+        \   'executable': 'pyls',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'pyls'] },
+        \   'whitelist': ['python']
+        \ }]
+
+  " npm install -g intelephense
+  let g:lsp_server_definitions += [{
+        \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
         \   'executable': 'intelephense',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
+        \   'initialization_options': {
+        \     'storagePath': expand('~/.cache/intelephense')
+        \   },
         \   'whitelist': ['php']
         \ }]
+
+  " rustup update && rustup component add rls rust-analysis rust-src
   let g:lsp_server_definitions += [{
         \   'executable': 'rls',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run stable rls'] },
@@ -384,6 +407,9 @@ if dein#tap('vim-lsp')
     let priority = 0 " Specifying to use server for `LspDocumentFormat`.
     for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
+        if has_key(server, 'init')
+          call server['init']()
+        endif
         call lsp#register_server({
               \ 'name': priority . '_' . server.executable,
               \ 'cmd': server.cmd,
@@ -458,7 +484,7 @@ if dein#tap('defx.nvim')
         \   'columns': 'mark:indent:icons:filename:type',
         \ })
 
-  autocmd vimrc FileType defx call s:setup_defx()
+  autocmd! vimrc FileType defx call s:setup_defx()
   function! s:setup_defx() abort
     setlocal nonumber
     setlocal winfixwidth
@@ -564,7 +590,7 @@ if dein#tap('lightline.vim')
   function! LSP()
     if dein#tap('vim-lsp')
       try
-        return stridx(lsp#get_server_status(), ': running') >= 0 ? 'running' : 'no lsp'
+        return stridx(lsp#get_server_status(), ': running') >= 0 ? 'lsp' : 'no lsp'
       catch /.*/
       endtry
     endif
@@ -573,8 +599,8 @@ if dein#tap('lightline.vim')
 endif
 
 if dein#tap('denite.nvim')
-  autocmd vimrc FileType denite call s:setup_denite()
-  function! s:setup_denite() abort
+  autocmd! vimrc FileType denite call s:setup_denite()
+  function! s:setup_denite()
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>q       denite#do_map('quit')
@@ -591,8 +617,9 @@ if dein#tap('denite.nvim')
     nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
   endfunction
 
-  autocmd vimrc FileType denite-filter call s:setup_denite_filter()
-  function! s:setup_denite_filter() abort
+  autocmd! vimrc FileType denite-filter call s:setup_denite_filter()
+  function! s:setup_denite_filter()
+    let b:lexima_disabled = v:true
     nnoremap <silent><buffer><Esc> q
     imap <silent><buffer><Esc> <C-o>0<C-o>D<CR>
   endfunction
@@ -692,7 +719,7 @@ if dein#tap('denite.nvim')
       call vimrc#switch_buffer('vsplit', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
-            \ 'col': get(target, 'action__col', -11)
+            \ 'col': get(target, 'action__col', -1)
             \ }, a:context['prev_winid'])
     endfor
   endfunction
