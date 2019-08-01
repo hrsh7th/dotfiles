@@ -39,6 +39,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
+  call dein#add('osyo-manga/vim-jplus')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
@@ -384,7 +385,7 @@ if dein#tap('vim-lsp')
         \   'whitelist': ['python']
         \ }]
 
-  " npm install -g intelephense
+  " npm install -g intelephense@1.0.10
   let g:lsp_server_definitions += [{
         \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
         \   'executable': 'intelephense',
