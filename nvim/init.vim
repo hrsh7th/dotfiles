@@ -26,7 +26,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/neomru.vim')
   call dein#add('cohama/lexima.vim')
   call dein#add('dense-analysis/ale')
-  call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -44,6 +43,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
+  call dein#add('sainnhe/gruvbox-material')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
@@ -96,7 +96,8 @@ set splitright
 set splitbelow
 set nowrap
 set number
-set nocursorline
+set numberwidth=4
+set cursorline
 set modeline
 set modelines=2
 set wildmenu
@@ -180,8 +181,8 @@ nnoremap <Leader>H :<C-u>tabprev<CR>
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
 
-inoremap <C-l> <C-o>l
-inoremap <C-h> <C-o>h
+inoremap <C-l> <Right>
+inoremap <C-h> <Left>
 
 nmap <Tab> %
 vmap <Tab> %
@@ -206,8 +207,8 @@ if dein#tap('vim-quickrun')
 endif
 
 if dein#tap('defx.nvim')
-  nnoremap <F2> :<C-u>call OpenDefx()<CR>
-  function! OpenDefx()
+  nnoremap <F2> :<C-u>call DefxOpen()<CR>
+  function! DefxOpen()
     let path = expand('%:p:h')
     let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
     let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
@@ -269,7 +270,7 @@ if dein#tap('lexima.vim')
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': "\\%#\\s*'", 'input': "\<Left>\<C-o>f'\<Right>" })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
 endif
 
 if dein#tap('git-messenger.vim')
@@ -296,8 +297,8 @@ if dein#tap('vim-locon')
   endif
 endif
 
-if dein#tap('gruvbox')
-  colorscheme gruvbox
+if dein#tap('gruvbox-material')
+  colorscheme gruvbox-material
 else
   colorscheme ron
 endif
@@ -446,7 +447,6 @@ endif
 
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#source('file', 'enable_buffer_path', v:true)
   call deoplete#custom#source('_', 'min_pattern_length', 1)
   call deoplete#custom#option('ignore_sources', {
         \ 'denite-filter': ['denite', 'buffer', 'around']
@@ -491,10 +491,10 @@ if dein#tap('defx.nvim')
     setlocal winfixwidth
 
     " open
-    nnoremap <silent><buffer><expr><Tab>     defx#do_action('call', 'DefxSuitableMove')
-    nnoremap <silent><buffer><expr><CR>      defx#do_action('open', 'DefxEdit')
-    nnoremap <silent><buffer><expr>v         defx#do_action('open', 'DefxVsplit')
-    nnoremap <silent><buffer><expr>s         defx#do_action('open', 'DefxSplit')
+    nnoremap <silent><buffer><expr><Tab>     defx#do_action('call', 'DefxSuitableMoveAction')
+    nnoremap <silent><buffer><expr><CR>      defx#do_action('open', 'DefxEditAction')
+    nnoremap <silent><buffer><expr>v         defx#do_action('open', 'DefxVsplitAction')
+    nnoremap <silent><buffer><expr>s         defx#do_action('open', 'DefxSplitAction')
     nnoremap <silent><buffer><expr>x         defx#do_action('execute_system')
 
     " move.
@@ -527,10 +527,10 @@ if dein#tap('defx.nvim')
     endif
   endfunction
 
-  command! -nargs=* -range DefxEdit call DefxOpen('edit', <q-args>)
-  command! -nargs=* -range DefxVsplit call DefxOpen('vnew', <q-args>)
-  command! -nargs=* -range DefxSplit call DefxOpen('new', <q-args>)
-  function! DefxOpen(cmd, path)
+  command! -nargs=* -range DefxEditAction call DefxOpenAction('edit', <q-args>)
+  command! -nargs=* -range DefxVsplitAction call DefxOpenAction('vnew', <q-args>)
+  command! -nargs=* -range DefxSplitAction call DefxOpenAction('new', <q-args>)
+  function! DefxOpenAction(cmd, path)
     call vimrc#switch_buffer(a:cmd, {
           \ 'path': a:path,
           \ 'line': -1,
@@ -540,7 +540,7 @@ if dein#tap('defx.nvim')
     setlocal nowinfixheight
   endfunction
 
-  function! DefxSuitableMove(context)
+  function! DefxSuitableMoveAction(context)
     let current = vimrc#path(b:defx.paths[0], '/')
     let cwd = vimrc#path(vimrc#get_cwd(), '/')
     let root = vimrc#path(vimrc#get_project_root(current), '/')
@@ -555,24 +555,28 @@ endif
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
+  let g:lightline.colorscheme = 'gruvbox_material'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
-  let g:lightline.colorscheme = 'gruvbox'
+
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
   let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsp']]
+  let g:lightline.inactive = g:lightline.active
+  let g:lightline.separator = { 'left': '', 'right': '' }
+  let g:lightline.subseparator = { 'left': '', 'right': '' }
+
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['cwd', 'git']]
+  let g:lightline.tabline_separator = { 'left': '', 'right': '' }
+  let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
+
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
   let g:lightline.component_function.cwd = 'CWD'
   let g:lightline.component_function.lsp = 'LSP'
-  let g:lightline.separator = { 'left': '', 'right': '' }
-  let g:lightline.subseparator = { 'left': '', 'right': '' }
-  let g:lightline.tabline_separator = { 'left': '', 'right': '' }
-  let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
 
   function! Git()
     if dein#tap('vim-gitto')
@@ -622,7 +626,7 @@ if dein#tap('denite.nvim')
   function! s:setup_denite_filter()
     let b:lexima_disabled = v:true
     nnoremap <silent><buffer><Esc> q
-    imap <silent><buffer><Esc> <C-o>0<C-o>D<CR>
+    imap <silent><buffer><Esc> <Plug>(denite_filter_quit)
   endfunction
 
   " source var custom
@@ -651,7 +655,7 @@ if dein#tap('denite.nvim')
 
   " converters
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
-  call denite#custom#source('file/rec,file_mru', 'converters', ['converter/prioritize_basename'])
+  call denite#custom#source('file/rec,file_mru', 'converters', ['converter/prioritize_basename', 'converter/abbr_word'])
 
   " sorter
   call denite#custom#source('buffer,file_mru,directory_mru', 'sorters', [])
@@ -665,9 +669,10 @@ if dein#tap('denite.nvim')
   call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 8)
   call denite#custom#option('_', 'vertical_preview', v:true)
-  call denite#custom#option('_', 'updatetime', 500)
-  call denite#custom#option('_', 'skiptime', 500)
-  call denite#custom#option('_', 'unique', v:true)
+  call denite#custom#option('_', 'filter_updatetime', 500)
+  call denite#custom#option('_', 'highlight_matched_char', 'None')
+  call denite#custom#option('_', 'highlight_matched_range', 'None')
+  call denite#custom#option('_', 'highlight_filter_background', 'StatusLineNC')
 
   " menu.
   let s:menus = {}
@@ -757,8 +762,8 @@ if dein#tap('denite.nvim')
   endif
 endif
 
-autocmd! vimrc FileType * call s:file_type()
-function! s:file_type()
+autocmd! vimrc FileType * call s:on_file_type()
+function! s:on_file_type()
   let filetype_map = {
         \ '.*\.d\.ts$': 'typescript.dts'
         \ }
@@ -790,28 +795,28 @@ function! s:file_type()
   endif
 endfunction
 
-autocmd! vimrc ColorScheme * call s:color_scheme()
-function! s:color_scheme()
-  highlight! link VertSplit StatusLineNC
-  highlight! link SignColumn StatusLineNC
-  highlight! link LineNr StatusLineNC
+autocmd! vimrc ColorScheme * call s:on_color_scheme()
+function! s:on_color_scheme()
+  highlight! link VertSplit TabLineFill
+  highlight! link SignColumn TabLineFill
+  highlight! link LineNr TabLineFill
 endfunction
 doautocmd ColorScheme
 
-autocmd! vimrc BufRead * call s:buf_read()
-function! s:buf_read()
+autocmd! vimrc BufRead * call s:on_buf_read()
+function! s:on_buf_read()
   if line("'\"") > 0 && line("'\"") <= line('$')
     normal! g`""
   endif
 endfunction
 
-autocmd! vimrc TermOpen term://* call s:term_open()
-function! s:term_open()
+autocmd! vimrc TermOpen term://* call s:on_term_open()
+function! s:on_term_open()
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
-autocmd! vimrc BufWinEnter * call s:buf_win_enter()
-function! s:buf_win_enter()
+autocmd! vimrc BufWinEnter * call s:on_buf_win_enter()
+function! s:on_buf_win_enter()
   if &previewwindow
     setlocal wrap
   endif

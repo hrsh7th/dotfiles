@@ -35,7 +35,7 @@ function! vimrc#detect_cwd()
   endif
 
   if dein#tap('neomru.vim')
-    call neomru#append(cwd)
+    call neomru#append(root)
   endif
 
   call vimrc#set_cwd(cwd)
