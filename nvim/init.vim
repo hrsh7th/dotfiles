@@ -211,10 +211,12 @@ if dein#tap('defx.nvim')
   function! DefxOpen()
     let path = expand('%:p:h')
     let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
-    let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
-    if len(choise) > 0
-      execute printf('%swincmd w', choise[1])
-      call defx#call_action('cd', [path])
+    if len(winnrs) > 0
+      let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
+      if len(choise) > 0
+        execute printf('%swincmd w', choise[1])
+        call defx#call_action('cd', [path])
+      endif
     else
       Defx -split=vertical -direction=topleft -winwidth=35 -session-file=`expand('~/.defx_session')` `expand('%:p:h')`
     endif
@@ -379,13 +381,6 @@ if dein#tap('vim-lsp')
         \   'whitelist': ['vim']
         \ }]
 
-  " pip install python-language-server
-  let g:lsp_server_definitions += [{
-        \   'executable': 'pyls',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'pyls'] },
-        \   'whitelist': ['python']
-        \ }]
-
   " npm install -g intelephense@1.0.10
   let g:lsp_server_definitions += [{
         \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
@@ -469,13 +464,14 @@ if dein#tap('deol.nvim')
   endfunction
 
   function! DeolPopup(cwd)
+    let cwd = fnamemodify(a:cwd, ':h')
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 12split
       setlocal winfixheight
-      call deol#start(printf('-cwd=%s', a:cwd))
+      call deol#start(printf('-cwd=%s', cwd))
     else
       let t:deol['cwd'] = ''
-      call deol#start(printf('-cwd=%s', a:cwd))
+      call deol#start(printf('-cwd=%s', cwd))
     endif
   endfunction
 endif
@@ -523,7 +519,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new -session-file=`expand('~/.defx_session')` `expand('%:p:h')`<CR>
 
     if dein#tap('deol.nvim')
-      nnoremap <buffer>H :<C-u>call DeolPopup(b:defx.paths[0])<CR>
+      nnoremap <buffer>H :<C-u>call DeolPopup(defx#get_candidate()['action__path'])<CR>
     endif
   endfunction
 
@@ -710,7 +706,7 @@ if dein#tap('denite.nvim')
   " split action.
   function! s:denite_split_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('split', {
+      call vimrc#switch_buffer('new', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
@@ -722,7 +718,7 @@ if dein#tap('denite.nvim')
   " vsplit action.
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('vsplit', {
+      call vimrc#switch_buffer('vnew', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)

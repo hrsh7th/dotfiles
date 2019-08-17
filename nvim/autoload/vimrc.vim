@@ -39,6 +39,7 @@ function! vimrc#detect_cwd()
   endif
 
   call vimrc#set_cwd(cwd)
+  redraw!
 endfunction
 
 function! vimrc#set_cwd(cwd)
@@ -85,9 +86,7 @@ function! vimrc#switch_buffer(cmd, location, ...)
 endfunction
 
 function! s:open(cmd, location)
-  if bufnr('%') != bufnr(fnameescape(a:location['path'])) || !bufexists(fnameescape(a:location['path']))
-    execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
-  endif
+  execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
   if a:location['line'] != -1
     if a:location['col'] != -1
       call cursor([a:location['line'], a:location['col']])
