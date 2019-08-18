@@ -778,7 +778,7 @@ function! s:on_file_type()
   if dein#tap('vim-lsp')
     for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
-        nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
+        nnoremap <Leader><CR> V<ESC>:<C-u>LspCodeAction<CR>
         nnoremap <Leader>i    :<C-u>LspHover<CR>
         nnoremap <Leader>r    :<C-u>LspRename<CR>
         nnoremap <Leader>g    :<C-u>LspReferences<CR>
