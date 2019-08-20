@@ -300,7 +300,7 @@ if dein#tap('vim-locon')
 endif
 
 if dein#tap('gruvbox-material')
-  colorscheme gruvbox-material
+  colorscheme gruvbox-material-soft
 else
   colorscheme ron
 endif
@@ -621,7 +621,7 @@ if dein#tap('denite.nvim')
   autocmd! vimrc FileType denite-filter call s:setup_denite_filter()
   function! s:setup_denite_filter()
     let b:lexima_disabled = v:true
-    nnoremap <silent><buffer><Esc> q
+    nmap <silent><buffer><Esc> q
     imap <silent><buffer><Esc> <Plug>(denite_filter_quit)
   endfunction
 
@@ -797,7 +797,7 @@ function! s:on_color_scheme()
   highlight! link SignColumn TabLineFill
   highlight! link LineNr TabLineFill
 endfunction
-doautocmd ColorScheme
+call s:on_color_scheme()
 
 autocmd! vimrc BufRead * call s:on_buf_read()
 function! s:on_buf_read()
