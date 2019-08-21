@@ -693,8 +693,8 @@ if dein#tap('denite.nvim')
   call denite#custom#source('_', 'sorters', ['sorter/sublime'])
 
   " matchers
-  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/fuzzy'])
-  call denite#custom#source('_', 'matchers', ['matcher/fuzzy'])
+  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/substring'])
+  call denite#custom#source('_', 'matchers', ['matcher/substring'])
 
   " option.
   call denite#custom#option('grep', 'quit', v:false)
