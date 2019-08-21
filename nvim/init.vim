@@ -78,6 +78,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
   call dein#local('~/Development/workspace/LocalVimPlugins')
+  call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
   call dein#save_state()
 endif
@@ -312,6 +313,10 @@ endif
 
 if dein#tap('vim-devicons')
   let g:webdevicons_enable_denite = v:false
+endif
+
+if dein#tap('vim-test-snips')
+  imap <expr><C-l> snips#expandable() ? '<Plug>(snips-expand)' : '<Tab>'
 endif
 
 if dein#tap('vim-themis')
