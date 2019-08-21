@@ -65,7 +65,7 @@ function! vimrc#filter_winnrs(winnrs)
   return filter(a:winnrs, { i, wnr -> index(['deol', 'defx', 'denite'], getbufvar(winbufnr(wnr), '&filetype')) == -1 })
 endfunction
 
-function! vimrc#switch_buffer(cmd, location, ...)
+function! vimrc#open(cmd, location, ...)
   let prev_winid = get(a:000, 0, win_getid(winnr('#')))
 
   let winnrs = vimrc#filter_winnrs([win_id2win(prev_winid)])

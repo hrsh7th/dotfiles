@@ -5,6 +5,29 @@ scriptencoding utf-8
 
 let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
 
+let g:loaded_2html_plugin      = 1
+let g:loaded_getscript         = 1
+let g:loaded_getscriptPlugin   = 1
+let g:loaded_gzip              = 1
+let g:loaded_logipat           = 1
+let g:loaded_logiPat           = 1
+let g:loaded_matchparen        = 1
+let g:loaded_netrw             = 1
+let g:loaded_netrwFileHandlers = 1
+let g:loaded_netrwPlugin       = 1
+let g:loaded_netrwSettings     = 1
+let g:loaded_rrhelper          = 1
+let g:loaded_spellfile_plugin  = 1
+let g:loaded_sql_completion    = 1
+let g:loaded_syntax_completion = 1
+let g:loaded_tar               = 1
+let g:loaded_tarPlugin         = 1
+let g:loaded_vimball           = 1
+let g:loaded_vimballPlugin     = 1
+let g:loaded_zip               = 1
+let g:loaded_zipPlugin         = 1
+let g:vimsyn_embed             = 1
+
 let dein = {}
 let dein.dir = {}
 let dein.dir.install = $XDG_CONFIG_HOME . '/dein/repos/github.com/Shougo/dein.vim'
@@ -24,6 +47,7 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
+  call dein#add('andymass/vim-matchup')
   call dein#add('cohama/lexima.vim')
   call dein#add('dense-analysis/ale')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
@@ -68,6 +92,10 @@ augroup vimrc
   autocmd!
 augroup END
 
+let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
+let $TERM = 'xterm256-color'
+set termguicolors
+set t_Co=256
 set updatetime=500
 set autoread
 set hidden
@@ -219,7 +247,7 @@ if dein#tap('defx.nvim')
         call defx#call_action('cd', [path])
       endif
     else
-      Defx -split=vertical -direction=topleft -winwidth=35 -session-file=`expand('~/.defx_session')` `expand('%:p:h')`
+      Defx -split=vertical -direction=topleft -winwidth=40 -session-file=`expand('~/.defx_session')` `expand('%:p:h')`
     endif
   endfunction
 endif
@@ -532,7 +560,7 @@ if dein#tap('defx.nvim')
   command! -nargs=* -range DefxVsplitAction call DefxOpenAction('vnew', <q-args>)
   command! -nargs=* -range DefxSplitAction call DefxOpenAction('new', <q-args>)
   function! DefxOpenAction(cmd, path)
-    call vimrc#switch_buffer(a:cmd, {
+    call vimrc#open(a:cmd, {
           \ 'path': a:path,
           \ 'line': -1,
           \ 'col': -1
@@ -563,16 +591,16 @@ if dein#tap('lightline.vim')
 
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
-  let g:lightline.active.right = [['lineinfo'], ['percent'], ['filetype'], ['lsp']]
+  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'lsp']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }
-  let g:lightline.subseparator = { 'left': '', 'right': '' }
+  let g:lightline.subseparator = { 'left': '', 'right': '' }
 
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
   let g:lightline.tabline.right = [['cwd', 'git']]
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
-  let g:lightline.tabline_subseparator = { 'left': '|', 'right': '|' }
+  let g:lightline.tabline_subseparator = { 'left': '', 'right': '' }
 
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
@@ -629,7 +657,6 @@ if dein#tap('denite.nvim')
   autocmd! vimrc FileType denite-filter call s:setup_denite_filter()
   function! s:setup_denite_filter()
     let b:lexima_disabled = v:true
-    nmap <silent><buffer><Esc> q
     imap <silent><buffer><Esc> <Plug>(denite_filter_quit)
   endfunction
 
@@ -676,7 +703,7 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'filter_updatetime', 500)
   call denite#custom#option('_', 'highlight_matched_char', 'None')
   call denite#custom#option('_', 'highlight_matched_range', 'None')
-  call denite#custom#option('_', 'highlight_filter_background', 'StatusLineNC')
+  call denite#custom#option('_', 'highlight_filter_background', 'TabLineFill')
 
   " menu.
   let s:menus = {}
@@ -702,7 +729,7 @@ if dein#tap('denite.nvim')
   " open action.
   function! s:denite_open_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('edit', {
+      call vimrc#open('edit', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
@@ -714,7 +741,7 @@ if dein#tap('denite.nvim')
   " split action.
   function! s:denite_split_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('new', {
+      call vimrc#open('new', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
@@ -726,7 +753,7 @@ if dein#tap('denite.nvim')
   " vsplit action.
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
-      call vimrc#switch_buffer('vnew', {
+      call vimrc#open('vnew', {
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
@@ -804,6 +831,7 @@ function! s:on_color_scheme()
   highlight! VertSplit guibg=#333333
   highlight! SignColumn guibg=#333333
   highlight! LineNr guibg=#333333
+  highlight! TerminalBackground guibg=#222222
 endfunction
 call s:on_color_scheme()
 
@@ -826,6 +854,9 @@ endfunction
 
 autocmd! vimrc TermOpen term://* call s:on_term_open()
 function! s:on_term_open()
+  if exists('+winhighlight')
+    setlocal winhighlight=Normal:TerminalBackground,EndOfBuffer:TerminalBackground
+  endif
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
