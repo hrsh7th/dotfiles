@@ -40,6 +40,7 @@ endif
 let &runtimepath = &runtimepath . ',' . dein.dir.install . ',' . expand('~/.config/nvim')
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
+  call dein#add('RRethy/vim-hexokinase')
   call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
@@ -630,6 +631,12 @@ if dein#tap('lightline.vim')
     endif
     return 'no lsp'
   endfunction
+endif
+
+if dein#tap('vim-hexokinase')
+  let g:Hexokinase_ftAutoload = ['javascript.jsx', 'typescript.tsx', 'css', 'scss']
+  let g:Hexokinase_refreshEvents = ['BufWritePost', 'TextChanged', 'TextChangedI']
+  let g:Hexokinase_virtualText = '■'
 endif
 
 if dein#tap('denite.nvim')
