@@ -115,6 +115,7 @@ set title
 set shortmess+=I
 set listchars=tab:>-,trail:^
 set fillchars+=vert:\ ,eob:\ 
+set background=dark
 
 set incsearch
 set hlsearch
@@ -300,6 +301,7 @@ if dein#tap('vim-locon')
 endif
 
 if dein#tap('gruvbox-material')
+  let g:gruvbox_material_enable_bold=1
   colorscheme gruvbox-material-soft
 else
   colorscheme ron
@@ -485,6 +487,9 @@ if dein#tap('defx.nvim')
   function! s:setup_defx() abort
     setlocal nonumber
     setlocal winfixwidth
+    if exists('+winhighlight')
+      setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
+    endif
 
     " open
     nnoremap <silent><buffer><expr><Tab>     defx#do_action('call', 'DefxSuitableMoveAction')
@@ -602,6 +607,9 @@ endif
 if dein#tap('denite.nvim')
   autocmd! vimrc FileType denite call s:setup_denite()
   function! s:setup_denite()
+    if exists('+winhighlight')
+      setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
+    endif
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>q       denite#do_map('quit')
@@ -793,9 +801,9 @@ endfunction
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
-  highlight! link VertSplit TabLineFill
-  highlight! link SignColumn TabLineFill
-  highlight! link LineNr TabLineFill
+  highlight! VertSplit guibg=#333333
+  highlight! SignColumn guibg=#333333
+  highlight! LineNr guibg=#333333
 endfunction
 call s:on_color_scheme()
 
@@ -804,6 +812,16 @@ function! s:on_buf_read()
   if line("'\"") > 0 && line("'\"") <= line('$')
     normal! g`""
   endif
+endfunction
+
+autocmd! vimrc BufEnter * call s:on_buf_enter()
+function! s:on_buf_enter()
+  setlocal cursorline
+endfunction
+
+autocmd! vimrc BufLeave * call s:on_buf_leave()
+function! s:on_buf_leave()
+  setlocal nocursorline
 endfunction
 
 autocmd! vimrc TermOpen term://* call s:on_term_open()
