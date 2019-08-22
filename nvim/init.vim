@@ -316,7 +316,7 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-test-snips')
-  imap <expr><C-l> snips#expandable() ? '<Plug>(snips-expand)' : '<Tab>'
+  imap <expr><Tab> snips#expandable_or_jumpable() ? '<Plug>(snips-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
 endif
 
 if dein#tap('vim-themis')
