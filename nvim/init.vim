@@ -48,15 +48,15 @@ if dein#load_state(dein.dir.install)
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('andymass/vim-matchup')
   call dein#add('cohama/lexima.vim')
-  call dein#add('dense-analysis/ale')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
+  call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-neco-calc')
+  call dein#add('hrsh7th/vim-vsnip')
   call dein#add('itchyny/lightline.vim')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
@@ -103,7 +103,6 @@ set autoread
 set hidden
 set nobackup
 set noswapfile
-set virtualedit=all
 set clipboard=unnamed,unnamedplus
 set lazyredraw
 set shell=bash
@@ -118,9 +117,11 @@ set undodir=~/.vimundo
 set undofile
 set isfname-==
 set isfname+=\\
+set iskeyword+=:
 set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
 
 set mouse=n
+set virtualedit=all
 set termguicolors
 set splitright
 set splitbelow
@@ -315,8 +316,9 @@ if dein#tap('vim-devicons')
   let g:webdevicons_enable_denite = v:false
 endif
 
-if dein#tap('vim-test-snips')
-  imap <expr><Tab> snips#expandable_or_jumpable() ? '<Plug>(snips-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+if dein#tap('vim-vsnip')
+  imap <expr><C-l> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>C-l>', 'i')
+  smap <expr><C-l> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>C-l>', 'i')
 endif
 
 if dein#tap('vim-themis')
@@ -336,7 +338,7 @@ endif
 
 if dein#tap('gruvbox-material')
   let g:gruvbox_material_enable_bold=1
-  colorscheme gruvbox-material-soft
+  colorscheme gruvbox-material
 else
   colorscheme ron
 endif
@@ -347,6 +349,7 @@ if dein#tap('vim-lsp')
   let g:lsp_signs_information = { 'text' : "\uf449" }
   let g:lsp_signs_hint = { 'text' : "\uf400" }
   let g:lsp_diagnostics_echo_cursor = v:true
+  let g:lsp_highlight_references_enabled = v:false
 
   highlight! link LspErrorText ErrorMsg
   highlight! link LspWarningText WarningMsg
@@ -456,21 +459,6 @@ if dein#tap('vim-lsp')
   endfunction
 endif
 
-if dein#tap('ale')
-  let g:ale_disable_linters = ['css']
-  for server in get(g:, 'lsp_server_definitions', [])
-    let g:ale_disable_linters += server.whitelist
-  endfor
-  for ft in keys(get(g:, 'lsc_server_commands', {}))
-    let g:ale_disable_linters += [ft]
-  endfor
-
-  let g:ale_linters = {}
-  for ft in g:ale_disable_linters
-    let g:ale_linters[ft] = []
-  endfor
-endif
-
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
@@ -479,6 +467,7 @@ endif
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
   call deoplete#custom#source('_', 'min_pattern_length', 1)
+  call deoplete#custom#source('_', 'sorters', ['sorter_word', 'sorter_reverse'])
   call deoplete#custom#option('ignore_sources', {
         \ 'denite-filter': ['denite', 'buffer', 'around']
         \ })
@@ -497,18 +486,6 @@ if dein#tap('deol.nvim')
   function! s:setup_deol()
     setlocal nobuflisted
     nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', vimrc#get_buffer_path()))<CR>
-  endfunction
-
-  function! DeolPopup(cwd)
-    let cwd = fnamemodify(a:cwd, ':h')
-    if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
-      topleft 12split
-      setlocal winfixheight
-      call deol#start(printf('-cwd=%s', cwd))
-    else
-      let t:deol['cwd'] = ''
-      call deol#start(printf('-cwd=%s', cwd))
-    endif
   endfunction
 endif
 
@@ -556,10 +533,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
     nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new -session-file=`expand('~/.defx_session')` `expand('%:p:h')`<CR>
-
-    if dein#tap('deol.nvim')
-      nnoremap <buffer>H :<C-u>call DeolPopup(defx#get_candidate()['action__path'])<CR>
-    endif
+    nnoremap <silent><buffer>H               :<C-u>call DefxTerminal()<CR>
   endfunction
 
   command! -nargs=* -range DefxEditAction call DefxOpenAction('edit', <q-args>)
@@ -585,6 +559,24 @@ if dein#tap('defx.nvim')
       return
     endif
     call defx#call_action('cd', [cwd])
+  endfunction
+
+  function! DefxTerminal()
+    let candidate = defx#get_candidate()
+    if vimrc#path(b:defx['paths'][0], '/') == vimrc#path(candidate['action__path'], '/')
+      let cwd = candidate['action__path']
+    else
+      let cwd = fnamemodify(candidate['action__path'], candidate['is_opened_tree'] ? ':p:h:h:h' : ':p:h:h')
+    endif
+
+    if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
+      topleft 12split
+      setlocal winfixheight
+      call deol#start(printf('-cwd=%s', cwd))
+    else
+      let t:deol['cwd'] = ''
+      call deol#start(printf('-cwd=%s', cwd))
+    endif
   endfunction
 endif
 
@@ -670,6 +662,7 @@ if dein#tap('denite.nvim')
   function! s:setup_denite_filter()
     let b:lexima_disabled = v:true
     imap <silent><buffer><Esc> <Plug>(denite_filter_quit)
+    nnoremap <silent><buffer><Esc> :<C-u>p<CR>
   endfunction
 
   " source var custom
@@ -686,7 +679,7 @@ if dein#tap('denite.nvim')
   endif
   if executable('jvgrep')
     call denite#custom#var('grep', 'command', ['jvgrep'])
-    call denite#custom#var('grep', 'default_opts', ['-i', '--exclude', join(locon#get('ignore_greps'), '|')])
+    call denite#custom#var('grep', 'default_opts', ['-R', '-i', '--exclude', join(locon#get('ignore_greps'), '|')])
     call denite#custom#var('grep', 'recursive_opts', ['-R'])
     call denite#custom#var('grep', 'pattern_opt', [])
     call denite#custom#var('grep', 'separator', [])
