@@ -317,8 +317,8 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
-  imap <expr><C-l> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>C-l>', 'i')
-  smap <expr><C-l> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>C-l>', 'i')
+  imap <expr><C-j> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>-j>', 'i')
+  smap <expr><C-j> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>-j>', 'i')
 endif
 
 if dein#tap('vim-themis')
@@ -461,13 +461,12 @@ endif
 
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
-  let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
+  let g:gitto#config.get_buffer_path = function('vimrc#get_cwd')
 endif
 
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
   call deoplete#custom#source('_', 'min_pattern_length', 1)
-  call deoplete#custom#source('_', 'sorters', ['sorter_word', 'sorter_reverse'])
   call deoplete#custom#option('ignore_sources', {
         \ 'denite-filter': ['denite', 'buffer', 'around']
         \ })
@@ -566,7 +565,16 @@ if dein#tap('defx.nvim')
     if vimrc#path(b:defx['paths'][0], '/') == vimrc#path(candidate['action__path'], '/')
       let cwd = candidate['action__path']
     else
-      let cwd = fnamemodify(candidate['action__path'], candidate['is_opened_tree'] ? ':p:h:h:h' : ':p:h:h')
+      if isdirectory(candidate['action__path'])
+        if candidate['is_opened_tree']
+          let mods = ':p:h'
+        else
+          let mods = ':p:h:h'
+        endif
+      else
+        let mods = ':p:h:h'
+      endif
+      let cwd = fnamemodify(candidate['action__path'], mods)
     endif
 
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1

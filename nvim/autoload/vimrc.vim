@@ -1,5 +1,6 @@
 let g:vimrc#project_root_markers = ['.git']
 
+
 function! vimrc#get_buffer_path()
   if exists('b:defx')
     return b:defx.paths[0]
@@ -30,7 +31,7 @@ function! vimrc#detect_cwd()
   let root = vimrc#get_project_root()
   let cwd = isdirectory(path) ? path : root
 
-  if exists('b:defx')
+  if exists('b:defx') && !empty(root)
     call defx#call_action('add_session', [root])
   endif
 
@@ -86,7 +87,10 @@ function! vimrc#open(cmd, location, ...)
 endfunction
 
 function! s:open(cmd, location)
-  execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
+  try
+    execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
+  catch /.*/
+  endtry
   if a:location['line'] != -1
     if a:location['col'] != -1
       call cursor([a:location['line'], a:location['col']])
@@ -95,3 +99,4 @@ function! s:open(cmd, location)
     endif
   endif
 endfunction
+
