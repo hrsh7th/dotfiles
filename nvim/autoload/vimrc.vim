@@ -1,4 +1,4 @@
-let g:vimrc#project_root_markers = ['.git']
+let g:vimrc#project_root_markers = ['.git', 'tsconfig.json']
 
 
 function! vimrc#get_buffer_path()

@@ -3,6 +3,8 @@ if has('vim_starting')
 endif
 scriptencoding utf-8
 
+language en_US
+
 let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
 
 let g:loaded_2html_plugin      = 1
@@ -63,7 +65,6 @@ if dein#load_state(dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('osyo-manga/vim-jplus')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
@@ -103,7 +104,7 @@ set autoread
 set hidden
 set nobackup
 set noswapfile
-set clipboard=unnamed,unnamedplus
+set clipboard=unnamedplus
 set lazyredraw
 set shell=bash
 set scrolloff=3
@@ -117,7 +118,6 @@ set undodir=~/.vimundo
 set undofile
 set isfname-==
 set isfname+=\\
-set iskeyword+=:
 set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
 
 set mouse=n
@@ -165,7 +165,7 @@ set softtabstop=2
 set shiftwidth=2
 set textwidth=0
 set backspace=2
-set regexpengine=1
+set regexpengine=2
 set whichwrap=b,s,h,l,<,>,[,]
 
 let mapleader="\<Space>"
@@ -317,8 +317,8 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
-  imap <expr><C-j> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>-j>', 'i')
-  smap <expr><C-j> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>-j>', 'i')
+  imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+  smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
 endif
 
 if dein#tap('vim-themis')
@@ -344,6 +344,7 @@ else
 endif
 
 if dein#tap('vim-lsp')
+  let g:lsp_fold_enabled = v:false
   let g:lsp_signs_error = { 'text' : "\uf071" }
   let g:lsp_signs_warning = { 'text' : "\uf071" }
   let g:lsp_signs_information = { 'text' : "\uf449" }
@@ -566,13 +567,9 @@ if dein#tap('defx.nvim')
       let cwd = candidate['action__path']
     else
       if isdirectory(candidate['action__path'])
-        if candidate['is_opened_tree']
-          let mods = ':p:h'
-        else
-          let mods = ':p:h:h'
-        endif
-      else
         let mods = ':p:h:h'
+      else
+        let mods = ':p:h'
       endif
       let cwd = fnamemodify(candidate['action__path'], mods)
     endif
