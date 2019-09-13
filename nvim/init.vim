@@ -3,6 +3,10 @@ if has('vim_starting')
 endif
 scriptencoding utf-8
 
+if &compatible
+  set nocompatible
+endif
+
 language en_US
 
 let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
@@ -30,18 +34,18 @@ let g:loaded_zip               = 1
 let g:loaded_zipPlugin         = 1
 let g:vimsyn_embed             = 1
 
-let dein = {}
-let dein.dir = {}
-let dein.dir.install = $XDG_CONFIG_HOME . '/dein/repos/github.com/Shougo/dein.vim'
-let dein.dir.plugins = $XDG_CONFIG_HOME . '/dein'
+let s:dein = {}
+let s:dein.dir = {}
+let s:dein.dir.install = expand('~/.config/dein/repos/github.com/Shougo/dein.vim') . ''
+let s:dein.dir.plugins = expand('~/.config/dein')
 
-if !isdirectory(dein.dir.install)
-  call system(printf('git clone https://github.com/Shougo/dein.vim %s', shellescape(dein.dir.install)))
+if !isdirectory(s:dein.dir.install)
+  call system(printf('git clone https://github.com/Shougo/dein.vim %s', shellescape(s:dein.dir.install)))
 endif
 
-let &runtimepath = &runtimepath . ',' . dein.dir.install . ',' . expand('~/.config/nvim')
-if dein#load_state(dein.dir.install)
-  call dein#begin(dein.dir.plugins)
+let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.config/nvim')
+if dein#load_state(s:dein.dir.install)
+  call dein#begin(s:dein.dir.plugins)
   call dein#add('RRethy/vim-hexokinase')
   call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
@@ -78,6 +82,10 @@ if dein#load_state(dein.dir.install)
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
+  if !has('nvim')
+    call dein#add('roxma/nvim-yarp')
+    call dein#add('roxma/vim-hug-neovim-rpc')
+  endif
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
@@ -104,14 +112,11 @@ set autoread
 set hidden
 set nobackup
 set noswapfile
-set clipboard=unnamedplus
 set lazyredraw
 set shell=bash
 set scrolloff=3
 set sidescrolloff=3
-set scrollback=2000
 set complete=w
-set completeopt=menu
 set belloff=all
 set synmaxcol=512
 set undodir=~/.vimundo
@@ -134,7 +139,6 @@ set modelines=2
 set wildmenu
 set wildmode=longest:full
 set wildchar=<Tab>
-set wildoptions=pum
 set pumheight=50
 set showtabline=2
 set cmdheight=2
@@ -145,7 +149,6 @@ set ambiwidth=double
 set title
 set shortmess+=I
 set listchars=tab:>-,trail:^
-set fillchars+=vert:\ ,eob:\ 
 set background=dark
 
 set incsearch
@@ -154,7 +157,6 @@ set ignorecase
 set smartcase
 set suffixesadd=.php,.tpl,.ts,.tsx,.css,.scss,.rb,.java,.json,.md,.as,.js,.jpg,.jpeg,.gif,.png,.vim
 set matchpairs=(:),[:],{:}
-set inccommand=split
 
 set autoindent
 set cindent
@@ -167,6 +169,19 @@ set textwidth=0
 set backspace=2
 set regexpengine=2
 set whichwrap=b,s,h,l,<,>,[,]
+
+if has('nvim')
+  set wildoptions=pum
+  set scrollback=2000
+  set clipboard=unnamedplus
+  set fillchars+=vert:\ ,eob:\ 
+  set inccommand=split
+  set completeopt=menu
+else
+  set clipboard=unnamed
+  set fillchars+=vert:\ 
+  set completeopt=popup
+endif
 
 let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
@@ -317,8 +332,13 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
-  imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-  smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+  if dein#tap('lexima.vim')
+    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+  else
+    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+  endif
 endif
 
 if dein#tap('vim-themis')
@@ -458,11 +478,19 @@ if dein#tap('vim-lsp')
       endif
     endfor
   endfunction
+
+  autocmd! vimrc User lsp_float_opened call s:on_lsp_float_opened()
+  function! s:on_lsp_float_opened() abort
+    let l:winid = lsp#ui#vim#output#getpreviewwinid()
+    if l:winid >= 0
+      call nvim_win_set_option(l:winid, 'winhl', 'Normal:MyNormalFloat,NormalNC:MyNormalFloat')
+    endif
+  endfunction
 endif
 
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
-  let g:gitto#config.get_buffer_path = function('vimrc#get_cwd')
+  let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
 endif
 
 if dein#tap('deoplete.nvim')
@@ -498,7 +526,8 @@ if dein#tap('defx.nvim')
   function! s:setup_defx() abort
     setlocal nonumber
     setlocal winfixwidth
-    if exists('+winhighlight')
+
+    if has('nvim')
       setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
     endif
 
@@ -647,6 +676,7 @@ if dein#tap('denite.nvim')
     if exists('+winhighlight')
       setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
     endif
+    setlocal number
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>q       denite#do_map('quit')
@@ -841,7 +871,9 @@ function! s:on_color_scheme()
   highlight! VertSplit guibg=#333333
   highlight! SignColumn guibg=#333333
   highlight! LineNr guibg=#333333
-  highlight! TerminalBackground guibg=#222222
+  highlight! Pmenu guibg=#555555
+  highlight! MyNormalFloat guibg=#444444
+  highlight! MyTerminalBackground guibg=#222222
 endfunction
 call s:on_color_scheme()
 
@@ -862,10 +894,14 @@ function! s:on_buf_leave()
   setlocal nocursorline
 endfunction
 
-autocmd! vimrc TermOpen term://* call s:on_term_open()
+if has('nvim')
+  autocmd! vimrc TermOpen term://* call s:on_term_open()
+else
+  autocmd! vimrc TerminalOpen term://* call s:on_term_open()
+endif
 function! s:on_term_open()
-  if exists('+winhighlight')
-    setlocal winhighlight=Normal:TerminalBackground,EndOfBuffer:TerminalBackground
+  if has('nvim')
+    setlocal winhighlight=Normal:MyTerminalBackground,EndOfBuffer:MyTerminalBackground
   endif
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
