@@ -7,8 +7,6 @@ if &compatible
   set nocompatible
 endif
 
-language en_US
-
 let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
 
 let g:loaded_2html_plugin      = 1
@@ -54,6 +52,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
+  call dein#add('arcticicestudio/nord')
   call dein#add('cohama/lexima.vim')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-fname')
@@ -73,7 +72,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
-  call dein#add('sainnhe/gruvbox-material')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
@@ -107,7 +105,7 @@ let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
 let $TERM = 'xterm256-color'
 set termguicolors
 set t_Co=256
-set updatetime=500
+set updatetime=1000
 set autoread
 set hidden
 set nobackup
@@ -167,7 +165,6 @@ set softtabstop=2
 set shiftwidth=2
 set textwidth=0
 set backspace=2
-set regexpengine=2
 set whichwrap=b,s,h,l,<,>,[,]
 
 if has('nvim')
@@ -285,11 +282,11 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite file_mru<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', vimrc#get_cwd())
-  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', vimrc#get_cwd())
+  nnoremap <expr><F3> printf(':<C-u>Denite -buffer-name=file_rec file/rec:%s<CR>', vimrc#get_cwd())
+  nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>m :<C-u>Denite -resume<CR>
+  nnoremap <Leader>m :<C-u>Denite denite -buffer-name=denite<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
@@ -356,14 +353,14 @@ if dein#tap('vim-locon')
   endif
 endif
 
-if dein#tap('gruvbox-material')
-  let g:gruvbox_material_enable_bold=1
-  colorscheme gruvbox-material
+if dein#tap('nord')
+  colorscheme nord
 else
   colorscheme ron
 endif
 
 if dein#tap('vim-lsp')
+"  let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_fold_enabled = v:false
   let g:lsp_signs_error = { 'text' : "\uf071" }
   let g:lsp_signs_warning = { 'text' : "\uf071" }
@@ -372,10 +369,11 @@ if dein#tap('vim-lsp')
   let g:lsp_diagnostics_echo_cursor = v:true
   let g:lsp_highlight_references_enabled = v:false
 
-  highlight! link LspErrorText ErrorMsg
-  highlight! link LspWarningText WarningMsg
-  highlight! link LspHintText NormalFloat
-  highlight! link LspInformationText Folded
+  let bg = '#4C566A'
+  execute printf('highlight! LspErrorText guifg=red guibg=%s', bg)
+  execute printf('highlight! LspWarningText guifg=yellow guibg=%s', bg)
+  execute printf('highlight! LspHintText guifg=darkgray guibg=%s', bg)
+  execute printf('highlight! LspInformationText guifg=darkgray guibg=%s', bg)
 
   let g:lsp_server_definitions = []
 
@@ -385,6 +383,13 @@ if dein#tap('vim-lsp')
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
         \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
         \ }]
+
+  " npm install -g javascript-typescript-langserver
+"  let g:lsp_server_definitions += [{
+"        \   'executable': 'javascript-typescript-langserver',
+"        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'javascript-typescript-stdio'] },
+"        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
+"        \ }]
 
   " npm install -g diagnostic-languageserver
   let g:lsp_server_definitions += [{
@@ -455,7 +460,7 @@ if dein#tap('vim-lsp')
   " rustup update && rustup component add rls rust-analysis rust-src
   let g:lsp_server_definitions += [{
         \   'executable': 'rls',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run stable rls'] },
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run nightly-2019-09-15 rls'] },
         \   'whitelist': ['rust']
         \ }]
 
@@ -616,7 +621,7 @@ endif
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'gruvbox_material'
+  let g:lightline.colorscheme = 'nord'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -676,7 +681,6 @@ if dein#tap('denite.nvim')
     if exists('+winhighlight')
       setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
     endif
-    setlocal number
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>q       denite#do_map('quit')
@@ -701,24 +705,10 @@ if dein#tap('denite.nvim')
   endfunction
 
   " source var custom
-  if executable('ag')
-    call denite#custom#var('file/rec', 'command', [
-          \   'ag',
-          \   '--follow',
-          \ ] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }) + [
-          \   '--nocolor',
-          \   '--nogroup',
-          \   '-g',
-          \   ''
-          \ ])
-  endif
-  if executable('jvgrep')
-    call denite#custom#var('grep', 'command', ['jvgrep'])
-    call denite#custom#var('grep', 'default_opts', ['-R', '-i', '--exclude', join(locon#get('ignore_greps'), '|')])
-    call denite#custom#var('grep', 'recursive_opts', ['-R'])
-    call denite#custom#var('grep', 'pattern_opt', [])
-    call denite#custom#var('grep', 'separator', [])
-    call denite#custom#var('grep', 'final_opts', [])
+  if executable('rg')
+    call denite#custom#var('file_rec', 'command', ['rg', '--files'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> printf('--glob !%s', v) }))
+    call denite#custom#var('grep', 'command', ['rg'])
+    call denite#custom#var('grep', 'default_opts', ['-i', '--vimgrep', '--color=never', '--no-heading'])
   endif
 
   " filter custom
@@ -868,11 +858,11 @@ endfunction
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
-  highlight! VertSplit guibg=#333333
-  highlight! SignColumn guibg=#333333
-  highlight! LineNr guibg=#333333
-  highlight! Pmenu guibg=#555555
-  highlight! MyNormalFloat guibg=#444444
+  highlight! link VertSplit StatusLine
+  highlight! link SignColumn StatusLine
+  highlight! link LineNr StatusLine
+  highlight! Pmenu guibg=#666666
+  highlight! MyNormalFloat guibg=#494949
   highlight! MyTerminalBackground guibg=#222222
 endfunction
 call s:on_color_scheme()
