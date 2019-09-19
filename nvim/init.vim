@@ -44,7 +44,6 @@ endif
 let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.config/nvim')
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
-  call dein#add('RRethy/vim-hexokinase')
   call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
@@ -52,10 +51,10 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('arcticicestudio/nord')
+  call dein#add('arcticicestudio/nord-vim')
   call dein#add('cohama/lexima.vim')
+  call dein#add('haya14busa/vim-gtrans')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
-  call dein#add('hrsh7th/deoplete-fname')
   call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-gitto')
@@ -66,7 +65,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
-  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
@@ -287,8 +285,8 @@ if dein#tap('denite.nvim')
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
   nnoremap <Leader>m :<C-u>Denite denite -buffer-name=denite<CR>
-  nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
-  nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
+  nnoremap <Leader>n :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=+1 -no-empty<CR>
+  nnoremap <Leader>p :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=-1 -no-empty<CR>
 endif
 
 if dein#tap('git-messenger.vim')
@@ -346,14 +344,18 @@ if dein#tap('vim-themis')
 endif
 
 if dein#tap('vim-locon')
-  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*'])
-  call locon#def('ignore_greps', ['\.git', '\.svn', 'node_modules\/', 'vendor\/', '\.min\.'])
+  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*', '*.map'])
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
   endif
 endif
 
-if dein#tap('nord')
+if dein#tap('nord-vim')
+  let g:nord_bold = v:true
+  let g:nord_italic = v:true
+  let g:nord_underline = v:true
+  let g:nord_italic_comments = v:true
+  let g:nord_cursor_line_number_background = v:false
   colorscheme nord
 else
   colorscheme ron
@@ -369,11 +371,10 @@ if dein#tap('vim-lsp')
   let g:lsp_diagnostics_echo_cursor = v:true
   let g:lsp_highlight_references_enabled = v:false
 
-  let bg = '#4C566A'
-  execute printf('highlight! LspErrorText guifg=red guibg=%s', bg)
-  execute printf('highlight! LspWarningText guifg=yellow guibg=%s', bg)
-  execute printf('highlight! LspHintText guifg=darkgray guibg=%s', bg)
-  execute printf('highlight! LspInformationText guifg=darkgray guibg=%s', bg)
+  highlight! LspErrorText guifg=red
+  highlight! LspWarningText guifg=yellow
+  highlight! LspHintText guifg=darkgray
+  highlight! LspInformationText guifg=darkgray
 
   let g:lsp_server_definitions = []
 
@@ -689,10 +690,12 @@ if dein#tap('denite.nvim')
     nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
     nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
     nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
+    nnoremap <silent><buffer><expr>o       denite#do_map('do_action', 'open')
     nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplit')
     nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'split')
     nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
     nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
+    nnoremap <silent><buffer><expr>p       denite#do_map('do_action', 'preview')
     nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
     nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
   endfunction
@@ -705,10 +708,14 @@ if dein#tap('denite.nvim')
   endfunction
 
   " source var custom
-  if executable('rg')
-    call denite#custom#var('file_rec', 'command', ['rg', '--files'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> printf('--glob !%s', v) }))
-    call denite#custom#var('grep', 'command', ['rg'])
-    call denite#custom#var('grep', 'default_opts', ['-i', '--vimgrep', '--color=never', '--no-heading'])
+  if executable('ag')
+    call denite#custom#var('file/rec', 'command', ['ag'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }) + ['--nocolor', '--nogroup', '-g', ''])
+    call denite#custom#var('grep', 'command', ['ag'])
+    call denite#custom#var('grep', 'default_opts', ['-i', '--vimgrep'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }))
+    call denite#custom#var('grep', 'recursive_opts', [])
+    call denite#custom#var('grep', 'pattern_opt', [])
+    call denite#custom#var('grep', 'separator', ['--'])
+    call denite#custom#var('grep', 'final_opts', [])
   endif
 
   " filter custom
@@ -728,12 +735,10 @@ if dein#tap('denite.nvim')
 
   " option.
   call denite#custom#option('grep', 'quit', v:false)
-  call denite#custom#option('_', 'winheight', 8)
-  call denite#custom#option('_', 'vertical_preview', v:true)
+  call denite#custom#option('_', 'winheight', 10)
   call denite#custom#option('_', 'filter_updatetime', 500)
   call denite#custom#option('_', 'highlight_matched_char', 'None')
   call denite#custom#option('_', 'highlight_matched_range', 'None')
-  call denite#custom#option('_', 'highlight_filter_background', 'TabLineFill')
 
   " menu.
   let s:menus = {}
@@ -858,9 +863,7 @@ endfunction
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
-  highlight! link VertSplit StatusLine
-  highlight! link SignColumn StatusLine
-  highlight! link LineNr StatusLine
+  highlight! CursorLine gui=underline guibg=NONE guifg=NONE
   highlight! Pmenu guibg=#666666
   highlight! MyNormalFloat guibg=#494949
   highlight! MyTerminalBackground guibg=#222222
