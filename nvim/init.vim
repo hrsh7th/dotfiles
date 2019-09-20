@@ -48,7 +48,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete.nvim')
+  call dein#add('Shougo/deoplete.nvim', { 'rev': 'update' })
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('arcticicestudio/nord-vim')
@@ -668,12 +668,6 @@ if dein#tap('lightline.vim')
     endif
     return 'no lsp'
   endfunction
-endif
-
-if dein#tap('vim-hexokinase')
-  let g:Hexokinase_ftAutoload = ['javascript.jsx', 'typescript.tsx', 'css', 'scss']
-  let g:Hexokinase_refreshEvents = ['BufWritePost', 'TextChanged', 'TextChangedI']
-  let g:Hexokinase_virtualText = '■'
 endif
 
 if dein#tap('denite.nvim')
