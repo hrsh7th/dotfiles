@@ -43,6 +43,10 @@ function! vimrc#detect_cwd()
   redraw!
 endfunction
 
+function! vimrc#log(...) abort
+  echomsg string(['a:000', a:000])
+endfunction
+
 function! vimrc#set_cwd(cwd)
   let t:cwd = a:cwd
 endfunction
@@ -54,8 +58,8 @@ function! vimrc#get_cwd()
   return vimrc#get_project_root()
 endfunction
 
-function! vimrc#path(str, trim)
-  return substitute(a:str, printf('%s$', a:trim), '', 'g')
+function! vimrc#path(str)
+  return substitute(a:str, '/$', '', 'g')
 endfunction
 
 function! vimrc#is_parent_path(parent, child)

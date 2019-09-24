@@ -65,6 +65,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
+  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/vim-lsp')
@@ -362,7 +363,7 @@ else
 endif
 
 if dein#tap('vim-lsp')
-"  let g:lsp_log_file = '/tmp/lsp.log'
+  let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_fold_enabled = v:false
   let g:lsp_signs_error = { 'text' : "\uf071" }
   let g:lsp_signs_warning = { 'text' : "\uf071" }
@@ -370,6 +371,7 @@ if dein#tap('vim-lsp')
   let g:lsp_signs_hint = { 'text' : "\uf400" }
   let g:lsp_diagnostics_echo_cursor = v:true
   let g:lsp_highlight_references_enabled = v:false
+  let g:lsp_text_edit_enabled = v:true
 
   highlight! LspErrorText guifg=red
   highlight! LspWarningText guifg=yellow
@@ -585,9 +587,9 @@ if dein#tap('defx.nvim')
   endfunction
 
   function! DefxSuitableMoveAction(context)
-    let current = vimrc#path(b:defx.paths[0], '/')
-    let cwd = vimrc#path(vimrc#get_cwd(), '/')
-    let root = vimrc#path(vimrc#get_project_root(current), '/')
+    let current = vimrc#path(b:defx.paths[0])
+    let cwd = vimrc#path(vimrc#get_cwd())
+    let root = vimrc#path(vimrc#get_project_root(current))
 
     if current == cwd || !vimrc#is_parent_path(cwd, current)
       call defx#call_action('cd', [root])
@@ -598,7 +600,7 @@ if dein#tap('defx.nvim')
 
   function! DefxTerminal()
     let candidate = defx#get_candidate()
-    if vimrc#path(b:defx['paths'][0], '/') == vimrc#path(candidate['action__path'], '/')
+    if vimrc#path(b:defx['paths'][0]) == vimrc#path(candidate['action__path'])
       let cwd = candidate['action__path']
     else
       if isdirectory(candidate['action__path'])
