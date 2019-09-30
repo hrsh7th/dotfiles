@@ -51,9 +51,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/deoplete.nvim', { 'rev': 'update' })
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
-  call dein#add('arcticicestudio/nord-vim')
   call dein#add('cohama/lexima.vim')
-  call dein#add('haya14busa/vim-gtrans')
+  call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -79,6 +78,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
+  call dein#add('nightsense/cosmic_latte')
   if !has('nvim')
     call dein#add('roxma/nvim-yarp')
     call dein#add('roxma/vim-hug-neovim-rpc')
@@ -351,13 +351,8 @@ if dein#tap('vim-locon')
   endif
 endif
 
-if dein#tap('nord-vim')
-  let g:nord_bold = v:true
-  let g:nord_italic = v:true
-  let g:nord_underline = v:true
-  let g:nord_italic_comments = v:true
-  let g:nord_cursor_line_number_background = v:false
-  colorscheme nord
+if dein#tap('cosmic_latte')
+  colorscheme cosmic_latte
 else
   colorscheme ron
 endif
@@ -372,6 +367,7 @@ if dein#tap('vim-lsp')
   let g:lsp_diagnostics_echo_cursor = v:true
   let g:lsp_highlight_references_enabled = v:false
   let g:lsp_text_edit_enabled = v:true
+  let g:lsp_virtual_text_enabled = v:false
 
   highlight! LspErrorText guifg=red
   highlight! LspWarningText guifg=yellow
@@ -536,7 +532,7 @@ if dein#tap('defx.nvim')
     setlocal winfixwidth
 
     if has('nvim')
-      setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
+      setlocal winhighlight=Normal:TabLine,EndOfBuffer:TabLine
     endif
 
     " open
@@ -624,7 +620,7 @@ endif
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'nord'
+  let g:lightline.colorscheme = 'cosmic_latte_dark'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -675,8 +671,8 @@ endif
 if dein#tap('denite.nvim')
   autocmd! vimrc FileType denite call s:setup_denite()
   function! s:setup_denite()
-    if exists('+winhighlight')
-      setlocal winhighlight=Normal:TabLineFill,EndOfBuffer:TabLineFill
+    if has('nvim')
+      setlocal winhighlight=Normal:TabLine,EndOfBuffer:TabLine
     endif
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
@@ -844,7 +840,8 @@ function! s:on_file_type()
   if dein#tap('vim-lsp')
     for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
-        nnoremap <Leader><CR> V<ESC>:<C-u>LspCodeAction<CR>
+        vnoremap <Leader><CR> :LspCodeAction<CR>
+        nnoremap <Leader><CR> V:LspCodeAction<CR>
         nnoremap <Leader>i    :<C-u>LspHover<CR>
         nnoremap <Leader>r    :<C-u>LspRename<CR>
         nnoremap <Leader>g    :<C-u>LspReferences<CR>
@@ -902,3 +899,8 @@ function! s:on_buf_win_enter()
   endif
 endfunction
 
+autocmd! vimrc OptionSet diff call s:on_option_set_diff()
+function! s:on_option_set_diff() abort
+  nnoremap <Leader>n ]czz
+  nnoremap <Leader>p [czz
+endfunction
