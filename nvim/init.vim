@@ -48,7 +48,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete.nvim', { 'rev': 'update' })
+  call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('Shougo/neomru.vim')
   call dein#add('cohama/lexima.vim')
@@ -70,6 +70,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
+  call dein#add('sainnhe/edge')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
@@ -78,7 +79,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
-  call dein#add('nightsense/cosmic_latte')
   if !has('nvim')
     call dein#add('roxma/nvim-yarp')
     call dein#add('roxma/vim-hug-neovim-rpc')
@@ -351,8 +351,8 @@ if dein#tap('vim-locon')
   endif
 endif
 
-if dein#tap('cosmic_latte')
-  colorscheme cosmic_latte
+if dein#tap('edge')
+  colorscheme edge
 else
   colorscheme ron
 endif
@@ -369,10 +369,12 @@ if dein#tap('vim-lsp')
   let g:lsp_text_edit_enabled = v:true
   let g:lsp_virtual_text_enabled = v:false
 
-  highlight! LspErrorText guifg=red
-  highlight! LspWarningText guifg=yellow
-  highlight! LspHintText guifg=darkgray
-  highlight! LspInformationText guifg=darkgray
+  let bg = synIDattr(hlID('LineNr'), 'bg')
+  execute printf('highlight! SignColumn guibg=%s', bg)
+  execute printf('highlight! LspErrorText guifg=red guibg=%s', bg)
+  execute printf('highlight! LspWarningText guifg=yellow guibg=%s', bg)
+  execute printf('highlight! LspHintText guifg=darkgray guibg=%s', bg)
+  execute printf('highlight! LspInformationText guifg=darkgray guibg=%s', bg)
 
   let g:lsp_server_definitions = []
 
@@ -487,7 +489,7 @@ if dein#tap('vim-lsp')
   function! s:on_lsp_float_opened() abort
     let l:winid = lsp#ui#vim#output#getpreviewwinid()
     if l:winid >= 0
-      call nvim_win_set_option(l:winid, 'winhl', 'Normal:MyNormalFloat,NormalNC:MyNormalFloat')
+      call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
     endif
   endfunction
 endif
@@ -532,7 +534,7 @@ if dein#tap('defx.nvim')
     setlocal winfixwidth
 
     if has('nvim')
-      setlocal winhighlight=Normal:TabLine,EndOfBuffer:TabLine
+      setlocal winhighlight=Normal:NormalFloat,EndOfBuffer:NormalFloat
     endif
 
     " open
@@ -620,7 +622,7 @@ endif
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'cosmic_latte_dark'
+  let g:lightline.colorscheme = 'edge'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -672,7 +674,7 @@ if dein#tap('denite.nvim')
   autocmd! vimrc FileType denite call s:setup_denite()
   function! s:setup_denite()
     if has('nvim')
-      setlocal winhighlight=Normal:TabLine,EndOfBuffer:TabLine
+      setlocal winhighlight=Normal:NormalFloat,EndOfBuffer:NormalFloat
     endif
     nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
     nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
@@ -857,8 +859,8 @@ endfunction
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
   highlight! CursorLine gui=underline guibg=NONE guifg=NONE
-  highlight! Pmenu guibg=#666666
-  highlight! MyNormalFloat guibg=#494949
+  highlight! link LineNr StatusLineNC
+  highlight! link VertSplit LineNr
   highlight! MyTerminalBackground guibg=#222222
 endfunction
 call s:on_color_scheme()
@@ -904,3 +906,4 @@ function! s:on_option_set_diff() abort
   nnoremap <Leader>n ]czz
   nnoremap <Leader>p [czz
 endfunction
+
