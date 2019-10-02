@@ -26,6 +26,16 @@ function! vimrc#get_project_root(...)
   return ''
 endfunction
 
+function! vimrc#quit() abort
+  if getcmdwintype() ==# ''
+    if winnr('$') != 1
+      bwipeout
+      return
+    endif
+  endif
+  quit
+endfunction
+
 function! vimrc#detect_cwd()
   let path = vimrc#get_buffer_path()
   let root = vimrc#get_project_root()
@@ -33,10 +43,6 @@ function! vimrc#detect_cwd()
 
   if exists('b:defx') && !empty(root)
     call defx#call_action('add_session', [root])
-  endif
-
-  if dein#tap('neomru.vim')
-    call neomru#append(root)
   endif
 
   call vimrc#set_cwd(cwd)

@@ -50,7 +50,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/deol.nvim')
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
-  call dein#add('Shougo/neomru.vim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
@@ -180,7 +179,7 @@ else
 endif
 
 let mapleader="\<Space>"
-nnoremap q :<C-u>q<CR>
+nnoremap q :<C-u>call vimrc#quit()<CR>
 nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>w :<C-u>w<CR>
@@ -220,6 +219,8 @@ nnoremap <Leader>l <C-w>l
 
 nnoremap <Leader>L :<C-u>tabnext<CR>
 nnoremap <Leader>H :<C-u>tabprev<CR>
+
+nnoremap G Gzz
 
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
@@ -280,7 +281,7 @@ if dein#tap('open-browser.vim')
 endif
 
 if dein#tap('denite.nvim')
-  nnoremap <BS> :<C-u>Denite file_mru<CR>
+  nnoremap <BS> :<C-u>Denite file/old<CR>
   nnoremap <expr><F3> printf(':<C-u>Denite -buffer-name=file_rec file/rec:%s<CR>', vimrc#get_cwd())
   nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
@@ -370,11 +371,10 @@ if dein#tap('vim-lsp')
   let g:lsp_virtual_text_enabled = v:false
 
   let bg = synIDattr(hlID('LineNr'), 'bg')
-  execute printf('highlight! SignColumn guibg=%s', bg)
-  execute printf('highlight! LspErrorText guifg=red guibg=%s', bg)
-  execute printf('highlight! LspWarningText guifg=yellow guibg=%s', bg)
-  execute printf('highlight! LspHintText guifg=darkgray guibg=%s', bg)
-  execute printf('highlight! LspInformationText guifg=darkgray guibg=%s', bg)
+  execute printf('highlight! LspErrorText guifg=red')
+  execute printf('highlight! LspWarningText guifg=yellow')
+  execute printf('highlight! LspHintText guifg=darkgray')
+  execute printf('highlight! LspInformationText guifg=darkgray')
 
   let g:lsp_server_definitions = []
 
@@ -507,11 +507,6 @@ if dein#tap('deoplete.nvim')
         \ })
 endif
 
-if dein#tap('neomru.vim')
-  let g:neomru#directory_mru_limit = 50
-  let g:neomru#file_mru_limit = 50
-endif
-
 if dein#tap('deol.nvim')
   let g:deol#prompt_pattern = '.\{-}\$'
   let g:deol#enable_dir_changed = 0
@@ -562,7 +557,7 @@ if dein#tap('defx.nvim')
     nnoremap <silent><buffer><expr>p         defx#do_action('paste')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session directory_mru defx/history<CR>
+    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session defx/history<CR>
     nnoremap <silent><buffer><F5>            :<C-u>call vimrc#detect_cwd()<CR>
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
@@ -717,14 +712,14 @@ if dein#tap('denite.nvim')
 
   " converters
   call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
-  call denite#custom#source('file/rec,file_mru', 'converters', ['converter/prioritize_basename', 'converter/abbr_word'])
+  call denite#custom#source('file/rec,file/old', 'converters', ['converter/prioritize_basename', 'converter/abbr_word'])
 
   " sorter
-  call denite#custom#source('buffer,file_mru,directory_mru', 'sorters', [])
+  call denite#custom#source('file/old', 'sorters', [])
   call denite#custom#source('_', 'sorters', ['sorter/sublime'])
 
   " matchers
-  call denite#custom#source('buffer,file_mru,directory_mru', 'matchers', ['matcher/ignore_current_buffer', 'matcher/substring'])
+  call denite#custom#source('file/old', 'matchers', ['matcher/ignore_current_buffer', 'matcher/substring'])
   call denite#custom#source('_', 'matchers', ['matcher/substring'])
 
   " option.
@@ -843,7 +838,7 @@ function! s:on_file_type()
     for server in get(g:, 'lsp_server_definitions', [])
       if executable(server.executable)
         vnoremap <Leader><CR> :LspCodeAction<CR>
-        nnoremap <Leader><CR> V:LspCodeAction<CR>
+        nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
         nnoremap <Leader>i    :<C-u>LspHover<CR>
         nnoremap <Leader>r    :<C-u>LspRename<CR>
         nnoremap <Leader>g    :<C-u>LspReferences<CR>
@@ -903,7 +898,7 @@ endfunction
 
 autocmd! vimrc OptionSet diff call s:on_option_set_diff()
 function! s:on_option_set_diff() abort
-  nnoremap <Leader>n ]czz
-  nnoremap <Leader>p [czz
+  nnoremap <buffer> <Leader>n ]czz
+  nnoremap <buffer> <Leader>p [czz
 endfunction
 
