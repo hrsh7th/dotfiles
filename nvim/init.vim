@@ -52,6 +52,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/neco-vim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
+  call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -69,7 +70,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('rhysd/git-messenger.vim')
   call dein#add('ryanoasis/vim-devicons')
-  call dein#add('sainnhe/edge')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('t9md/vim-quickhl')
@@ -179,7 +179,7 @@ else
 endif
 
 let mapleader="\<Space>"
-nnoremap q :<C-u>call vimrc#quit()<CR>
+nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>w :<C-u>w<CR>
@@ -297,6 +297,7 @@ endif
 
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
+  let g:dein#auto_recache = v:true
 endif
 
 if dein#tap('lexima.vim')
@@ -352,8 +353,8 @@ if dein#tap('vim-locon')
   endif
 endif
 
-if dein#tap('edge')
-  colorscheme edge
+if dein#tap('gruvbox')
+  colorscheme gruvbox
 else
   colorscheme ron
 endif
@@ -617,7 +618,7 @@ endif
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'edge'
+  let g:lightline.colorscheme = 'gruvbox'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -854,9 +855,7 @@ endfunction
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
   highlight! CursorLine gui=underline guibg=NONE guifg=NONE
-  highlight! link LineNr StatusLineNC
-  highlight! link VertSplit LineNr
-  highlight! MyTerminalBackground guibg=#222222
+  highlight! Terminal guibg=#222222
 endfunction
 call s:on_color_scheme()
 
@@ -884,7 +883,7 @@ else
 endif
 function! s:on_term_open()
   if has('nvim')
-    setlocal winhighlight=Normal:MyTerminalBackground,EndOfBuffer:MyTerminalBackground
+    setlocal winhighlight=Normal:Terminal,EndOfBuffer:Terminal
   endif
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
@@ -901,4 +900,3 @@ function! s:on_option_set_diff() abort
   nnoremap <buffer> <Leader>n ]czz
   nnoremap <buffer> <Leader>p [czz
 endfunction
-

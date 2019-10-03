@@ -26,16 +26,6 @@ function! vimrc#get_project_root(...)
   return ''
 endfunction
 
-function! vimrc#quit() abort
-  if getcmdwintype() ==# ''
-    if winnr('$') != 1
-      bwipeout
-      return
-    endif
-  endif
-  quit
-endfunction
-
 function! vimrc#detect_cwd()
   let path = vimrc#get_buffer_path()
   let root = vimrc#get_project_root()
