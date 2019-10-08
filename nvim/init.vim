@@ -354,6 +354,9 @@ if dein#tap('vim-locon')
 endif
 
 if dein#tap('gruvbox')
+  let g:gruvbox_contrast_dark = 'medium'
+  let g:gruvbox_italic = v:true
+  let g:gruvbox_sign_column = 'bg0'
   colorscheme gruvbox
 else
   colorscheme ron
@@ -502,7 +505,6 @@ endif
 
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#source('_', 'min_pattern_length', 1)
   call deoplete#custom#option('ignore_sources', {
         \ 'denite-filter': ['denite', 'buffer', 'around']
         \ })
