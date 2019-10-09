@@ -1,5 +1,9 @@
 let g:vimrc#project_root_markers = ['.git', 'tsconfig.json']
 
+function! vimrc#check_backspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
 
 function! vimrc#get_buffer_path()
   if exists('b:defx')

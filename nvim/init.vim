@@ -48,13 +48,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete.nvim')
   call dein#add('Shougo/neco-vim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
-  call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-locon')
@@ -64,11 +62,10 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
-  call dein#add('lighttiger2505/deoplete-vim-lsp')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('prabirshrestha/async.vim')
-  call dein#add('prabirshrestha/vim-lsp')
-  call dein#add('rhysd/git-messenger.vim')
+  call dein#add('neoclide/coc-denite')
+  call dein#add('neoclide/coc.nvim', { 'rev': 'release' })
+  call dein#add('neoclide/denite-extra')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
@@ -103,7 +100,7 @@ let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
 let $TERM = 'xterm256-color'
 set termguicolors
 set t_Co=256
-set updatetime=1000
+set updatetime=500
 set autoread
 set hidden
 set nobackup
@@ -231,9 +228,16 @@ inoremap <C-h> <Left>
 nmap <Tab> %
 vmap <Tab> %
 
-inoremap <expr>] pumvisible() ? "\<C-n>" : "]"
-inoremap <expr>} pumvisible() ? "\<C-p>" : "}"
 nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
+
+if dein#tap('coc.nvim')
+  inoremap <silent><expr>] pumvisible() ? '<C-n>' : (vimrc#check_backspace() ? '<TAB>' : coc#refresh())
+  inoremap <expr>} pumvisible() ? '<C-p>' : '<C-h>'
+  inoremap <expr> <CR> pumvisible() ? '<C-y>' : '<C-g>u<CR>'
+else
+  inoremap <expr>] pumvisible() ? '<C-n>' : ']'
+  inoremap <expr>} pumvisible() ? '<C-p>' : '}'
+endif
 
 nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
@@ -291,10 +295,6 @@ if dein#tap('denite.nvim')
   nnoremap <Leader>p :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=-1 -no-empty<CR>
 endif
 
-if dein#tap('git-messenger.vim')
-  nmap gi <Plug>(git-messenger)
-endif
-
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
   let g:dein#auto_recache = v:true
@@ -318,11 +318,6 @@ if dein#tap('lexima.vim')
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
-endif
-
-if dein#tap('git-messenger.vim')
-  let g:git_messenger_include_diff = v:true
-  let g:git_messenger_always_into_popup = v:true
 endif
 
 if dein#tap('vim-devicons')
@@ -362,140 +357,49 @@ else
   colorscheme ron
 endif
 
-if dein#tap('vim-lsp')
-  let g:lsp_log_file = '/tmp/lsp.log'
-  let g:lsp_fold_enabled = v:false
-  let g:lsp_signs_error = { 'text' : "\uf071" }
-  let g:lsp_signs_warning = { 'text' : "\uf071" }
-  let g:lsp_signs_information = { 'text' : "\uf449" }
-  let g:lsp_signs_hint = { 'text' : "\uf400" }
-  let g:lsp_diagnostics_echo_cursor = v:true
-  let g:lsp_highlight_references_enabled = v:false
-  let g:lsp_text_edit_enabled = v:true
-  let g:lsp_virtual_text_enabled = v:false
+if dein#tap('coc.nvim')
+  let g:coc_enable_locationlist = v:false
 
-  let bg = synIDattr(hlID('LineNr'), 'bg')
-  execute printf('highlight! LspErrorText guifg=red')
-  execute printf('highlight! LspWarningText guifg=yellow')
-  execute printf('highlight! LspHintText guifg=darkgray')
-  execute printf('highlight! LspInformationText guifg=darkgray')
+  " coc
+  call coc#config('codeLens.enable', v:true)
 
-  let g:lsp_server_definitions = []
+  " coc-tsserver
+  call coc#config('typescript.preferences.importModuleSpecifier', 'relative')
+  call coc#config('typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces', v:true)
+  call coc#config('typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces', v:true)
 
-  " npm install -g typescript-language-server
-  let g:lsp_server_definitions += [{
-        \   'executable': 'typescript-language-server',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
-        \ }]
-
-  " npm install -g javascript-typescript-langserver
-"  let g:lsp_server_definitions += [{
-"        \   'executable': 'javascript-typescript-langserver',
-"        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'javascript-typescript-stdio'] },
-"        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
-"        \ }]
-
-  " npm install -g diagnostic-languageserver
-  let g:lsp_server_definitions += [{
-        \   'executable': 'diagnostic-languageserver',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
-        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx'],
-        \   'initialization_options': {
-        \     'linters': {
-        \       'eslint': {
-        \         'sourceName': 'eslint',
-        \         'command': 'eslint_d',
-        \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'formatLines': 1,
-        \         'formatPattern': [
-        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-        \           {
-        \             'line': 1,
-        \             'column': 2,
-        \             'message': [4, ' [', 5, ']' ],
-        \             'security': 3
-        \           }
-        \         ]
-        \       },
-        \     },
-        \     'filetypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.jsx': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint'
-        \     },
-        \     'formatters': {
-        \       'eslint': {
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'command': 'eslint_d',
-        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
-        \         'isStdout': v:true,
-        \         'isStderr': v:true,
-        \       }
-        \     },
-        \     'formatFiletypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.jsx': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint'
+  " coc-diagnostic
+  call coc#config('diagnostic-languageserver.linters.eslint_d', {
+        \   'sourceName': 'eslint_d',
+        \   'command': 'eslint_d',
+        \   'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+        \   'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \   'formatLines': 1,
+        \   'formatPattern': [
+        \     '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+        \     {
+        \       'line': 1,
+        \       'column': 2,
+        \       'message': [4, ' [', 5, ']' ],
+        \       'security': 3
         \     }
-        \   }
-        \ }]
-
-  " npm install -g vim-language-server
-  let g:lsp_server_definitions += [{
-        \   'executable': 'vim-language-server',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'vim-language-server --stdio'] },
-        \   'whitelist': ['vim']
-        \ }]
-
-  " npm install -g intelephense@1.0.10
-  let g:lsp_server_definitions += [{
-        \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
-        \   'executable': 'intelephense',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
-        \   'initialization_options': {
-        \     'storagePath': expand('~/.cache/intelephense')
-        \   },
-        \   'whitelist': ['php']
-        \ }]
-
-  " rustup update && rustup component add rls rust-analysis rust-src
-  let g:lsp_server_definitions += [{
-        \   'executable': 'rls',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run nightly-2019-09-15 rls'] },
-        \   'whitelist': ['rust']
-        \ }]
-
-  autocmd! vimrc User lsp_setup call s:setup_lsp()
-  function! s:setup_lsp()
-    let priority = 0 " Specifying to use server for `LspDocumentFormat`.
-    for server in get(g:, 'lsp_server_definitions', [])
-      if executable(server.executable)
-        if has_key(server, 'init')
-          call server['init']()
-        endif
-        call lsp#register_server({
-              \ 'name': priority . '_' . server.executable,
-              \ 'cmd': server.cmd,
-              \ 'whitelist': server.whitelist,
-              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(vimrc#get_project_root()) },
-              \ 'initialization_options': get(server, 'initialization_options', {})
-              \ })
-        let priority = priority + 1
-      endif
-    endfor
-  endfunction
-
-  autocmd! vimrc User lsp_float_opened call s:on_lsp_float_opened()
-  function! s:on_lsp_float_opened() abort
-    let l:winid = lsp#ui#vim#output#getpreviewwinid()
-    if l:winid >= 0
-      call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
-    endif
-  endfunction
+        \   ]
+        \ })
+  call coc#config('diagnostic-languageserver.filetypes', {
+        \   'javascript': 'eslint_d',
+        \   'typescript': 'eslint_d',
+        \ })
+  call coc#config('diagnostic-languageserver.formatters.eslint_d', {
+        \   'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \   'command': 'eslint_d',
+        \   'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+        \   'isStdout': v:true,
+        \   'isStderr': v:true,
+        \ })
+  call coc#config('diagnostic-languageserver.formatFiletypes', {
+        \   'javascript': 'eslint_d',
+        \   'typescript': 'eslint_d',
+        \ })
 endif
 
 if dein#tap('vim-gitto')
@@ -627,7 +531,7 @@ if dein#tap('lightline.vim')
 
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
-  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'lsp']]
+  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'coc']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
@@ -641,7 +545,7 @@ if dein#tap('lightline.vim')
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
   let g:lightline.component_function.cwd = 'CWD'
-  let g:lightline.component_function.lsp = 'LSP'
+  let g:lightline.component_function.coc = 'CoC'
 
   function! Git()
     if dein#tap('vim-gitto')
@@ -657,14 +561,13 @@ if dein#tap('lightline.vim')
     return vimrc#get_cwd()
   endfunction
 
-  function! LSP()
-    if dein#tap('vim-lsp')
+  function! CoC()
+    if dein#tap('coc.nvim')
       try
-        return stridx(lsp#get_server_status(), ': running') >= 0 ? 'lsp' : 'no lsp'
+        return coc#status()
       catch /.*/
       endtry
     endif
-    return 'no lsp'
   endfunction
 endif
 
@@ -836,23 +739,30 @@ function! s:on_file_type()
       Findent --no-messages --no-warnings --chunksize=100
     endif
   endif
-
-  if dein#tap('vim-lsp')
-    for server in get(g:, 'lsp_server_definitions', [])
-      if executable(server.executable)
-        vnoremap <Leader><CR> :LspCodeAction<CR>
-        nnoremap <Leader><CR> :<C-u>LspCodeAction<CR>
-        nnoremap <Leader>i    :<C-u>LspHover<CR>
-        nnoremap <Leader>r    :<C-u>LspRename<CR>
-        nnoremap <Leader>g    :<C-u>LspReferences<CR>
-        nnoremap <Leader>f    :<C-u>LspDocumentFormatSync<CR>
-        nnoremap gf<CR>       :<C-u>LspDefinition<CR>
-        nnoremap gfv          :<C-u>vsplit \| LspDefinition<CR>
-        nnoremap gfs          :<C-u>split  \| LspDefinition<CR>
-      endif
-    endfor
-  endif
 endfunction
+
+if dein#tap('coc.nvim')
+  autocmd! vimrc User CocStatusChange call s:on_coc_status_change()
+  function! s:on_coc_status_change() abort
+      vmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction-selected)
+      nmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction)
+      nmap <silent><buffer> <Leader>r        <Plug>(coc-rename)
+      nmap <silent><buffer> <Leader>g        <Plug>(coc-references)
+      nmap <silent><buffer> <Leader>f        <Plug>(coc-format)
+      nmap <silent><buffer> gf<CR>           <Plug>(coc-definition)
+      nmap <silent><buffer> gfv              :<C-u>vsplit<CR><Plug>(coc-definition)
+      nmap <silent><buffer> gfs              :<C-u>split<CR><Plug>(coc-definition)
+      nmap <silent><buffer> gi               <Plug>(coc-codelens-action)
+      nnoremap <buffer> <Leader>i            :<C-u>call CocAction('doHover')<CR>
+      nnoremap <buffer> <Leader><Leader>     :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
+  endfunction
+
+  autocmd! vimrc User CocLocationsChange call s:on_coc_location_change()
+  function! s:on_coc_location_change() abort
+    call setqflist(g:coc_jump_locations)
+    Denite quickfix -immediately-1 
+  endfunction
+endif
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
