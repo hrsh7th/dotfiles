@@ -538,13 +538,12 @@ if dein#tap('lightline.vim')
 
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
-  let g:lightline.tabline.right = [['cwd', 'git']]
+  let g:lightline.tabline.right = [['git']]
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
   let g:lightline.tabline_subseparator = { 'left': '', 'right': '' }
 
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
-  let g:lightline.component_function.cwd = 'CWD'
   let g:lightline.component_function.coc = 'CoC'
 
   function! Git()
@@ -557,10 +556,6 @@ if dein#tap('lightline.vim')
     return 'no git'
   endfunction
 
-  function! CWD()
-    return vimrc#get_cwd()
-  endfunction
-
   function! CoC()
     if dein#tap('coc.nvim')
       try
@@ -568,6 +563,7 @@ if dein#tap('lightline.vim')
       catch /.*/
       endtry
     endif
+    return ''
   endfunction
 endif
 
@@ -742,8 +738,15 @@ function! s:on_file_type()
 endfunction
 
 if dein#tap('coc.nvim')
-  autocmd! vimrc User CocStatusChange call s:on_coc_status_change()
-  function! s:on_coc_status_change() abort
+  autocmd! vimrc FileType * call s:on_coc_file_type()
+  function! s:on_coc_file_type() abort
+    if index([
+          \ 'vim',
+          \ 'typescript',
+          \ 'typescript.tsx',
+          \ 'javascript',
+          \ 'javascript.jsx'
+          \ ], &filetype) >= 0
       vmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction-selected)
       nmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction)
       nmap <silent><buffer> <Leader>r        <Plug>(coc-rename)
@@ -755,6 +758,7 @@ if dein#tap('coc.nvim')
       nmap <silent><buffer> gi               <Plug>(coc-codelens-action)
       nnoremap <buffer> <Leader>i            :<C-u>call CocAction('doHover')<CR>
       nnoremap <buffer> <Leader><Leader>     :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
+    endif
   endfunction
 
   autocmd! vimrc User CocLocationsChange call s:on_coc_location_change()
@@ -776,16 +780,6 @@ function! s:on_buf_read()
   if line("'\"") > 0 && line("'\"") <= line('$')
     normal! g`""
   endif
-endfunction
-
-autocmd! vimrc BufEnter * call s:on_buf_enter()
-function! s:on_buf_enter()
-  setlocal cursorline
-endfunction
-
-autocmd! vimrc BufLeave * call s:on_buf_leave()
-function! s:on_buf_leave()
-  setlocal nocursorline
 endfunction
 
 if has('nvim')
