@@ -49,6 +49,7 @@ endfunction
 
 function! vimrc#set_cwd(cwd)
   let t:cwd = a:cwd
+  execute printf('tcd %s', fnameescape(a:cwd))
 endfunction
 
 function! vimrc#get_cwd()

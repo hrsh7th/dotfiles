@@ -7,7 +7,7 @@ if &compatible
   set nocompatible
 endif
 
-let $MYVIMRC = resolve(expand('~/.config/nvim/init.vim'))
+let $MYVIMRC = resolve($MYVIMRC)
 
 let g:loaded_2html_plugin      = 1
 let g:loaded_getscript         = 1
@@ -64,7 +64,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
   call dein#add('neoclide/coc-denite')
-  call dein#add('neoclide/coc.nvim', { 'rev': 'release' })
+  call dein#add('neoclide/coc.nvim', { 'merge': 0, 'build': './install.sh nightly' })
   call dein#add('neoclide/denite-extra')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
@@ -230,15 +230,6 @@ vmap <Tab> %
 
 nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
 
-if dein#tap('coc.nvim')
-  inoremap <silent><expr>] pumvisible() ? '<C-n>' : (vimrc#check_backspace() ? '<TAB>' : coc#refresh())
-  inoremap <expr>} pumvisible() ? '<C-p>' : '<C-h>'
-  inoremap <expr> <CR> pumvisible() ? '<C-y>' : '<C-g>u<CR>'
-else
-  inoremap <expr>] pumvisible() ? '<C-n>' : ']'
-  inoremap <expr>} pumvisible() ? '<C-p>' : '}'
-endif
-
 nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
@@ -301,7 +292,6 @@ if dein#tap('dein.vim')
 endif
 
 if dein#tap('lexima.vim')
-  let g:lexima_nvim_accept_pum_with_enter = 0
   let g:lexima_no_default_rules = v:true
   call lexima#set_default_rules()
 
@@ -362,6 +352,11 @@ if dein#tap('coc.nvim')
 
   " coc
   call coc#config('codeLens.enable', v:true)
+  call coc#config('suggest.minTriggerInputLength', 1)
+  call coc#config('suggest.triggerAfterInsertEnter', v:true)
+  call coc#config('suggest.fixInsertedWord', v:false)
+  call coc#config('diagnostic.checkCurrentLine', v:true)
+  call coc#config('diagnostic.refreshAfterSave', v:true)
 
   " coc-tsserver
   call coc#config('typescript.preferences.importModuleSpecifier', 'relative')
@@ -742,6 +737,12 @@ if dein#tap('coc.nvim')
   function! s:on_coc_file_type() abort
     if index([
           \ 'vim',
+          \ 'php',
+          \ 'json',
+          \ 'html',
+          \ 'css',
+          \ 'scss',
+          \ 'rust',
           \ 'typescript',
           \ 'typescript.tsx',
           \ 'javascript',
@@ -756,8 +757,8 @@ if dein#tap('coc.nvim')
       nmap <silent><buffer> gfv              :<C-u>vsplit<CR><Plug>(coc-definition)
       nmap <silent><buffer> gfs              :<C-u>split<CR><Plug>(coc-definition)
       nmap <silent><buffer> gi               <Plug>(coc-codelens-action)
-      nnoremap <buffer> <Leader>i            :<C-u>call CocAction('doHover')<CR>
-      nnoremap <buffer> <Leader><Leader>     :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
+      nnoremap <buffer> <Leader>i            :<C-u>call CocActionAsync('doHover')<CR>
+      nnoremap <buffer> <Leader><Leader>     :<C-u>call CocActionAsync('runCommand', 'editor.action.organizeImport')<CR>
     endif
   endfunction
 
@@ -771,7 +772,6 @@ endif
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
   highlight! CursorLine gui=underline guibg=NONE guifg=NONE
-  highlight! Terminal guibg=#222222
 endfunction
 call s:on_color_scheme()
 
@@ -788,9 +788,6 @@ else
   autocmd! vimrc TerminalOpen term://* call s:on_term_open()
 endif
 function! s:on_term_open()
-  if has('nvim')
-    setlocal winhighlight=Normal:Terminal,EndOfBuffer:Terminal
-  endif
   tnoremap <buffer><silent><Esc> <C-\><C-n>
 endfunction
 
