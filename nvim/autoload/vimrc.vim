@@ -16,13 +16,17 @@ function! vimrc#get_buffer_path()
 endfunction
 
 function! vimrc#get_project_root(...)
+  return vimrc#findup(g:vimrc#project_root_markers, '')
+endfunction
+
+function! vimrc#findup(markers, modifier) abort
   let path = get(a:000, 0, vimrc#get_buffer_path())
   let path = fnamemodify(path, ':p')
   while path !=# ''
-    for marker in g:vimrc#project_root_markers
+    for marker in (type(a:markers) == type([]) ? a:markers : [a:markers])
       let candidate = resolve(path . '/' . marker)
       if filereadable(candidate) || isdirectory(candidate)
-        return path
+        return fnamemodify(path, a:modifier)
       endif
     endfor
     let path = substitute(path, '/[^/]*$', '', 'g')

@@ -48,7 +48,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/neco-vim')
+  call dein#add('Shougo/deoplete.nvim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
@@ -59,12 +59,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-neco-calc')
   call dein#add('hrsh7th/vim-vsnip')
   call dein#add('itchyny/lightline.vim')
+  call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('neoclide/coc-denite')
-  call dein#add('neoclide/coc.nvim', { 'merge': 0, 'build': './install.sh nightly' })
   call dein#add('neoclide/denite-extra')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
@@ -75,6 +74,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
   call dein#add('tyru/open-browser.vim')
+  call dein#add('vim-jp/vital.vim')
   if !has('nvim')
     call dein#add('roxma/nvim-yarp')
     call dein#add('roxma/vim-hug-neovim-rpc')
@@ -124,8 +124,7 @@ set termguicolors
 set splitright
 set splitbelow
 set nowrap
-set number
-set numberwidth=4
+set nonumber
 set cursorline
 set modeline
 set modelines=2
@@ -228,8 +227,6 @@ inoremap <C-h> <Left>
 nmap <Tab> %
 vmap <Tab> %
 
-nnoremap <expr>i len(getline('.')) == 0 ? "cc" : "i"
-
 nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
@@ -239,6 +236,9 @@ nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 nnoremap gj gJ
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
+
+let g:markdown_fenced_languages = ['help', 'typescript', 'javascript']
+let g:markdown_folding = v:false
 
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
@@ -288,7 +288,6 @@ endif
 
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
-  let g:dein#auto_recache = v:true
 endif
 
 if dein#tap('lexima.vim')
@@ -342,59 +341,10 @@ if dein#tap('gruvbox')
   let g:gruvbox_contrast_dark = 'medium'
   let g:gruvbox_italic = v:true
   let g:gruvbox_sign_column = 'bg0'
+  let g:gruvbox_vert_split = 'bg1'
   colorscheme gruvbox
 else
   colorscheme ron
-endif
-
-if dein#tap('coc.nvim')
-  let g:coc_enable_locationlist = v:false
-
-  " coc
-  call coc#config('codeLens.enable', v:true)
-  call coc#config('suggest.minTriggerInputLength', 1)
-  call coc#config('suggest.triggerAfterInsertEnter', v:true)
-  call coc#config('suggest.fixInsertedWord', v:false)
-  call coc#config('diagnostic.checkCurrentLine', v:true)
-  call coc#config('diagnostic.refreshAfterSave', v:true)
-
-  " coc-tsserver
-  call coc#config('typescript.preferences.importModuleSpecifier', 'relative')
-  call coc#config('typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces', v:true)
-  call coc#config('typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces', v:true)
-
-  " coc-diagnostic
-  call coc#config('diagnostic-languageserver.linters.eslint_d', {
-        \   'sourceName': 'eslint_d',
-        \   'command': 'eslint_d',
-        \   'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
-        \   'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \   'formatLines': 1,
-        \   'formatPattern': [
-        \     '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-        \     {
-        \       'line': 1,
-        \       'column': 2,
-        \       'message': [4, ' [', 5, ']' ],
-        \       'security': 3
-        \     }
-        \   ]
-        \ })
-  call coc#config('diagnostic-languageserver.filetypes', {
-        \   'javascript': 'eslint_d',
-        \   'typescript': 'eslint_d',
-        \ })
-  call coc#config('diagnostic-languageserver.formatters.eslint_d', {
-        \   'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \   'command': 'eslint_d',
-        \   'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
-        \   'isStdout': v:true,
-        \   'isStderr': v:true,
-        \ })
-  call coc#config('diagnostic-languageserver.formatFiletypes', {
-        \   'javascript': 'eslint_d',
-        \   'typescript': 'eslint_d',
-        \ })
 endif
 
 if dein#tap('vim-gitto')
@@ -407,6 +357,117 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#option('ignore_sources', {
         \ 'denite-filter': ['denite', 'buffer', 'around']
         \ })
+endif
+
+if dein#tap('vital.vim')
+  let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
+endif
+
+if dein#tap('vim-lamp')
+  autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
+  function! s:on_lamp_initialized() abort
+    let s:on_locations = { locations -> [setqflist(locations, 'r'), execute('Denite quickfix')] }
+    call lamp#config('debug.log', '/tmp/lamp.log')
+    call lamp#config('feature.definition.on_definitions', s:on_locations)
+    call lamp#config('feature.rename.on_renamed', s:on_locations)
+    call lamp#config('view.sign.error.text', "\uf071")
+    call lamp#config('view.sign.warning.text', "\uf071")
+    call lamp#config('view.sign.information.text', "\uf449")
+    call lamp#config('view.sign.hint.text', "\uf400")
+
+    call lamp#register('typescript-language-server', {
+          \   'command': ['typescript-language-server', '--stdio'],
+          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx'],
+          \   'root_uri': { -> vimrc#get_project_root() }
+          \ })
+
+    call lamp#register('diagnostic-languageserver', {
+          \   'command': ['diagnostic-languageserver', '--stdio'],
+          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx', 'vim'],
+          \   'initialization_options': { -> {
+          \     'linters': {
+          \       'eslint': {
+          \         'sourceName': 'eslint',
+          \         'command': 'eslint_d',
+          \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+          \         'formatLines': 1,
+          \         'formatPattern': [
+          \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+          \           {
+          \             'line': 1,
+          \             'column': 2,
+          \             'message': [4, ' [', 5, ']' ],
+          \             'security': 3
+          \           }
+          \         ]
+          \       },
+          \       'vint': {
+          \         'sourceName': 'vint',
+          \         'command': 'vint',
+          \         'args': ['--stdin-display-name', '%filename', '-'],
+          \         'formatPattern': [
+          \           '[^:]+:(\d+):(\d+):\s*(.*$)',
+          \           {
+          \             'line': 1,
+          \             'column': 2,
+          \             'message': 3
+          \           }
+          \         ]
+          \       }
+          \     },
+          \     'filetypes': {
+          \       'javascript': 'eslint',
+          \       'javascriptreact': 'eslint',
+          \       'typescript': 'eslint',
+          \       'typescriptreact': 'eslint',
+          \       'vim': 'vint',
+          \     },
+          \     'formatters': {
+          \       'eslint': {
+          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+          \         'command': 'eslint_d',
+          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+          \         'isStdout': v:true,
+          \         'isStderr': v:true,
+          \       }
+          \     },
+          \     'formatFiletypes': {
+          \       'javascript': 'eslint',
+          \       'javascriptreact': 'eslint',
+          \       'typescript': 'eslint',
+          \       'typescriptreact': 'eslint'
+          \     }
+          \   } }
+          \ })
+
+    call lamp#register('vim-language-server', {
+          \   'command': ['vim-language-server', '--stdio'],
+          \   'filetypes': ['vim']
+          \ })
+
+    call lamp#register('intelephense', {
+          \   'command': ['intelephense', '--stdio'],
+          \   'filetypes': ['php'],
+          \   'root_uri': { -> vimrc#get_project_root() }
+          \ })
+
+    call lamp#register('rls', {
+          \   'command': ['rustup run nightly-2019-09-15 rls'],
+          \   'filetypes': ['rust'],
+          \   'root_uri': { -> vimrc#get_project_root() }
+          \ })
+
+  endfunction
+
+  autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
+  function! s:on_lamp_text_document_did_open() abort
+    nmap <buffer> gf<CR>    <Plug>(lamp-definition)
+    nmap <buffer> gfs       <Plug>(lamp-definition-split)
+    nmap <buffer> gfv       <Plug>(lamp-definition-vsplit)
+    nmap <buffer> <Leader>i <Plug>(lamp-hover)
+    nmap <buffer> <Leader>r <Plug>(lamp-rename)
+  endfunction
 endif
 
 if dein#tap('deol.nvim')
@@ -526,7 +587,7 @@ if dein#tap('lightline.vim')
 
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'filename', 'modified']]
-  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'coc']]
+  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'lamp']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
@@ -539,7 +600,7 @@ if dein#tap('lightline.vim')
 
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
-  let g:lightline.component_function.coc = 'CoC'
+  let g:lightline.component_function.lamp = 'lamp'
 
   function! Git()
     if dein#tap('vim-gitto')
@@ -551,10 +612,10 @@ if dein#tap('lightline.vim')
     return 'no git'
   endfunction
 
-  function! CoC()
-    if dein#tap('coc.nvim')
+  function! Lamp()
+    if dein#tap('vim-lamp')
       try
-        return coc#status()
+        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'Lamp' : ''
       catch /.*/
       endtry
     endif
@@ -716,10 +777,10 @@ endif
 
 autocmd! vimrc FileType * call s:on_file_type()
 function! s:on_file_type()
-  let filetype_map = {
-        \ '.*\.d\.ts$': 'typescript.dts'
-        \ }
-  for [k, v] in items(filetype_map)
+  for [k, v] in items({
+        \   '.*\.d\.ts$': 'typescript.dts',
+        \   '.*\.log': 'text'
+        \ })
     if bufname('%') =~ k
       execute printf('setlocal filetype=%s', v)
     endif
@@ -731,43 +792,6 @@ function! s:on_file_type()
     endif
   endif
 endfunction
-
-if dein#tap('coc.nvim')
-  autocmd! vimrc FileType * call s:on_coc_file_type()
-  function! s:on_coc_file_type() abort
-    if index([
-          \ 'vim',
-          \ 'php',
-          \ 'json',
-          \ 'html',
-          \ 'css',
-          \ 'scss',
-          \ 'rust',
-          \ 'typescript',
-          \ 'typescript.tsx',
-          \ 'javascript',
-          \ 'javascript.jsx'
-          \ ], &filetype) >= 0
-      vmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction-selected)
-      nmap <silent><buffer> <Leader><CR>     <Plug>(coc-codeaction)
-      nmap <silent><buffer> <Leader>r        <Plug>(coc-rename)
-      nmap <silent><buffer> <Leader>g        <Plug>(coc-references)
-      nmap <silent><buffer> <Leader>f        <Plug>(coc-format)
-      nmap <silent><buffer> gf<CR>           <Plug>(coc-definition)
-      nmap <silent><buffer> gfv              :<C-u>vsplit<CR><Plug>(coc-definition)
-      nmap <silent><buffer> gfs              :<C-u>split<CR><Plug>(coc-definition)
-      nmap <silent><buffer> gi               <Plug>(coc-codelens-action)
-      nnoremap <buffer> <Leader>i            :<C-u>call CocActionAsync('doHover')<CR>
-      nnoremap <buffer> <Leader><Leader>     :<C-u>call CocActionAsync('runCommand', 'editor.action.organizeImport')<CR>
-    endif
-  endfunction
-
-  autocmd! vimrc User CocLocationsChange call s:on_coc_location_change()
-  function! s:on_coc_location_change() abort
-    call setqflist(g:coc_jump_locations)
-    Denite quickfix -immediately-1 
-  endfunction
-endif
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
