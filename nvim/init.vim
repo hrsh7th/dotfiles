@@ -291,6 +291,7 @@ if dein#tap('dein.vim')
 endif
 
 if dein#tap('lexima.vim')
+  let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
   call lexima#set_default_rules()
 
@@ -462,11 +463,19 @@ if dein#tap('vim-lamp')
 
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
-    nmap <buffer> gf<CR>    <Plug>(lamp-definition)
-    nmap <buffer> gfs       <Plug>(lamp-definition-split)
-    nmap <buffer> gfv       <Plug>(lamp-definition-vsplit)
-    nmap <buffer> <Leader>i <Plug>(lamp-hover)
-    nmap <buffer> <Leader>r <Plug>(lamp-rename)
+    nmap <buffer> gf<CR>       <Plug>(lamp-definition)
+    nmap <buffer> gfs          <Plug>(lamp-definition-split)
+    nmap <buffer> gfv          <Plug>(lamp-definition-vsplit)
+    nmap <buffer> <Leader>i    <Plug>(lamp-hover)
+    nmap <buffer> <Leader>r    <Plug>(lamp-rename)
+    nmap <buffer> <Leader>g    <Plug>(lamp-references)
+
+    nmap <buffer> <Leader>f    <Plug>(lamp-formatting)
+    vmap <buffer> <Leader>f    <Plug>(lamp-range-formatting)
+
+    nmap <buffer> <Leader><CR> <Plug>(lamp-code-action)
+    vmap <buffer> <Leader><CR> <Plug>(lamp-code-action)
+    set omnifunc=lamp#complete
   endfunction
 endif
 
