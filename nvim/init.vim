@@ -646,7 +646,7 @@ if dein#tap('denite.nvim')
     nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
     nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
     nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
-    nnoremap <silent><buffer><expr>o       denite#do_map('do_action', 'open')
+    nnoremap <silent><buffer><expr>o       denite#do_map('do_action', 'edit')
     nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplit')
     nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'split')
     nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
@@ -717,8 +717,8 @@ if dein#tap('denite.nvim')
   endfunction
   call denite#custom#action('directory', 'execute', function('s:denite_execute_action'))
 
-  " open action.
-  function! s:denite_open_action(context)
+  " edit action.
+  function! s:denite_edit_action(context)
     for target in a:context['targets']
       call vimrc#open('edit', {
             \ 'path': target['action__path'],
@@ -727,7 +727,7 @@ if dein#tap('denite.nvim')
             \ }, a:context['prev_winid'])
     endfor
   endfunction
-  call denite#custom#action('openable,file,buffer', 'open', function('s:denite_open_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+  call denite#custom#action('openable,file,buffer', 'edit', function('s:denite_edit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
 
   " split action.
   function! s:denite_split_action(context)
