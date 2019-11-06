@@ -1,3 +1,5 @@
+" vint: -ProhibitSetNoCompatible
+
 if has('vim_starting')
   set encoding=utf-8
 endif
@@ -62,6 +64,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
+  call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
   call dein#add('neoclide/denite-extra')
@@ -73,6 +76,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
   call dein#add('thinca/vim-themis')
+  call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
   if !has('nvim')
@@ -237,9 +241,6 @@ nnoremap gj gJ
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
-let g:markdown_fenced_languages = ['help', 'typescript', 'javascript']
-let g:markdown_folding = v:false
-
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
@@ -249,7 +250,7 @@ if dein#tap('defx.nvim')
   nnoremap <F2> :<C-u>call DefxOpen()<CR>
   function! DefxOpen()
     let path = expand('%:p:h')
-    let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') == 'defx' })
+    let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') ==# 'defx' })
     if len(winnrs) > 0
       let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
       if len(choise) > 0
@@ -370,6 +371,7 @@ if dein#tap('vim-lamp')
     let s:on_locations = { locations -> [setqflist(locations, 'r'), execute('Denite quickfix')] }
     call lamp#config('debug.log', '/tmp/lamp.log')
     call lamp#config('feature.definition.on_definitions', s:on_locations)
+    call lamp#config('feature.references.on_references', s:on_locations)
     call lamp#config('feature.rename.on_renamed', s:on_locations)
     call lamp#config('view.sign.error.text', "\uf071")
     call lamp#config('view.sign.warning.text', "\uf071")
@@ -378,13 +380,18 @@ if dein#tap('vim-lamp')
 
     call lamp#register('typescript-language-server', {
           \   'command': ['typescript-language-server', '--stdio'],
-          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx'],
-          \   'root_uri': { -> vimrc#get_project_root() }
+          \   'filetypes': ['typescript', 'typescript.dts', 'typescriptreact', 'typescript.tsx', 'javascript', 'javascriptreact', 'javascript.jsx'],
+          \   'root_uri': { -> vimrc#get_project_root() },
+          \   'capabilities': {
+          \     'completionProvider': {
+          \       'triggerCharacters': [',']
+          \     }
+          \   }
           \ })
 
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
-          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx', 'vim'],
+          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx', 'vim', 'vimspec'],
           \   'initialization_options': { -> {
           \     'linters': {
           \       'eslint': {
@@ -444,7 +451,7 @@ if dein#tap('vim-lamp')
 
     call lamp#register('vim-language-server', {
           \   'command': ['vim-language-server', '--stdio'],
-          \   'filetypes': ['vim']
+          \   'filetypes': ['vim', 'vimspec']
           \ })
 
     call lamp#register('intelephense', {
@@ -609,7 +616,7 @@ if dein#tap('lightline.vim')
 
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
-  let g:lightline.component_function.lamp = 'lamp'
+  let g:lightline.component_function.lamp = 'Lamp'
 
   function! Git()
     if dein#tap('vim-gitto')
@@ -624,7 +631,7 @@ if dein#tap('lightline.vim')
   function! Lamp()
     if dein#tap('vim-lamp')
       try
-        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'Lamp' : ''
+        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? "\u26A1" : ''
       catch /.*/
       endtry
     endif
@@ -836,3 +843,4 @@ function! s:on_option_set_diff() abort
   nnoremap <buffer> <Leader>n ]czz
   nnoremap <buffer> <Leader>p [czz
 endfunction
+
