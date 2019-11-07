@@ -11,28 +11,7 @@ endif
 
 let $MYVIMRC = resolve($MYVIMRC)
 
-let g:loaded_2html_plugin      = 1
-let g:loaded_getscript         = 1
-let g:loaded_getscriptPlugin   = 1
-let g:loaded_gzip              = 1
-let g:loaded_logipat           = 1
-let g:loaded_logiPat           = 1
-let g:loaded_matchparen        = 1
-let g:loaded_netrw             = 1
-let g:loaded_netrwFileHandlers = 1
-let g:loaded_netrwPlugin       = 1
-let g:loaded_netrwSettings     = 1
-let g:loaded_rrhelper          = 1
-let g:loaded_spellfile_plugin  = 1
-let g:loaded_sql_completion    = 1
-let g:loaded_syntax_completion = 1
-let g:loaded_tar               = 1
-let g:loaded_tarPlugin         = 1
-let g:loaded_vimball           = 1
-let g:loaded_vimballPlugin     = 1
-let g:loaded_zip               = 1
-let g:loaded_zipPlugin         = 1
-let g:vimsyn_embed             = 1
+call vimrc#ignore_runtime()
 
 let s:dein = {}
 let s:dein.dir = {}
@@ -71,7 +50,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
-  call dein#add('t9md/vim-quickhl')
   call dein#add('thinca/vim-prettyprint')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
@@ -197,9 +175,7 @@ nnoremap < <<<Esc>
 nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
-nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
-      \ dein#tap('vim-quickhl') ? 'QuickhlManualReset' : 'nohlsearch',
-      \ dein#tap('vim-quickhl') ? 'QuickhlCwordDisable' : 'nohlsearch',
+nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>",
       \ 'nohlsearch',
       \ 'redraw!')
 
@@ -263,13 +239,14 @@ if dein#tap('defx.nvim')
   endfunction
 endif
 
-if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
-  nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
+if dein#tap('vim-effort-gf')
+  nnoremap gf<CR> :<C-u>EffortGF<CR>
+  nnoremap gfv    :<C-u>vertical EffortGF<CR>
+  nnoremap gfs    :<C-u>belowright EffortGF<CR>
 endif
 
-if dein#tap('vim-quickhl')
-  nmap @ <Plug>(quickhl-manual-this)
-  vmap @ <Plug>(quickhl-manual-this)
+if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
+  nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
 endif
 
 if dein#tap('open-browser.vim')
@@ -731,7 +708,7 @@ if dein#tap('denite.nvim')
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
-            \ }, a:context['prev_winid'])
+            \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'edit', function('s:denite_edit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -743,7 +720,7 @@ if dein#tap('denite.nvim')
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
-            \ }, a:context['prev_winid'])
+            \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -755,7 +732,7 @@ if dein#tap('denite.nvim')
             \ 'path': target['action__path'],
             \ 'line': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
-            \ }, a:context['prev_winid'])
+            \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
