@@ -253,7 +253,7 @@ if dein#tap('denite.nvim')
   nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>m :<C-u>Denite denite -buffer-name=denite<CR>
+  nnoremap <Leader>m :<C-u>Denite -resume <CR>
   nnoremap <Leader>n :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=-1 -no-empty<CR>
 endif
@@ -265,6 +265,7 @@ endif
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
+
   call lexima#set_default_rules()
 
   call lexima#add_rule({ 'char': '<', 'input_after': '>' })
@@ -272,6 +273,7 @@ if dein#tap('lexima.vim')
   call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
   call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
   call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
+  call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
 
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
@@ -288,11 +290,16 @@ endif
 
 if dein#tap('vim-vsnip')
   if dein#tap('lexima.vim')
-    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    if dein#tap('vim-lamp')
+      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
+      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
+    else
+      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    endif
   else
-    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
+    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
   endif
 endif
 
@@ -432,6 +439,19 @@ if dein#tap('vim-lamp')
           \   'command': ['intelephense', '--stdio'],
           \   'filetypes': ['php'],
           \   'root_uri': { -> vimrc#get_project_root() }
+          \ })
+
+    call lamp#register('html-languageserver', {
+          \   'command': ['html-languageserver', '--stdio'],
+          \   'filetypes': ['html', 'css'],
+          \   'initialization_options': { -> {
+          \     'embeddedLanguages': []
+          \   } },
+          \   'capabilities': {
+          \     'completionProvider': {
+          \       'triggerCharacters': ['>'],
+          \     }
+          \   }
           \ })
 
     call lamp#register('rls', {
