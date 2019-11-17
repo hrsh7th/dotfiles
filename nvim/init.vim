@@ -11,6 +11,11 @@ endif
 
 let $MYVIMRC = resolve($MYVIMRC)
 
+let s:flags = {
+      \   'enable_vim_lsp': v:false,
+      \   'enable_lexima': v:true,
+      \ }
+
 call vimrc#ignore_runtime()
 
 let s:dein = {}
@@ -265,23 +270,24 @@ endif
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
+  if s:flags.enable_lexima
+    call lexima#set_default_rules()
 
-  call lexima#set_default_rules()
+    call lexima#add_rule({ 'char': '<', 'input_after': '>' })
+    call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
+    call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
+    call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
+    call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
+    call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
 
-  call lexima#add_rule({ 'char': '<', 'input_after': '>' })
-  call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
-  call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
-  call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
-  call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
-
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
+  endif
 endif
 
 if dein#tap('vim-devicons')
@@ -289,7 +295,7 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
-  if dein#tap('lexima.vim')
+  if dein#tap('lexima.vim') && s:flags.enable_lexima
     if dein#tap('vim-lamp')
       imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
       smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
@@ -297,9 +303,12 @@ if dein#tap('vim-vsnip')
       imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
       smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
     endif
-  else
+  elseif dein#tap('vim-lamp')
     imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
     smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
+  else
+    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
   endif
 endif
 
@@ -327,6 +336,146 @@ else
   colorscheme ron
 endif
 
+if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
+  let g:lsp_log_file = '/tmp/lsp.log'
+  let g:lsp_fold_enabled = v:true
+  let g:lsp_signs_error = { 'text' : "\uf071" }
+  let g:lsp_signs_warning = { 'text' : "\uf071" }
+  let g:lsp_signs_information = { 'text' : "\uf449" }
+  let g:lsp_signs_hint = { 'text' : "\uf400" }
+  let g:lsp_diagnostics_echo_cursor = v:true
+  let g:lsp_highlight_references_enabled = v:false
+  let g:lsp_text_edit_enabled = v:true
+  let g:lsp_virtual_text_enabled = v:false
+
+  set foldmethod=expr
+  set foldexpr=lsp#ui#vim#folding#foldexpr()
+  set foldtext=lsp#ui#vim#folding#foldtext()
+
+  let bg = synIDattr(hlID('LineNr'), 'bg')
+  execute printf('highlight! LspErrorText guifg=red')
+  execute printf('highlight! LspWarningText guifg=yellow')
+  execute printf('highlight! LspHintText guifg=darkgray')
+  execute printf('highlight! LspInformationText guifg=darkgray')
+
+  let g:lsp_server_definitions = []
+
+  " npm install -g typescript-language-server
+  let g:lsp_server_definitions += [{
+        \   'executable': 'typescript-language-server',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
+        \   'whitelist': ['typescript', 'typescriptreact', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx', 'javascriptreact']
+        \ }]
+
+  " npm install -g javascript-typescript-langserver
+"  let g:lsp_server_definitions += [{
+"        \   'executable': 'javascript-typescript-langserver',
+"        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'javascript-typescript-stdio'] },
+"        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
+"        \ }]
+
+  " npm install -g diagnostic-languageserver
+  let g:lsp_server_definitions += [{
+        \   'executable': 'diagnostic-languageserver',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
+        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx'],
+        \   'initialization_options': {
+        \     'linters': {
+        \       'eslint': {
+        \         'sourceName': 'eslint',
+        \         'command': 'eslint_d',
+        \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'formatLines': 1,
+        \         'formatPattern': [
+        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+        \           {
+        \             'line': 1,
+        \             'column': 2,
+        \             'message': [4, ' [', 5, ']' ],
+        \             'security': 3
+        \           }
+        \         ]
+        \       },
+        \     },
+        \     'filetypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.jsx': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint'
+        \     },
+        \     'formatters': {
+        \       'eslint': {
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'command': 'eslint_d',
+        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+        \         'isStdout': v:true,
+        \         'isStderr': v:true,
+        \       }
+        \     },
+        \     'formatFiletypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.jsx': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint'
+        \     }
+        \   }
+        \ }]
+
+  " npm install -g vim-language-server
+  let g:lsp_server_definitions += [{
+        \   'executable': 'vim-language-server',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'vim-language-server --stdio'] },
+        \   'whitelist': ['vim']
+        \ }]
+
+  " npm install -g intelephense@1.0.10
+  let g:lsp_server_definitions += [{
+        \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
+        \   'executable': 'intelephense',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
+        \   'initialization_options': {
+        \     'storagePath': expand('~/.cache/intelephense')
+        \   },
+        \   'whitelist': ['php']
+        \ }]
+
+  " rustup update && rustup component add rls rust-analysis rust-src
+  let g:lsp_server_definitions += [{
+        \   'executable': 'rls',
+        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run nightly-2019-09-15 rls'] },
+        \   'whitelist': ['rust']
+        \ }]
+
+  autocmd! vimrc User lsp_setup call s:setup_lsp()
+  function! s:setup_lsp()
+    let priority = 0 " Specifying to use server for `LspDocumentFormat`.
+    for server in get(g:, 'lsp_server_definitions', [])
+      if executable(server.executable)
+        if has_key(server, 'init')
+          call server['init']()
+        endif
+        call lsp#register_server({
+              \ 'name': priority . '_' . server.executable,
+              \ 'cmd': server.cmd,
+              \ 'whitelist': server.whitelist,
+              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(vimrc#get_project_root()) },
+              \ 'initialization_options': get(server, 'initialization_options', {})
+              \ })
+        let priority = priority + 1
+      endif
+    endfor
+  endfunction
+
+  autocmd! vimrc User lsp_float_opened call s:on_lsp_float_opened()
+  function! s:on_lsp_float_opened() abort
+    let l:winid = lsp#ui#vim#output#getpreviewwinid()
+    if l:winid >= 0
+      call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
+    endif
+  endfunction
+endif
+
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
@@ -343,13 +492,16 @@ if dein#tap('vital.vim')
   let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
 endif
 
-if dein#tap('vim-lamp')
+if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
   autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
   function! s:on_lamp_initialized() abort
     let s:on_locations = { locations -> [setqflist(locations, 'r'), execute('Denite quickfix')] }
+    let s:on_no_locations = { position -> [cursor(position.line + 1, position.character + 1), execute('EffortGF')] }
     call lamp#config('feature.completion.snippet.expand', { option -> vsnip#anonymous(option.body) })
     call lamp#config('debug.log', '/tmp/lamp.log')
     call lamp#config('feature.definition.on_definitions', s:on_locations)
+    call lamp#config('feature.definition.on_no_definitions', s:on_no_locations)
+    call lamp#config('feature.declaration.on_declarations', s:on_locations)
     call lamp#config('feature.implementation.on_implementation', s:on_locations)
     call lamp#config('feature.type_definition.on_type_definitions', s:on_locations)
     call lamp#config('feature.references.on_references', s:on_locations)
@@ -362,7 +514,7 @@ if dein#tap('vim-lamp')
     call lamp#register('typescript-language-server', {
           \   'command': ['typescript-language-server', '--stdio'],
           \   'filetypes': ['typescript', 'typescript.dts', 'typescriptreact', 'typescript.tsx', 'javascript', 'javascriptreact', 'javascript.jsx'],
-          \   'root_uri': { -> vimrc#get_project_root() },
+          \   'root_uri': { -> vimrc#findup(['tsconfig.json', '.git'], '') },
           \   'capabilities': {
           \     'completionProvider': {
           \       'triggerCharacters': [',']
@@ -797,11 +949,14 @@ endif
 autocmd! vimrc FileType * call s:on_file_type()
 function! s:on_file_type()
   for [k, v] in items({
-        \   '.*\.d\.ts$': 'typescript.dts',
-        \   '.*\.log': 'text'
+        \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
+        \   '.*\.log': { 'filetype': 'text', 'tabstop': 8 }
         \ })
     if bufname('%') =~ k
-      execute printf('setlocal filetype=%s', v)
+      execute printf('setlocal filetype=%s', v.filetype)
+      if has_key(v, 'tabstop')
+        execute printf('setlocal tabstop=%s', v.tabstop)
+      endif
     endif
   endfor
 
