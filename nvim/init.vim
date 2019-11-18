@@ -174,8 +174,9 @@ nnoremap < <<<Esc>
 nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
-nnoremap <expr><silent><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>",
+nnoremap <expr><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
       \ 'nohlsearch',
+      \ dein#tap('vim-lamp') ? 'call lamp#feature#document_highlight#clear()' : 'nohlsearch',
       \ 'redraw!')
 
 nnoremap H 20h
@@ -516,6 +517,9 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
           \   'filetypes': ['typescript', 'typescript.dts', 'typescriptreact', 'typescript.tsx', 'javascript', 'javascriptreact', 'javascript.jsx'],
           \   'root_uri': { -> vimrc#findup(['tsconfig.json', '.git'], '') },
           \   'capabilities': {
+          \     'documentFormattingProvider': v:null,
+          \     'documentRangeFormattingProvider': v:null,
+          \     'documentOnTypeFormattingProvider': v:null,
           \     'completionProvider': {
           \       'triggerCharacters': [',']
           \     }
@@ -631,6 +635,7 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
     nmap <buffer> <Leader>i    <Plug>(lamp-hover)
     nmap <buffer> <Leader>r    <Plug>(lamp-rename)
     nmap <buffer> <Leader>g    <Plug>(lamp-references)
+    nmap <buffer> @            <Plug>(lamp-document-highlight)
 
     nmap <buffer> <Leader>f    <Plug>(lamp-formatting)
     vmap <buffer> <Leader>f    <Plug>(lamp-range-formatting)
