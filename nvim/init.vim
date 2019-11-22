@@ -13,6 +13,7 @@ let $MYVIMRC = resolve($MYVIMRC)
 
 let s:flags = {
       \   'enable_vim_lsp': v:false,
+      \   'enable_asyncomplete': v:false,
       \   'enable_lexima': v:true,
       \ }
 
@@ -39,6 +40,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
+  call dein#add('hrsh7th/deoplete-lamp')
+  call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
@@ -53,6 +56,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
   call dein#add('neoclide/denite-extra')
+  call dein#add('prabirshrestha/async.vim')
+  call dein#add('prabirshrestha/asyncomplete-lsp.vim')
+  call dein#add('prabirshrestha/asyncomplete.vim')
+  call dein#add('prabirshrestha/vim-lsp')
+  call dein#add('previm/previm')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
@@ -143,6 +151,7 @@ set shiftwidth=2
 set textwidth=0
 set backspace=2
 set whichwrap=b,s,h,l,<,>,[,]
+  set completeopt=menu,menuone,noselect
 
 if has('nvim')
   set wildoptions=pum
@@ -150,11 +159,9 @@ if has('nvim')
   set clipboard=unnamedplus
   set fillchars+=vert:\ ,eob:\ 
   set inccommand=split
-  set completeopt=menu
 else
   set clipboard=unnamed
   set fillchars+=vert:\ 
-  set completeopt=popup
 endif
 
 let mapleader="\<Space>"
@@ -300,15 +307,15 @@ endif
 if dein#tap('vim-vsnip')
   if dein#tap('lexima.vim') && s:flags.enable_lexima
     if dein#tap('vim-lamp')
-      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
-      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select(lexima#expand('<LT>Tab>', 'i'))
+      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
+      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
     else
       imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
       smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
     endif
   elseif dein#tap('vim-lamp')
-    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
-    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#complete_select('<Tab>')
+    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
+    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
   else
     imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
     smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
@@ -354,6 +361,7 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
   set foldmethod=expr
   set foldexpr=lsp#ui#vim#folding#foldexpr()
   set foldtext=lsp#ui#vim#folding#foldtext()
+  set omnifunc=lsp#omni#complete
 
   let bg = synIDattr(hlID('LineNr'), 'bg')
   execute printf('highlight! LspErrorText guifg=red')
@@ -434,11 +442,18 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
 
   " npm install -g intelephense@1.0.10
   let g:lsp_server_definitions += [{
-        \   'init': { -> !isdirectory(expand('./cache/intelephense')) ? mkdir(expand('~/.cache/intelephense'), 'p') : v:null },
         \   'executable': 'intelephense',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
         \   'initialization_options': {
         \     'storagePath': expand('~/.cache/intelephense')
+        \   },
+        \   'workspace_config': {
+        \     'intelephense': {
+        \       'files': { 'maxSize': 2000000 },
+        \       'format': { 'enable': v:false }
+        \     },
+        \     'isIncomplete': v:true,
+        \     'editor': {'autoClosingBrackets': v:false },
         \   },
         \   'whitelist': ['php']
         \ }]
@@ -477,6 +492,13 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
       call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
     endif
   endfunction
+
+
+  nnoremap gf<CR>       :<C-u>LspDefinition<CR>
+  nnoremap gfv          :<C-u>vnew \| LspDefinition<CR>
+  nnoremap gfs          :<C-u>new \| LspDefinition<CR>
+  nnoremap gfp          :<C-u>LspPeekDefinition<CR>
+  nnoremap <Leader>i    :<C-u>LspHover<CR>
 endif
 
 if dein#tap('vim-gitto')
@@ -485,10 +507,17 @@ if dein#tap('vim-gitto')
 endif
 
 if dein#tap('deoplete.nvim')
-  let g:deoplete#enable_at_startup = 1
-  call deoplete#custom#option('ignore_sources', {
-        \ 'denite-filter': ['denite', 'buffer', 'around']
+  let g:deoplete#enable_at_startup = !s:flags.enable_asyncomplete
+  call deoplete#custom#option('keyword_patterns', {
+        \   '_': '[\w_\-/$]*'
         \ })
+  call deoplete#custom#option('ignore_sources', {
+        \   'denite-filter': ['denite', 'buffer', 'around']
+        \ })
+endif
+
+if dein#tap('asyncomplete.vim')
+  let g:asyncomplete_auto_popup = s:flags.enable_asyncomplete
 endif
 
 if dein#tap('vital.vim')
@@ -500,8 +529,9 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
   function! s:on_lamp_initialized() abort
     let s:on_locations = { locations -> [setqflist(locations, 'r'), execute('Denite quickfix')] }
     let s:on_no_locations = { position -> [cursor(position.line + 1, position.character + 1), execute('EffortGF')] }
-    call lamp#config('feature.completion.snippet.expand', { option -> vsnip#anonymous(option.body) })
+
     call lamp#config('debug.log', '/tmp/lamp.log')
+    call lamp#config('feature.completion.snippet.expand', { option -> vsnip#anonymous(option.body) })
     call lamp#config('feature.definition.on_definitions', s:on_locations)
     call lamp#config('feature.definition.on_no_definitions', s:on_no_locations)
     call lamp#config('feature.declaration.on_declarations', s:on_locations)
@@ -514,10 +544,12 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
     call lamp#config('view.sign.information.text', "\uf449")
     call lamp#config('view.sign.hint.text', "\uf400")
 
-    call lamp#register('typescript-language-server', {
-          \   'command': ['typescript-language-server', '--stdio'],
-          \   'filetypes': ['typescript', 'typescript.dts', 'typescriptreact', 'typescript.tsx', 'javascript', 'javascriptreact', 'javascript.jsx'],
-          \   'root_uri': { -> vimrc#findup(['tsconfig.json', '.git'], '') },
+    call lamp#language#vim()
+    call lamp#language#php()
+    call lamp#language#html()
+    call lamp#language#rust()
+    call lamp#language#typescript({
+          \   'filetypes': ['typescript.dts'],
           \   'capabilities': {
           \     'documentFormattingProvider': v:null,
           \     'documentRangeFormattingProvider': v:null,
@@ -530,13 +562,22 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
 
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
-          \   'filetypes': ['typescript', 'javascript', 'typescript.tsx', 'javascript.jsx', 'vim', 'vimspec'],
+          \   'filetypes': [
+          \     'typescript',
+          \     'javascript',
+          \     'typescript.tsx',
+          \     'typescriptreact',
+          \     'javascript.jsx',
+          \     'javascriptreact',
+          \     'vim',
+          \     'vimspec'
+          \   ],
           \   'initialization_options': { -> {
           \     'linters': {
           \       'eslint': {
           \         'sourceName': 'eslint',
           \         'command': 'eslint_d',
-          \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
+          \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
           \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
           \         'formatLines': 1,
           \         'formatPattern': [
@@ -547,7 +588,11 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
           \             'message': [4, ' [', 5, ']' ],
           \             'security': 3
           \           }
-          \         ]
+          \         ],
+          \         'securities': {
+          \            'error': 'error',
+          \            'warning': 'warning'
+          \         },
           \       },
           \       'vint': {
           \         'sourceName': 'vint',
@@ -565,8 +610,10 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
           \     },
           \     'filetypes': {
           \       'javascript': 'eslint',
+          \       'javascript.tsx': 'eslint',
           \       'javascriptreact': 'eslint',
           \       'typescript': 'eslint',
+          \       'typescript.tsx': 'eslint',
           \       'typescriptreact': 'eslint',
           \       'vim': 'vint',
           \     },
@@ -574,54 +621,26 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
           \       'eslint': {
           \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
           \         'command': 'eslint_d',
-          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
+          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
           \         'isStdout': v:true,
           \         'isStderr': v:true,
           \       }
           \     },
           \     'formatFiletypes': {
           \       'javascript': 'eslint',
+          \       'javascript.tsx': 'eslint',
           \       'javascriptreact': 'eslint',
           \       'typescript': 'eslint',
+          \       'typescript.tsx': 'eslint',
           \       'typescriptreact': 'eslint'
           \     }
           \   } }
           \ })
-
-    call lamp#register('vim-language-server', {
-          \   'command': ['vim-language-server', '--stdio'],
-          \   'filetypes': ['vim', 'vimspec']
-          \ })
-
-    call lamp#register('intelephense', {
-          \   'command': ['intelephense', '--stdio'],
-          \   'filetypes': ['php'],
-          \   'root_uri': { -> vimrc#get_project_root() }
-          \ })
-
-    call lamp#register('html-languageserver', {
-          \   'command': ['html-languageserver', '--stdio'],
-          \   'filetypes': ['html', 'css'],
-          \   'initialization_options': { -> {
-          \     'embeddedLanguages': []
-          \   } },
-          \   'capabilities': {
-          \     'completionProvider': {
-          \       'triggerCharacters': ['>'],
-          \     }
-          \   }
-          \ })
-
-    call lamp#register('rls', {
-          \   'command': ['rustup run nightly-2019-09-15 rls'],
-          \   'filetypes': ['rust'],
-          \   'root_uri': { -> vimrc#get_project_root() }
-          \ })
-
   endfunction
 
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
+    setlocal signcolumn=yes
     nmap <buffer> gf<CR>       <Plug>(lamp-definition)
     nmap <buffer> gfs          <Plug>(lamp-definition-split)
     nmap <buffer> gfv          <Plug>(lamp-definition-vsplit)
@@ -631,9 +650,6 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
     nmap <buffer> dgf<CR>      <Plug>(lamp-declaration)
     nmap <buffer> dgfs         <Plug>(lamp-declaration-split)
     nmap <buffer> dgfv         <Plug>(lamp-declaration-vsplit)
-    nmap <buffer> igf<CR>      <Plug>(lamp-implementation)
-    nmap <buffer> igfs         <Plug>(lamp-implementation-split)
-    nmap <buffer> igfv         <Plug>(lamp-implementation-vsplit)
     nmap <buffer> <Leader>i    <Plug>(lamp-hover)
     nmap <buffer> <Leader>r    <Plug>(lamp-rename)
     nmap <buffer> <Leader>g    <Plug>(lamp-references)
