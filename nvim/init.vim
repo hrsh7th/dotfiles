@@ -509,7 +509,7 @@ endif
 if dein#tap('deoplete.nvim')
   let g:deoplete#enable_at_startup = !s:flags.enable_asyncomplete
   call deoplete#custom#option('keyword_patterns', {
-        \   '_': '[\w_\-/$]*'
+        \   'php': '\k+'
         \ })
   call deoplete#custom#option('ignore_sources', {
         \   'denite-filter': ['denite', 'buffer', 'around']
