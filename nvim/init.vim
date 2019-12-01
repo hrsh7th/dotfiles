@@ -192,10 +192,10 @@ nnoremap H 20h
 nnoremap J 10j
 nnoremap K 10k
 nnoremap L 20l
-vnoremap H 20h
-vnoremap J 10j
-vnoremap K 10k
-vnoremap L 20l
+xnoremap H 20h
+xnoremap J 10j
+xnoremap K 10k
+xnoremap L 20l
 
 nnoremap <Leader>h <C-w>h
 nnoremap <Leader>j <C-w>j
@@ -307,18 +307,18 @@ endif
 if dein#tap('vim-vsnip')
   if dein#tap('lexima.vim') && s:flags.enable_lexima
     if dein#tap('vim-lamp')
-      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
-      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
+      imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
+      smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
     else
-      imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-      smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+      imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+      smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
     endif
   elseif dein#tap('vim-lamp')
-    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
-    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
+    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
+    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
   else
-    imap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#expandable_or_jumpable() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
   endif
 endif
 
@@ -548,6 +548,8 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
     call lamp#language#php()
     call lamp#language#html()
     call lamp#language#rust()
+    call lamp#language#go()
+    call lamp#language#python()
     call lamp#language#typescript({
           \   'filetypes': ['typescript.dts'],
           \   'capabilities': {
