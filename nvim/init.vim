@@ -41,13 +41,13 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('gruvbox-community/gruvbox')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-lamp')
-  call dein#add('hrsh7th/deoplete-vsnip')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-lamp')
   call dein#add('hrsh7th/vim-locon')
   call dein#add('hrsh7th/vim-vsnip')
+  call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
@@ -70,6 +70,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
+  call dein#add('xabikos/vscode-react')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
@@ -151,7 +152,7 @@ set shiftwidth=2
 set textwidth=0
 set backspace=2
 set whichwrap=b,s,h,l,<,>,[,]
-  set completeopt=menu,menuone,noselect
+set completeopt=menu,menuone,noselect
 
 if has('nvim')
   set wildoptions=pum
@@ -214,11 +215,11 @@ inoremap <C-l> <Right>
 inoremap <C-h> <Left>
 
 nmap <Tab> %
-vmap <Tab> %
+xmap <Tab> %
 
 nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
-vnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
-vnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
+xnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
+xnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 
 nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
 
@@ -358,9 +359,6 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
   let g:lsp_text_edit_enabled = v:true
   let g:lsp_virtual_text_enabled = v:false
 
-  set foldmethod=expr
-  set foldexpr=lsp#ui#vim#folding#foldexpr()
-  set foldtext=lsp#ui#vim#folding#foldtext()
   set omnifunc=lsp#omni#complete
 
   let bg = synIDattr(hlID('LineNr'), 'bg')
@@ -376,61 +374,6 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
         \   'executable': 'typescript-language-server',
         \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
         \   'whitelist': ['typescript', 'typescriptreact', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx', 'javascriptreact']
-        \ }]
-
-  " npm install -g javascript-typescript-langserver
-"  let g:lsp_server_definitions += [{
-"        \   'executable': 'javascript-typescript-langserver',
-"        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'javascript-typescript-stdio'] },
-"        \   'whitelist': ['typescript', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx']
-"        \ }]
-
-  " npm install -g diagnostic-languageserver
-  let g:lsp_server_definitions += [{
-        \   'executable': 'diagnostic-languageserver',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'diagnostic-languageserver --stdio'] },
-        \   'whitelist': ['typescript', 'typescript.tsx', 'javascript', 'javascipt.jsx'],
-        \   'initialization_options': {
-        \     'linters': {
-        \       'eslint': {
-        \         'sourceName': 'eslint',
-        \         'command': 'eslint_d',
-        \         'args': ['--stdin', '--stdin-filename=*.tsx', '--no-color'],
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'formatLines': 1,
-        \         'formatPattern': [
-        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-        \           {
-        \             'line': 1,
-        \             'column': 2,
-        \             'message': [4, ' [', 5, ']' ],
-        \             'security': 3
-        \           }
-        \         ]
-        \       },
-        \     },
-        \     'filetypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.jsx': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint'
-        \     },
-        \     'formatters': {
-        \       'eslint': {
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'command': 'eslint_d',
-        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=*.tsx'],
-        \         'isStdout': v:true,
-        \         'isStderr': v:true,
-        \       }
-        \     },
-        \     'formatFiletypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.jsx': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint'
-        \     }
-        \   }
         \ }]
 
   " npm install -g vim-language-server
@@ -465,6 +408,28 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
         \   'whitelist': ['rust']
         \ }]
 
+  let g:lsp_server_definitions += [{
+        \   'executable': 'html-languageserver',
+        \   'cmd': { server_info -> ['html-languageserver', '--stdio'] },
+        \   'whitelist': ['html', 'css', 'scss'],
+        \   'initialization_options': {
+        \     'embeddedLanguages': {
+        \       'css': v:true,
+        \       'html': v:true
+        \     }
+        \   }
+        \ }]
+
+  let g:lsp_server_definitions += [{
+        \   'executable': 'gopls',
+        \   'cmd': { server_info -> ['gopls'] },
+        \   'whitelist': ['go'],
+        \   'initialization_options': {
+        \     'usePlaceholders': v:true,
+        \     'completeUnimported': v:true,
+        \   }
+        \ }]
+
   autocmd! vimrc User lsp_setup call s:setup_lsp()
   function! s:setup_lsp()
     let priority = 0 " Specifying to use server for `LspDocumentFormat`.
@@ -492,7 +457,6 @@ if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
       call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
     endif
   endfunction
-
 
   nnoremap gf<CR>       :<C-u>LspDefinition<CR>
   nnoremap gfv          :<C-u>vnew \| LspDefinition<CR>
@@ -531,7 +495,6 @@ if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
     let s:on_no_locations = { position -> [cursor(position.line + 1, position.character + 1), execute('EffortGF')] }
 
     call lamp#config('debug.log', '/tmp/lamp.log')
-    call lamp#config('feature.completion.snippet.expand', { option -> vsnip#anonymous(option.body) })
     call lamp#config('feature.definition.on_definitions', s:on_locations)
     call lamp#config('feature.definition.on_no_definitions', s:on_no_locations)
     call lamp#config('feature.declaration.on_declarations', s:on_locations)
@@ -825,22 +788,22 @@ if dein#tap('denite.nvim')
     if has('nvim')
       setlocal winhighlight=Normal:NormalFloat,EndOfBuffer:NormalFloat
     endif
-    nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
-    nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
-    nnoremap <silent><buffer><expr>q       denite#do_map('quit')
-    nnoremap <silent><buffer><expr><Esc>   denite#do_map('quit')
-    nnoremap <silent><buffer><expr><Tab>   denite#do_map('choose_action')
-    nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
-    nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
-    nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
-    nnoremap <silent><buffer><expr>o       denite#do_map('do_action', 'edit')
-    nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplit')
-    nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'split')
-    nnoremap <silent><buffer><expr>n       denite#do_map('do_action', 'new')
-    nnoremap <silent><buffer><expr>d       denite#do_map('do_action', 'delete')
-    nnoremap <silent><buffer><expr>p       denite#do_map('do_action', 'preview')
-    nnoremap <silent><buffer><expr>*       denite#do_map('toggle_select_all')
-    nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select') . 'j'
+    nnoremap <silent><buffer><expr>i     denite#do_map('open_filter_buffer')
+    nnoremap <silent><buffer><expr>a     denite#do_map('open_filter_buffer')
+    nnoremap <silent><buffer><expr>q     denite#do_map('quit')
+    nnoremap <silent><buffer><expr><Esc> denite#do_map('quit')
+    nnoremap <silent><buffer><expr><Tab> denite#do_map('choose_action')
+    nnoremap <silent><buffer><expr><C-l> denite#do_map('redraw')
+    nnoremap <silent><buffer><expr><C-h> denite#do_map('restore_sources')
+    nnoremap <silent><buffer><expr><CR>  denite#do_map('do_action')
+    nnoremap <silent><buffer><expr>o     denite#do_map('do_action', 'edit')
+    nnoremap <silent><buffer><expr>v     denite#do_map('do_action', 'vsplit')
+    nnoremap <silent><buffer><expr>s     denite#do_map('do_action', 'split')
+    nnoremap <silent><buffer><expr>n     denite#do_map('do_action', 'new')
+    nnoremap <silent><buffer><expr>d     denite#do_map('do_action', 'delete')
+    nnoremap <silent><buffer><expr>p     denite#do_map('do_action', 'preview')
+    nnoremap <silent><buffer><expr>*     denite#do_map('toggle_select_all')
+    nnoremap <silent><buffer><expr>@     denite#do_map('toggle_select') . 'j'
   endfunction
 
   autocmd! vimrc FileType denite-filter call s:setup_denite_filter()
@@ -885,13 +848,6 @@ if dein#tap('denite.nvim')
 
   " menu.
   let s:menus = {}
-  let s:menus.string = {'description': 'string utilities.'}
-  let s:menus.string.command_candidates = [
-        \ ['format: remove empty line', "'<,'>g/^$/d"],
-        \ ['format: remove trailling space', "'<,'>s/\\s*$//g"],
-        \ ['format: querystring', 'silent! %s/&amp;/\&/g | silent! %s/&/\r&/g | silent! %s/=/\r=/g'],
-        \ ['format: to smb', 'silent! %s/\\/\//g | silent! %s/^\(smb:\/\/\|\/\/\)\?/smb:\/\//g']
-        \ ]
   let s:menus.vim = {'description': 'vim runtime.'}
   let s:menus.vim.command_candidates = [
         \ ['upgrade: dein:deps', 'call dein#update()']
