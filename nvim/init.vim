@@ -11,12 +11,6 @@ endif
 
 let $MYVIMRC = resolve($MYVIMRC)
 
-let s:flags = {
-      \   'enable_vim_lsp': v:false,
-      \   'enable_asyncomplete': v:false,
-      \   'enable_lexima': v:true,
-      \ }
-
 call vimrc#ignore_runtime()
 
 let s:dein = {}
@@ -56,10 +50,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
   call dein#add('neoclide/denite-extra')
-  call dein#add('prabirshrestha/async.vim')
-  call dein#add('prabirshrestha/asyncomplete-lsp.vim')
-  call dein#add('prabirshrestha/asyncomplete.vim')
-  call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
@@ -269,7 +259,7 @@ if dein#tap('denite.nvim')
   nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>m :<C-u>Denite -resume <CR>
+  nnoremap <Leader>m :<C-u>Denite -resume -buffer-name=grep<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=-1 -no-empty<CR>
 endif
@@ -281,24 +271,22 @@ endif
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
-  if s:flags.enable_lexima
-    call lexima#set_default_rules()
+  call lexima#set_default_rules()
 
-    call lexima#add_rule({ 'char': '<', 'input_after': '>' })
-    call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
-    call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
-    call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
-    call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
-    call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
+  call lexima#add_rule({ 'char': '<', 'input_after': '>' })
+  call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
+  call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
+  call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
+  call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
+  call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
 
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
-    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
-  endif
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
+  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
 endif
 
 if dein#tap('vim-devicons')
@@ -306,7 +294,7 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
-  if dein#tap('lexima.vim') && s:flags.enable_lexima
+  if dein#tap('lexima.vim')
     if dein#tap('vim-lamp')
       imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
       smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
@@ -347,131 +335,13 @@ else
   colorscheme ron
 endif
 
-if dein#tap('vim-lsp') && s:flags.enable_vim_lsp
-  let g:lsp_log_file = '/tmp/lsp.log'
-  let g:lsp_fold_enabled = v:true
-  let g:lsp_signs_error = { 'text' : "\uf071" }
-  let g:lsp_signs_warning = { 'text' : "\uf071" }
-  let g:lsp_signs_information = { 'text' : "\uf449" }
-  let g:lsp_signs_hint = { 'text' : "\uf400" }
-  let g:lsp_diagnostics_echo_cursor = v:true
-  let g:lsp_highlight_references_enabled = v:false
-  let g:lsp_text_edit_enabled = v:true
-  let g:lsp_virtual_text_enabled = v:false
-
-  set omnifunc=lsp#omni#complete
-
-  let bg = synIDattr(hlID('LineNr'), 'bg')
-  execute printf('highlight! LspErrorText guifg=red')
-  execute printf('highlight! LspWarningText guifg=yellow')
-  execute printf('highlight! LspHintText guifg=darkgray')
-  execute printf('highlight! LspInformationText guifg=darkgray')
-
-  let g:lsp_server_definitions = []
-
-  " npm install -g typescript-language-server
-  let g:lsp_server_definitions += [{
-        \   'executable': 'typescript-language-server',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-        \   'whitelist': ['typescript', 'typescriptreact', 'typescript.tsx', 'typescript.dts', 'javascript', 'javascipt.jsx', 'javascriptreact']
-        \ }]
-
-  " npm install -g vim-language-server
-  let g:lsp_server_definitions += [{
-        \   'executable': 'vim-language-server',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'vim-language-server --stdio'] },
-        \   'whitelist': ['vim']
-        \ }]
-
-  " npm install -g intelephense@1.0.10
-  let g:lsp_server_definitions += [{
-        \   'executable': 'intelephense',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'intelephense --stdio'] },
-        \   'initialization_options': {
-        \     'storagePath': expand('~/.cache/intelephense')
-        \   },
-        \   'workspace_config': {
-        \     'intelephense': {
-        \       'files': { 'maxSize': 2000000 },
-        \       'format': { 'enable': v:false }
-        \     },
-        \     'isIncomplete': v:true,
-        \     'editor': {'autoClosingBrackets': v:false },
-        \   },
-        \   'whitelist': ['php']
-        \ }]
-
-  " rustup update && rustup component add rls rust-analysis rust-src
-  let g:lsp_server_definitions += [{
-        \   'executable': 'rls',
-        \   'cmd': { server_info -> [&shell, &shellcmdflag, 'rustup run nightly-2019-09-15 rls'] },
-        \   'whitelist': ['rust']
-        \ }]
-
-  let g:lsp_server_definitions += [{
-        \   'executable': 'html-languageserver',
-        \   'cmd': { server_info -> ['html-languageserver', '--stdio'] },
-        \   'whitelist': ['html', 'css', 'scss'],
-        \   'initialization_options': {
-        \     'embeddedLanguages': {
-        \       'css': v:true,
-        \       'html': v:true
-        \     }
-        \   }
-        \ }]
-
-  let g:lsp_server_definitions += [{
-        \   'executable': 'gopls',
-        \   'cmd': { server_info -> ['gopls'] },
-        \   'whitelist': ['go'],
-        \   'initialization_options': {
-        \     'usePlaceholders': v:true,
-        \     'completeUnimported': v:true,
-        \   }
-        \ }]
-
-  autocmd! vimrc User lsp_setup call s:setup_lsp()
-  function! s:setup_lsp()
-    let priority = 0 " Specifying to use server for `LspDocumentFormat`.
-    for server in get(g:, 'lsp_server_definitions', [])
-      if executable(server.executable)
-        if has_key(server, 'init')
-          call server['init']()
-        endif
-        call lsp#register_server({
-              \ 'name': priority . '_' . server.executable,
-              \ 'cmd': server.cmd,
-              \ 'whitelist': server.whitelist,
-              \ 'root_uri': { server_info -> lsp#utils#path_to_uri(vimrc#get_project_root()) },
-              \ 'initialization_options': get(server, 'initialization_options', {})
-              \ })
-        let priority = priority + 1
-      endif
-    endfor
-  endfunction
-
-  autocmd! vimrc User lsp_float_opened call s:on_lsp_float_opened()
-  function! s:on_lsp_float_opened() abort
-    let l:winid = lsp#ui#vim#output#getpreviewwinid()
-    if l:winid >= 0
-      call nvim_win_set_option(l:winid, 'winhl', 'Normal:NormalFloat,NormalNC:NormalFloat')
-    endif
-  endfunction
-
-  nnoremap gf<CR>       :<C-u>LspDefinition<CR>
-  nnoremap gfv          :<C-u>vnew \| LspDefinition<CR>
-  nnoremap gfs          :<C-u>new \| LspDefinition<CR>
-  nnoremap gfp          :<C-u>LspPeekDefinition<CR>
-  nnoremap <Leader>i    :<C-u>LspHover<CR>
-endif
-
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
 endif
 
 if dein#tap('deoplete.nvim')
-  let g:deoplete#enable_at_startup = !s:flags.enable_asyncomplete
+  let g:deoplete#enable_at_startup = v:true
   call deoplete#custom#option('keyword_patterns', {
         \   'php': '\k+'
         \ })
@@ -480,28 +350,26 @@ if dein#tap('deoplete.nvim')
         \ })
 endif
 
-if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = s:flags.enable_asyncomplete
-endif
-
 if dein#tap('vital.vim')
   let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
 endif
 
-if dein#tap('vim-lamp') && !s:flags.enable_vim_lsp
+if dein#tap('vim-lamp')
   autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
   function! s:on_lamp_initialized() abort
-    let s:on_locations = { locations -> [setqflist(locations, 'r'), execute('Denite quickfix')] }
-    let s:on_no_locations = { position -> [cursor(position.line + 1, position.character + 1), execute('EffortGF')] }
+    let s:on_location = { locations -> [
+          \   setqflist(locations, 'r'),
+          \   execute('Denite quickfix')
+          \ ] }
+    let s:on_fallback = { command, position -> [
+          \   cursor(position.line + 1, position.character + 1),
+          \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', ''),
+          \   execute('echomsg "ahoahoaho"')
+          \ ] }
 
     call lamp#config('debug.log', '/tmp/lamp.log')
-    call lamp#config('feature.definition.on_definitions', s:on_locations)
-    call lamp#config('feature.definition.on_no_definitions', s:on_no_locations)
-    call lamp#config('feature.declaration.on_declarations', s:on_locations)
-    call lamp#config('feature.implementation.on_implementation', s:on_locations)
-    call lamp#config('feature.type_definition.on_type_definitions', s:on_locations)
-    call lamp#config('feature.references.on_references', s:on_locations)
-    call lamp#config('feature.rename.on_renamed', s:on_locations)
+    call lamp#config('view.location.on_location', s:on_location)
+    call lamp#config('view.location.on_fallback', s:on_fallback)
     call lamp#config('view.sign.error.text', "\uf071")
     call lamp#config('view.sign.warning.text', "\uf071")
     call lamp#config('view.sign.information.text', "\uf449")
