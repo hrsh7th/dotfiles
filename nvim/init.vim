@@ -39,6 +39,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
+  call dein#add('h4kst3r/php-awesome-snippets', { 'merged': 0 })
+  call dein#add('haya14busa/vim-asterisk')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
   call dein#add('hrsh7th/deoplete-lamp')
   call dein#add('hrsh7th/vim-denite-gitto')
@@ -55,6 +57,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
+  call dein#add('microsoft/vscode-python', { 'merged': 0 })
   call dein#add('natebosch/vim-lsc')
   call dein#add('neoclide/denite-extra')
   call dein#add('neovim/nvim-lsp')
@@ -170,6 +173,7 @@ nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>w :<C-u>w<CR>
+nnoremap * *N
 nmap ; :
 vmap ; :
 xmap ; :
@@ -227,6 +231,11 @@ nnoremap gj gJ
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
+if dein#tap('vim-asterisk')
+  let g:asterisk#keeppos = 1
+  map * <Plug>(asterisk-gz*)
+endif
+
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
@@ -265,13 +274,13 @@ endif
 
 if dein#tap('denite.nvim')
   nnoremap <BS> :<C-u>Denite file/old<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite -buffer-name=file_rec file/rec:%s<CR>', vimrc#get_cwd())
-  nnoremap <expr>gr printf(':<C-u>Denite -buffer-name=grep -no-empty grep:%s<CR>', vimrc#get_cwd())
+  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', vimrc#get_cwd())
+  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>m :<C-u>Denite -resume -buffer-name=grep<CR>
-  nnoremap <Leader>n :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=+1 -no-empty<CR>
-  nnoremap <Leader>p :<C-u>Denite -resume -buffer-name=grep -immediately -cursor-pos=-1 -no-empty<CR>
+  nnoremap <Leader>m :<C-u>Denite -resume<CR>
+  nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
+  nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
 
 if dein#tap('dein.vim')
@@ -423,9 +432,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#language#vim()
     call lamp#language#php()
     call lamp#language#html()
-    call lamp#language#rust()
+    call lamp#language#css()
     call lamp#language#go()
     call lamp#language#python()
+    call lamp#language#rust()
     call lamp#language#typescript({
           \   'filetypes': ['typescript.dts'],
           \   'capabilities': {
@@ -783,7 +793,7 @@ if dein#tap('denite.nvim')
             \ })
     endfor
   endfunction
-  call denite#custom#action('openable,file,buffer', 'edit', function('s:denite_edit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+  call denite#custom#action('openable,file,buffer,gitto/status', 'edit', function('s:denite_edit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
 
   " split action.
   function! s:denite_split_action(context)
@@ -795,7 +805,7 @@ if dein#tap('denite.nvim')
             \ })
     endfor
   endfunction
-  call denite#custom#action('openable,file,buffer', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+  call denite#custom#action('openable,file,buffer,gitto/status', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
 
   " vsplit action.
   function! s:denite_vsplit_action(context)
@@ -807,7 +817,7 @@ if dein#tap('denite.nvim')
             \ })
     endfor
   endfunction
-  call denite#custom#action('openable,file,buffer', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+  call denite#custom#action('openable,file,buffer,gitto/status', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
 
   " delete action
   if dein#tap('vim-denite-gitto')
@@ -844,7 +854,8 @@ autocmd! vimrc FileType * call s:on_file_type()
 function! s:on_file_type()
   for [k, v] in items({
         \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
-        \   '.*\.log': { 'filetype': 'text', 'tabstop': 8 }
+        \   '.*\.log': { 'filetype': 'text', 'tabstop': 8 },
+        \   '.*\.tpl': { 'filetype': 'html' },
         \ })
     if bufname('%') =~ k
       execute printf('setlocal filetype=%s', v.filetype)
