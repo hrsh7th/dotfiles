@@ -418,8 +418,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \ ] }
     let s:on_fallback = { command, position -> [
           \   cursor(position.line + 1, position.character + 1),
-          \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', ''),
-          \   execute('echomsg "ahoahoaho"')
+          \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
           \ ] }
 
     call lamp#config('debug.log', '/tmp/lamp.log')
