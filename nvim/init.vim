@@ -11,6 +11,11 @@ endif
 
 let $MYVIMRC = resolve($MYVIMRC)
 
+let s:config = {
+      \   'lsp': 'lamp',
+      \   'completion': 'deoplete'
+      \ }
+
 call vimrc#ignore_runtime()
 
 let s:dein = {}
@@ -29,6 +34,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
+  call dein#add('Shougo/deoplete-lsp')
   call dein#add('Shougo/deoplete.nvim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
@@ -49,7 +55,12 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
+  call dein#add('natebosch/vim-lsc')
   call dein#add('neoclide/denite-extra')
+  call dein#add('neovim/nvim-lsp')
+  call dein#add('prabirshrestha/async.vim')
+  call dein#add('prabirshrestha/asyncomplete.vim')
+  call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
   call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
@@ -60,7 +71,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
-  call dein#add('xabikos/vscode-react')
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
@@ -295,16 +305,8 @@ endif
 
 if dein#tap('vim-vsnip')
   if dein#tap('lexima.vim')
-    if dein#tap('vim-lamp')
-      imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
-      smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm(lexima#expand('<LT>Tab>', 'i'))
-    else
-      imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-      smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    endif
-  elseif dein#tap('vim-lamp')
-    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
-    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lamp#map#confirm('<Tab>')
+    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
   else
     imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
     smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
@@ -341,7 +343,7 @@ if dein#tap('vim-gitto')
 endif
 
 if dein#tap('deoplete.nvim')
-  let g:deoplete#enable_at_startup = v:true
+  let g:deoplete#enable_at_startup = s:config.completion ==# 'deoplete'
   call deoplete#custom#option('keyword_patterns', {
         \   'php': '\k+'
         \ })
@@ -350,11 +352,47 @@ if dein#tap('deoplete.nvim')
         \ })
 endif
 
+if dein#tap('asyncomplete.vim')
+  let g:asyncomplete_auto_popup = s:config.completion ==# 'asyncomplete'
+endif
+
 if dein#tap('vital.vim')
   let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
 endif
 
-if dein#tap('vim-lamp')
+if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
+  autocmd! vimrc User lsp_setup call lsp#register_server({
+        \   'name': 'gopls',
+        \   'cmd': { info -> ['gopls'] },
+        \   'whitelist': ['go']
+        \ })
+endif
+
+if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
+  let g:lsc_server_commands = {
+        \   'go': ['gopls']
+        \ }
+endif
+
+if dein#tap('nvim-lsp') && s:config.lsp ==# 'nvim'
+  lua require('nvim_lsp').gopls.setup({
+        \   capabilities = {
+        \     textDocument = {
+        \       completion = {
+        \         completionItem = {
+        \           snippetSupport = true
+        \         }
+        \       }
+        \     }
+        \   },
+        \   init_options = {
+        \     usePlaceholders = true,
+        \     completeUnimported = true
+        \   }
+        \ })
+endif
+
+if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
   function! s:on_lamp_initialized() abort
     let s:on_location = { locations -> [
