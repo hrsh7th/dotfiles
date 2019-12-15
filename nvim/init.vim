@@ -305,11 +305,15 @@ endif
 
 if dein#tap('vim-vsnip')
   if dein#tap('lexima.vim')
-    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
-    imap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#available() ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   endif
 endif
 
@@ -375,21 +379,24 @@ if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
 endif
 
 if dein#tap('nvim-lsp') && s:config.lsp ==# 'nvim'
-  lua require('nvim_lsp').gopls.setup({
-        \   capabilities = {
-        \     textDocument = {
-        \       completion = {
-        \         completionItem = {
-        \           snippetSupport = true
-        \         }
-        \       }
-        \     }
-        \   },
-        \   init_options = {
-        \     usePlaceholders = true,
-        \     completeUnimported = true
-        \   }
-        \ })
+  try
+    lua require('nvim_lsp').gopls.setup({
+          \   capabilities = {
+          \     textDocument = {
+          \       completion = {
+          \         completionItem = {
+          \           snippetSupport = true
+          \         }
+          \       }
+          \     }
+          \   },
+          \   init_options = {
+          \     usePlaceholders = true,
+          \     completeUnimported = true
+          \   }
+          \ })
+  catch /.*/
+  endtry
 endif
 
 if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
