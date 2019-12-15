@@ -361,6 +361,7 @@ if dein#tap('deoplete.nvim')
         \   'php': '\k+'
         \ })
   call deoplete#custom#option('ignore_sources', {
+        \   '_': s:config.lsp ==# 'nvim' ? [] : ['lsp'],
         \   'denite-filter': ['denite', 'buffer', 'around']
         \ })
 endif
