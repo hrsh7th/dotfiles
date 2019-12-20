@@ -313,6 +313,7 @@ if dein#tap('vim-devicons')
 endif
 
 if dein#tap('vim-vsnip')
+  let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
   if dein#tap('lexima.vim')
     imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
     smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
@@ -360,9 +361,10 @@ if dein#tap('deoplete.nvim')
   call deoplete#custom#option('keyword_patterns', {
         \   'php': '\k+'
         \ })
+  let disable_lsp_if_need = s:config.lsp ==# 'nvim' ? [] : ['lsp']
   call deoplete#custom#option('ignore_sources', {
-        \   '_': s:config.lsp ==# 'nvim' ? [] : ['lsp'],
-        \   'denite-filter': ['denite', 'buffer', 'around']
+        \   '_': disable_lsp_if_need,
+        \   'denite-filter': ['denite', 'buffer', 'around'] + disable_lsp_if_need
         \ })
 endif
 
@@ -379,6 +381,67 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
         \   'name': 'gopls',
         \   'cmd': { info -> ['gopls'] },
         \   'whitelist': ['go']
+        \ })
+  autocmd! vimrc User lsp_setup call lsp#register_server({
+        \   'name': 'diagnostic-languageserver',
+        \   'cmd': { info -> ['diagnostic-languageserver', '--stdio'] },
+        \   'whitelist': [
+        \     'typescript',
+        \     'typescript.tsx',
+        \     'typescriptreact',
+        \     'javascript',
+        \     'javascript.jsx',
+        \     'javascriptreact',
+        \   ],
+        \   'initialization_options': {
+        \     'linters': {
+        \       'eslint': {
+        \         'sourceName': 'eslint',
+        \         'command': 'eslint_d',
+        \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'formatLines': 1,
+        \         'formatPattern': [
+        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+        \           {
+        \             'line': 1,
+        \             'column': 2,
+        \             'message': [4, ' [', 5, ']' ],
+        \             'security': 3
+        \           }
+        \         ],
+        \         'securities': {
+        \            'error': 'error',
+        \            'warning': 'warning'
+        \         },
+        \       },
+        \     },
+        \     'filetypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.tsx': 'eslint',
+        \       'javascriptreact': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint',
+        \       'typescriptreact': 'eslint',
+        \     },
+        \     'formatters': {
+        \       'eslint': {
+        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+        \         'command': 'eslint_d',
+        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
+        \         'isStdout': v:true,
+        \         'isStderr': v:true,
+        \       }
+        \     },
+        \     'formatFiletypes': {
+        \       'javascript': 'eslint',
+        \       'javascript.tsx': 'eslint',
+        \       'javascriptreact': 'eslint',
+        \       'typescript': 'eslint',
+        \       'typescript.tsx': 'eslint',
+        \       'typescriptreact': 'eslint'
+        \     }
+        \   }
         \ })
 endif
 
@@ -448,13 +511,26 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \   }
           \ })
 
+"    call lamp#register('efm-languageserver', {
+"          \   'command': ['efm-langserver', '-log=/tmp/efm.log'],
+"          \   'filetypes': [
+"          \     'vim',
+"          \     'typescript',
+"          \     'typescript.tsx',
+"          \     'typescriptreact',
+"          \     'javascript',
+"          \     'javascript.jsx',
+"          \     'javascriptreact'
+"          \   ]
+"          \ })
+
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
           \   'filetypes': [
           \     'typescript',
-          \     'javascript',
           \     'typescript.tsx',
           \     'typescriptreact',
+          \     'javascript',
           \     'javascript.jsx',
           \     'javascriptreact',
           \     'vim',
@@ -529,25 +605,25 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
     setlocal signcolumn=yes
-    nmap <buffer> gf<CR>       <Plug>(lamp-definition)
-    nmap <buffer> gfs          <Plug>(lamp-definition-split)
-    nmap <buffer> gfv          <Plug>(lamp-definition-vsplit)
-    nmap <buffer> tgf<CR>      <Plug>(lamp-type-definition)
-    nmap <buffer> tgfs         <Plug>(lamp-type-definition-split)
-    nmap <buffer> tgfv         <Plug>(lamp-type-definition-vsplit)
-    nmap <buffer> dgf<CR>      <Plug>(lamp-declaration)
-    nmap <buffer> dgfs         <Plug>(lamp-declaration-split)
-    nmap <buffer> dgfv         <Plug>(lamp-declaration-vsplit)
-    nmap <buffer> <Leader>i    <Plug>(lamp-hover)
-    nmap <buffer> <Leader>r    <Plug>(lamp-rename)
-    nmap <buffer> <Leader>g    <Plug>(lamp-references)
-    nmap <buffer> @            <Plug>(lamp-document-highlight)
+    nnoremap <buffer> gf<CR>       :<C-u>LampDefinition edit<CR>
+    nnoremap <buffer> gfs          :<C-u>LampDefinition split<CR>
+    nnoremap <buffer> gfv          :<C-u>LampDefinition vsplit<CR>
+    nnoremap <buffer> tgf<CR>      :<C-u>LampTypeDefinition edit<CR>
+    nnoremap <buffer> tgfs         :<C-u>LampTypeDefinition split<CR>
+    nnoremap <buffer> tgfv         :<C-u>LampTypeDefinition vsplit<CR>
+    nnoremap <buffer> dgf<CR>      :<C-u>LampDeclaration edit<CR>
+    nnoremap <buffer> dgfs         :<C-u>LampDeclaration split<CR>
+    nnoremap <buffer> dgfv         :<C-u>LampDeclaration vsplit<CR>
+    nnoremap <buffer> <Leader>i    :<C-u>LampHover<CR>
+    nnoremap <buffer> <Leader>r    :<C-u>LampRename<CR>
+    nnoremap <buffer> <Leader>g    :<C-u>LampReferences<CR>
+    nnoremap <buffer> @            :<C-u>LampDocumentHighlight<CR>
 
-    nmap <buffer> <Leader>f    <Plug>(lamp-formatting)
-    vmap <buffer> <Leader>f    <Plug>(lamp-range-formatting)
+    nnoremap <buffer> <Leader>f    :<C-u>LampFormatting<CR>
+    vnoremap <buffer> <Leader>f    :LampRangeFormatting<CR>
 
-    nmap <buffer> <Leader><CR> <Plug>(lamp-code-action)
-    vmap <buffer> <Leader><CR> <Plug>(lamp-code-action)
+    nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
+    vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
     set omnifunc=lamp#complete
   endfunction
 endif
