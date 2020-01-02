@@ -12,8 +12,7 @@ endif
 let $MYVIMRC = resolve($MYVIMRC)
 
 let s:config = {
-      \   'lsp': 'lamp',
-      \   'completion': 'deoplete'
+      \   'lsp': 'lamp'
       \ }
 
 call vimrc#ignore_runtime()
@@ -34,22 +33,18 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
-  call dein#add('Shougo/deoplete-lsp')
-  call dein#add('Shougo/deoplete.nvim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
   call dein#add('h4kst3r/php-awesome-snippets', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk')
+  call dein#add('hrsh7th/asyncomplete-lamp')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
-  call dein#add('hrsh7th/deoplete-lamp')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-lamp')
   call dein#add('hrsh7th/vim-locon')
-  call dein#add('hrsh7th/vim-vsnip')
-  call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
@@ -62,6 +57,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('neoclide/denite-extra')
   call dein#add('neovim/nvim-lsp')
   call dein#add('prabirshrestha/async.vim')
+  call dein#add('prabirshrestha/asyncomplete-file.vim')
   call dein#add('prabirshrestha/asyncomplete.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
@@ -74,8 +70,10 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
+
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#local('~/Develop/LocalVimPlugins')
+
   call dein#end()
   call dein#save_state()
 endif
@@ -114,7 +112,6 @@ set isfname+=\\
 set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
 
 set mouse=n
-set virtualedit=all
 set termguicolors
 set splitright
 set splitbelow
@@ -135,8 +132,10 @@ set noshowmode
 set ambiwidth=double
 set title
 set shortmess+=I
+set shortmess+=c
 set listchars=tab:>-,trail:^
 set background=dark
+set virtualedit=all
 
 set incsearch
 set hlsearch
@@ -232,7 +231,6 @@ nnoremap gj gJ
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
 if dein#tap('vim-asterisk')
-  let g:asterisk#keeppos = 1
   map * <Plug>(asterisk-gz*)
 endif
 
@@ -356,20 +354,15 @@ if dein#tap('vim-gitto')
   let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
 endif
 
-if dein#tap('deoplete.nvim')
-  let g:deoplete#enable_at_startup = s:config.completion ==# 'deoplete'
-  call deoplete#custom#option('keyword_patterns', {
-        \   'php': '\k+'
-        \ })
-  let disable_lsp_if_need = s:config.lsp ==# 'nvim' ? [] : ['lsp']
-  call deoplete#custom#option('ignore_sources', {
-        \   '_': disable_lsp_if_need,
-        \   'denite-filter': ['denite', 'buffer', 'around'] + disable_lsp_if_need
-        \ })
-endif
-
 if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = s:config.completion ==# 'asyncomplete'
+  let g:asyncomplete_auto_popup = 1
+
+  autocmd! vimrc User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
+        \   'name': 'file',
+        \   'whitelist': ['*'],
+        \   'priority': 10,
+        \   'completor': function('asyncomplete#sources#file#completor')
+        \ }))
 endif
 
 if dein#tap('vital.vim')
@@ -377,72 +370,54 @@ if dein#tap('vital.vim')
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
-  autocmd! vimrc User lsp_setup call lsp#register_server({
-        \   'name': 'gopls',
-        \   'cmd': { info -> ['gopls'] },
-        \   'whitelist': ['go']
-        \ })
-  autocmd! vimrc User lsp_setup call lsp#register_server({
-        \   'name': 'diagnostic-languageserver',
-        \   'cmd': { info -> ['diagnostic-languageserver', '--stdio'] },
-        \   'whitelist': [
-        \     'typescript',
-        \     'typescript.tsx',
-        \     'typescriptreact',
-        \     'javascript',
-        \     'javascript.jsx',
-        \     'javascriptreact',
-        \   ],
-        \   'initialization_options': {
-        \     'linters': {
-        \       'eslint': {
-        \         'sourceName': 'eslint',
-        \         'command': 'eslint_d',
-        \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'formatLines': 1,
-        \         'formatPattern': [
-        \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-        \           {
-        \             'line': 1,
-        \             'column': 2,
-        \             'message': [4, ' [', 5, ']' ],
-        \             'security': 3
-        \           }
-        \         ],
-        \         'securities': {
-        \            'error': 'error',
-        \            'warning': 'warning'
-        \         },
-        \       },
-        \     },
-        \     'filetypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.tsx': 'eslint',
-        \       'javascriptreact': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint',
-        \       'typescriptreact': 'eslint',
-        \     },
-        \     'formatters': {
-        \       'eslint': {
-        \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-        \         'command': 'eslint_d',
-        \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
-        \         'isStdout': v:true,
-        \         'isStderr': v:true,
-        \       }
-        \     },
-        \     'formatFiletypes': {
-        \       'javascript': 'eslint',
-        \       'javascript.tsx': 'eslint',
-        \       'javascriptreact': 'eslint',
-        \       'typescript': 'eslint',
-        \       'typescript.tsx': 'eslint',
-        \       'typescriptreact': 'eslint'
-        \     }
-        \   }
-        \ })
+  let g:lsp_log_file = '/tmp/lsp.log'
+  let g:lsp_async_completion = v:true
+
+  function! s:lsp_setup()
+    call lsp#register_server({
+          \   'name': 'vim',
+          \   'cmd': { info -> ['vim-language-server', '--stdio'] },
+          \   'whitelist': ['vim', 'vimspec'],
+          \   'initialization_options': {
+          \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'gopls',
+          \   'cmd': { info -> ['gopls'] },
+          \   'whitelist': ['go'],
+          \   'initialization_options': {
+          \     'usePlaceholders': v:true,
+          \     'completeUnimported': v:true
+          \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'typescript-language-server',
+          \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
+          \   'whitelist': ['typescript', 'typescriptreact'],
+          \   'initialization_options': {
+          \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'intelephense',
+          \   'cmd': { info -> ['intelephense', '--stdio'] },
+          \   'whitelist': ['php'],
+          \   'initialization_options': {
+          \     'storagePath': expand('~/.cache/intelephense')
+          \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'html',
+          \   'cmd': { info -> ['html-languageserver', '--stdio'] },
+          \   'whitelist': ['html'],
+          \   'initialization_options': {
+          \     'embeddedLanguages': {
+          \       'css': v:true,
+          \       'html': v:true
+          \     }
+          \   }
+          \ })
+  endfunction
+  autocmd! vimrc User lsp_setup call s:lsp_setup()
 endif
 
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
@@ -493,6 +468,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#config('view.sign.hint.text', "\uf400")
 
     call lamp#language#vim()
+    call lamp#language#yaml()
     call lamp#language#php()
     call lamp#language#html()
     call lamp#language#css()
@@ -624,7 +600,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 
     nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
     vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
-    set omnifunc=lamp#complete
+    setlocal omnifunc=lamp#complete
   endfunction
 endif
 
@@ -932,12 +908,15 @@ function! s:on_file_type()
         \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
         \   '.*\.log': { 'filetype': 'text', 'tabstop': 8 },
         \   '.*\.tpl': { 'filetype': 'html' },
+        \   '.*\.vim': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' }
         \ })
     if bufname('%') =~ k
-      execute printf('setlocal filetype=%s', v.filetype)
-      if has_key(v, 'tabstop')
-        execute printf('setlocal tabstop=%s', v.tabstop)
-      endif
+      for [l:name, l:value] in items(v)
+        try
+          execute printf('setlocal %s=%s', l:name, l:value)
+        catch /.*/
+        endtry
+      endfor
     endif
   endfor
 
