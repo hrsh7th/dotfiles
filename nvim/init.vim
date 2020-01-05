@@ -45,6 +45,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-lamp')
   call dein#add('hrsh7th/vim-locon')
+  call dein#add('hrsh7th/vim-vsnip')
+  call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
@@ -58,6 +60,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('neovim/nvim-lsp')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/asyncomplete-file.vim')
+  call dein#add('prabirshrestha/asyncomplete-lsp.vim')
   call dein#add('prabirshrestha/asyncomplete.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
@@ -422,7 +425,8 @@ endif
 
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
   let g:lsc_server_commands = {
-        \   'go': ['gopls']
+        \   'go': ['gopls'],
+        \   'vim': ['vim-language-server', '--stdio']
         \ }
 endif
 
@@ -906,9 +910,9 @@ autocmd! vimrc FileType * call s:on_file_type()
 function! s:on_file_type()
   for [k, v] in items({
         \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
-        \   '.*\.log': { 'filetype': 'text', 'tabstop': 8 },
-        \   '.*\.tpl': { 'filetype': 'html' },
-        \   '.*\.vim': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' }
+        \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
+        \   '.*\.tpl$': { 'filetype': 'html' },
+        \   '.*\.vim$': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' }
         \ })
     if bufname('%') =~ k
       for [l:name, l:value] in items(v)
