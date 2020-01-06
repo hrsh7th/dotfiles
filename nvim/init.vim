@@ -51,6 +51,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
+  call dein#add('lambdalisue/trea.vim')
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
@@ -313,21 +314,6 @@ if dein#tap('vim-devicons')
   let g:webdevicons_enable_denite = v:false
 endif
 
-if dein#tap('vim-vsnip')
-  let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
-  if dein#tap('lexima.vim')
-    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-  else
-    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-  endif
-endif
-
 if dein#tap('vim-themis')
   if has('vim_starting')
     let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
@@ -352,9 +338,28 @@ else
   colorscheme ron
 endif
 
-if dein#tap('vim-gitto')
-  let g:gitto#config = {}
-  let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
+if dein#tap('vital.vim')
+  let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
+endif
+
+if dein#tap('vim-vsnip')
+  let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
+  if dein#tap('lexima.vim')
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+  else
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+  endif
+endif
+
+if dein#tap('vim-vsnip-integ')
+  let g:vsnip_integ_config = {}
+  let g:vsnip_integ_config.asyncomplete = v:false
 endif
 
 if dein#tap('asyncomplete.vim')
@@ -366,10 +371,6 @@ if dein#tap('asyncomplete.vim')
         \   'priority': 10,
         \   'completor': function('asyncomplete#sources#file#completor')
         \ }))
-endif
-
-if dein#tap('vital.vim')
-  let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
@@ -759,6 +760,11 @@ if dein#tap('lightline.vim')
     endif
     return ''
   endfunction
+endif
+
+if dein#tap('vim-gitto')
+  let g:gitto#config = {}
+  let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
 endif
 
 if dein#tap('denite.nvim')
