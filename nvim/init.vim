@@ -365,18 +365,22 @@ endif
 if dein#tap('asyncomplete.vim')
   let g:asyncomplete_auto_popup = 1
 
-  autocmd! vimrc User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
-        \   'name': 'file',
-        \   'whitelist': ['*'],
-        \   'priority': 10,
-        \   'completor': function('asyncomplete#sources#file#completor')
-        \ }))
+  autocmd! vimrc User asyncomplete_setup call s:asyncomplete_setup()
+  function! s:asyncomplete_setup() abort
+    call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
+          \   'name': 'file',
+          \   'whitelist': ['*'],
+          \   'priority': 10,
+          \   'completor': function('asyncomplete#sources#file#completor')
+          \ }))
+  endfunction
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_async_completion = v:true
 
+  autocmd! vimrc User lsp_setup call s:lsp_setup()
   function! s:lsp_setup()
     call lsp#register_server({
           \   'name': 'vim',
@@ -395,7 +399,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   }
           \ })
     call lsp#register_server({
-          \   'name': 'typescript-language-server',
+          \   'name': '0typescript-language-server',
           \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
           \   'whitelist': ['typescript', 'typescriptreact'],
           \   'initialization_options': {
@@ -420,8 +424,102 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \     }
           \   }
           \ })
+
+    call lsp#register_server({
+          \   'name': '1diagnostic-languageserver',
+          \   'cmd': ['diagnostic-languageserver', '--stdio'],
+          \   'whitelist': [
+          \     'typescript',
+          \     'typescript.tsx',
+          \     'typescriptreact',
+          \     'javascript',
+          \     'javascript.jsx',
+          \     'javascriptreact',
+          \     'vim',
+          \     'vimspec'
+          \   ],
+          \   'initialization_options': {
+          \     'linters': {
+          \       'eslint': {
+          \         'sourceName': 'eslint',
+          \         'command': 'eslint_d',
+          \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
+          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+          \         'formatLines': 1,
+          \         'formatPattern': [
+          \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+          \           {
+          \             'line': 1,
+          \             'column': 2,
+          \             'message': [4, ' [', 5, ']' ],
+          \             'security': 3
+          \           }
+          \         ],
+          \         'securities': {
+          \            'error': 'error',
+          \            'warning': 'warning'
+          \         },
+          \       },
+          \       'vint': {
+          \         'sourceName': 'vint',
+          \         'command': 'vint',
+          \         'args': ['--stdin-display-name', '%filename', '-'],
+          \         'formatPattern': [
+          \           '[^:]+:(\d+):(\d+):\s*(.*$)',
+          \           {
+          \             'line': 1,
+          \             'column': 2,
+          \             'message': 3
+          \           }
+          \         ]
+          \       }
+          \     },
+          \     'filetypes': {
+          \       'javascript': 'eslint',
+          \       'javascript.tsx': 'eslint',
+          \       'javascriptreact': 'eslint',
+          \       'typescript': 'eslint',
+          \       'typescript.tsx': 'eslint',
+          \       'typescriptreact': 'eslint',
+          \       'vim': 'vint',
+          \     },
+          \     'formatters': {
+          \       'eslint': {
+          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+          \         'command': 'eslint_d',
+          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
+          \         'isStdout': v:true,
+          \         'isStderr': v:true,
+          \       }
+          \     },
+          \     'formatFiletypes': {
+          \       'javascript': 'eslint',
+          \       'javascript.tsx': 'eslint',
+          \       'javascriptreact': 'eslint',
+          \       'typescript': 'eslint',
+          \       'typescript.tsx': 'eslint',
+          \       'typescriptreact': 'eslint'
+          \     }
+          \   }
+          \ })
   endfunction
-  autocmd! vimrc User lsp_setup call s:lsp_setup()
+
+  autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
+  function! s:lsp_buffer_enabled() abort
+    nnoremap <Leader><CR>          :<C-u>LspCodeAction<CR>
+    vnoremap <Leader><CR>          :LspCodeAction<CR>
+    nnoremap <buffer> gf<CR>       :<C-u>LspDefinition<CR>
+    nnoremap <buffer> gfv          :<C-u>vsplit \| LspDefinition<CR>
+    nnoremap <buffer> gfs          :<C-u>split \| LspDefinition<CR>
+    nnoremap <buffer> <Leader>i    :<C-u>LspHover<CR>
+    nnoremap <buffer> <Leader>r    :<C-u>LspRename<CR>
+    nnoremap <buffer> <Leader>g    :<C-u>LspReferences<CR>
+
+    nnoremap <buffer> <Leader>f    :<C-u>LspDocumentFormat<CR>
+    vnoremap <buffer> <Leader>f    :LspDocumentFormatRange<CR>
+    setlocal omnifunc=lsp#omni#complete
+    autocmd! vimrc BufWritePre *.go  call execute('LspDocumentFormatSync') | call execute('LspCodeActionSync source.organizeImports')
+  endfunction
 endif
 
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
@@ -491,19 +589,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \     }
           \   }
           \ })
-
-"    call lamp#register('efm-languageserver', {
-"          \   'command': ['efm-langserver', '-log=/tmp/efm.log'],
-"          \   'filetypes': [
-"          \     'vim',
-"          \     'typescript',
-"          \     'typescript.tsx',
-"          \     'typescriptreact',
-"          \     'javascript',
-"          \     'javascript.jsx',
-"          \     'javascriptreact'
-"          \   ]
-"          \ })
 
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
