@@ -399,6 +399,11 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   }
           \ })
     call lsp#register_server({
+          \   'name': 'clangd',
+          \   'cmd': { info -> ['clangd', '--background-index'] },
+          \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
+          \ })
+    call lsp#register_server({
           \   'name': '0typescript-language-server',
           \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
           \   'whitelist': ['typescript', 'typescriptreact'],
@@ -590,6 +595,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \   }
           \ })
 
+    call lamp#register('clangd', {
+          \   'command': ['clangd', '--background-index'],
+          \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
+          \ })
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
           \   'filetypes': [
