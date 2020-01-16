@@ -15,11 +15,9 @@ let s:config = {
       \   'lsp': 'lamp'
       \ }
 
-call vimrc#ignore_runtime()
-
 let s:dein = {}
 let s:dein.dir = {}
-let s:dein.dir.install = expand('~/.config/dein/repos/github.com/Shougo/dein.vim') . ''
+let s:dein.dir.install = expand('~/.config/dein/repos/github.com/Shougo/dein.vim')
 let s:dein.dir.plugins = expand('~/.config/dein')
 
 if !isdirectory(s:dein.dir.install)
@@ -27,6 +25,7 @@ if !isdirectory(s:dein.dir.install)
 endif
 
 let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.config/nvim')
+let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
   call dein#add('Shougo/defx.nvim')
@@ -58,7 +57,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('microsoft/vscode-python', { 'merged': 0 })
   call dein#add('natebosch/vim-lsc')
   call dein#add('neoclide/denite-extra')
-  call dein#add('neovim/nvim-lsp')
   call dein#add('prabirshrestha/async.vim')
   call dein#add('prabirshrestha/asyncomplete-file.vim')
   call dein#add('prabirshrestha/asyncomplete-lsp.vim')
@@ -81,6 +79,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#end()
   call dein#save_state()
 endif
+
+call vimrc#ignore_runtime()
 
 if dein#check_install()
   call dein#install()
@@ -159,6 +159,7 @@ set textwidth=0
 set backspace=2
 set whichwrap=b,s,h,l,<,>,[,]
 set completeopt=menu,menuone,noselect
+set nostartofline
 
 if has('nvim')
   set wildoptions=pum
@@ -362,6 +363,10 @@ if dein#tap('vim-vsnip-integ')
   let g:vsnip_integ_config.asyncomplete = v:false
 endif
 
+if dein#tap('ncm2')
+  autocmd! vimrc BufEnter * call ncm2#enable_for_buffer()
+endif
+
 if dein#tap('asyncomplete.vim')
   let g:asyncomplete_auto_popup = 1
 
@@ -393,9 +398,11 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   'name': 'gopls',
           \   'cmd': { info -> ['gopls'] },
           \   'whitelist': ['go'],
+          \   'root_uri': { info -> lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'go.mod')) },
           \   'initialization_options': {
           \     'usePlaceholders': v:true,
-          \     'completeUnimported': v:true
+          \     'completeUnimported': v:true,
+          \     'hoverKind': 'FullDocumentation'
           \   }
           \ })
     call lsp#register_server({
@@ -409,6 +416,11 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   'whitelist': ['typescript', 'typescriptreact'],
           \   'initialization_options': {
           \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'clangd',
+          \   'cmd': { info -> ['clangd', '-background-index'] },
+          \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
           \ })
     call lsp#register_server({
           \   'name': 'intelephense',
@@ -534,27 +546,6 @@ if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
         \ }
 endif
 
-if dein#tap('nvim-lsp') && s:config.lsp ==# 'nvim'
-  try
-    lua require('nvim_lsp').gopls.setup({
-          \   capabilities = {
-          \     textDocument = {
-          \       completion = {
-          \         completionItem = {
-          \           snippetSupport = true
-          \         }
-          \       }
-          \     }
-          \   },
-          \   init_options = {
-          \     usePlaceholders = true,
-          \     completeUnimported = true
-          \   }
-          \ })
-  catch /.*/
-  endtry
-endif
-
 if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
   function! s:on_lamp_initialized() abort
@@ -593,6 +584,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \       'triggerCharacters': [',']
           \     }
           \   }
+          \ })
+    call lamp#register('clangd', {
+          \   'command': ['clangd', '-background-index'],
+          \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
           \ })
 
     call lamp#register('clangd', {
