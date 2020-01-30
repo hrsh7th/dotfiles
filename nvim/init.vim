@@ -50,9 +50,9 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('itchyny/vim-parenmatch')
   call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
-  call dein#add('lambdalisue/trea.vim')
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
+  call dein#add('machakann/asyncomplete-ezfilter.vim')
   call dein#add('machakann/vim-sandwich')
   call dein#add('microsoft/vscode-python', { 'merged': 0 })
   call dein#add('natebosch/vim-lsc')
@@ -75,6 +75,7 @@ if dein#load_state(s:dein.dir.install)
 
   call dein#local('~/Development/workspace/LocalVimPlugins')
   call dein#local('~/Develop/LocalVimPlugins')
+  call dein#local('~/.go/src/github.com/hrsh7th')
 
   call dein#end()
   call dein#save_state()
@@ -160,6 +161,8 @@ set backspace=2
 set whichwrap=b,s,h,l,<,>,[,]
 set completeopt=menu,menuone,noselect
 set nostartofline
+
+let g:vim_indent_cont = 0
 
 if has('nvim')
   set wildoptions=pum
@@ -276,15 +279,92 @@ if dein#tap('open-browser.vim')
 endif
 
 if dein#tap('denite.nvim')
-  nnoremap <BS> :<C-u>Denite file/old<CR>
-  nnoremap <expr><F3> printf(':<C-u>Denite file/rec:%s<CR>', vimrc#get_cwd())
-  nnoremap <expr>gr printf(':<C-u>Denite -no-empty grep:%s<CR>', vimrc#get_cwd())
   nnoremap <Leader>0 :<C-u>Denite menu<CR>
   vnoremap <Leader>0 :<C-u>Denite menu<CR>
   nnoremap <Leader>m :<C-u>Denite -resume<CR>
   nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
   nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
 endif
+
+if dein#tap('vim-candle')
+  nnoremap <silent><F3> :<C-u>call candle#start({
+  \   'source': 'files',
+  \   'layout': 'split',
+  \   'params': {
+  \     'root_path': vimrc#get_cwd(),
+  \     'ignore_patterns': locon#get('ignore_globs'),
+  \   }
+  \ })<CR>
+  nnoremap <silent><BS> :<C-u>call candle#start({
+  \   'source': 'mru_file',
+  \   'layout': 'split',
+  \   'params': {
+  \     'filepath': g:candle#source#mru_file#filepath,
+  \     'ignore_patterns': map(
+  \       range(1, tabpagewinnr(tabpagenr(), '$')),
+  \       { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
+  \     )
+  \   }
+  \ })<CR>
+  nnoremap <silent>gr :<C-u>call candle#start({
+  \   'source': 'grep',
+  \   'layout': 'split',
+  \   'params': {
+  \     'pattern': input('PATTERN: '),
+  \     'cwd': vimrc#get_cwd(),
+  \   }
+  \ })<CR>
+"  nnoremap <silent><Leader>0 :<C-u>call candle#start({
+"  \   'source': 'item',
+"  \   'layout': 'split',
+"  \   'params': {
+"  \     'items': [{
+"  \       'id': 1,
+"  \       'title': 'Open $MYVIMRC',
+"  \     }],
+"  \     'actions': {
+"  \       'default': { candle -> 
+"  \         {
+"  \           '1': { -> execute('edit $MYVIMRC') }
+"  \         }[candle.get_cursor_item().id]
+"  \       }
+"  \     }
+"  \   }
+"  \ })<CR>
+
+  autocmd! vimrc User candle#initialize call s:on_candle_initialize()
+  function! s:on_candle_initialize() abort
+  endfunction
+
+  autocmd! vimrc User candle#start call s:on_candle_start()
+  function! s:on_candle_start()
+    nnoremap <silent><buffer> k    :<C-u>call candle#mapping#cursor_move(-1)<CR>
+    nnoremap <silent><buffer> j    :<C-u>call candle#mapping#cursor_move(1)<CR>
+    nnoremap <silent><buffer> K    :<C-u>call candle#mapping#cursor_move(-10)<CR>
+    nnoremap <silent><buffer> J    :<C-u>call candle#mapping#cursor_move(10)<CR>
+    nnoremap <silent><buffer> gg   :<C-u>call candle#mapping#cursor_top()<CR>
+    nnoremap <silent><buffer> G    :<C-u>call candle#mapping#cursor_bottom()<CR>
+    nnoremap <silent><buffer> i    :<C-u>call candle#mapping#input_open()<CR>
+    nnoremap <silent><buffer> a    :<C-u>call candle#mapping#input_open()<CR>
+    nnoremap <silent><buffer> -    :<C-u>call candle#mapping#toggle_select()<CR>
+    nnoremap <silent><buffer> *    :<C-u>call candle#mapping#toggle_select_all()<CR>
+
+    nnoremap <silent><buffer> <CR> :<C-u>call candle#mapping#action('edit')<CR>
+    nnoremap <silent><buffer> s    :<C-u>call candle#mapping#action('split')<CR>
+    nnoremap <silent><buffer> v    :<C-u>call candle#mapping#action('vsplit')<CR>
+  endfunction
+
+  autocmd! vimrc User candle#input#start call s:on_candle_input_start()
+  function! s:on_candle_input_start()
+    let b:lexima_disabled = v:true
+    inoremap <silent><buffer> <CR> <Esc>:<C-u>call candle#mapping#input_close()<CR>
+    inoremap <silent><buffer> <Esc> <Esc>:<C-u>call candle#mapping#input_close()<CR>
+    inoremap <silent><buffer> <C-y> <Esc>:<C-u>quit \| call candle#mapping#action('default')<CR>
+    inoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(-1)<CR>a
+    inoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(1)<CR>a
+  endfunction
+endif
+
 
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
@@ -293,6 +373,7 @@ endif
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
+  let g:lexima_map_escape = ''
   call lexima#set_default_rules()
 
   call lexima#add_rule({ 'char': '<', 'input_after': '>' })
@@ -323,7 +404,25 @@ if dein#tap('vim-themis')
 endif
 
 if dein#tap('vim-locon')
-  call locon#def('ignore_globs', ['.git/', '.svn/', 'img/', 'image/', 'images/', '*.gif', '*.jpg', '*.jpeg', '*.png', 'vendor/', 'node_modules/', '*.po', '*.mo', '*.swf', '*.min.*', '*.map'])
+  call locon#def('ignore_globs', [
+  \   'img/',
+  \   'image/',
+  \   'images/',
+  \   'vendor/',
+  \   'node_modules/',
+  \   '.sass-cache',
+  \   '.git/',
+  \   '.svn/',
+  \   '*.gif',
+  \   '*.jpg',
+  \   '*.jpeg',
+  \   '*.png',
+  \   '*.po',
+  \   '*.mo',
+  \   '*.swf',
+  \   '*.min.*',
+  \   '*.map'
+  \ ])
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
   endif
@@ -379,6 +478,12 @@ if dein#tap('asyncomplete.vim')
           \   'completor': function('asyncomplete#sources#file#completor')
           \ }))
   endfunction
+
+  if dein#tap('asyncomplete-ezfilter.vim')
+    let g:asyncomplete_preprocessor = [function('asyncomplete#preprocessor#ezfilter#filter')]
+    let g:asyncomplete#preprocessor#ezfilter#config = {}
+    let g:asyncomplete#preprocessor#ezfilter#config['*'] = { ctx, items -> (ctx.osa_filter(items, 1)) }
+  endif
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
@@ -397,8 +502,8 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     call lsp#register_server({
           \   'name': 'gopls',
           \   'cmd': { info -> ['gopls'] },
+          \   'root_uri': { info -> lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'go.mod') },
           \   'whitelist': ['go'],
-          \   'root_uri': { info -> lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'go.mod')) },
           \   'initialization_options': {
           \     'usePlaceholders': v:true,
           \     'completeUnimported': v:true,
@@ -523,6 +628,8 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
+    setlocal signcolumn=yes
+    setlocal omnifunc=lsp#omni#complete
     nnoremap <Leader><CR>          :<C-u>LspCodeAction<CR>
     vnoremap <Leader><CR>          :LspCodeAction<CR>
     nnoremap <buffer> gf<CR>       :<C-u>LspDefinition<CR>
@@ -534,7 +641,6 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
 
     nnoremap <buffer> <Leader>f    :<C-u>LspDocumentFormat<CR>
     vnoremap <buffer> <Leader>f    :LspDocumentFormatRange<CR>
-    setlocal omnifunc=lsp#omni#complete
     autocmd! vimrc BufWritePre *.go  call execute('LspDocumentFormatSync') | call execute('LspCodeActionSync source.organizeImports')
   endfunction
 endif
@@ -558,7 +664,8 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
           \ ] }
 
-    call lamp#config('debug.log', '/tmp/lamp.log')
+    call lamp#config('global.debug', '/tmp/lamp.log')
+    call lamp#config('feature.completion.floating_docs', v:true)
     call lamp#config('view.location.on_location', s:on_location)
     call lamp#config('view.location.on_fallback', s:on_fallback)
     call lamp#config('view.sign.error.text', "\uf071")
@@ -675,6 +782,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
     setlocal signcolumn=yes
+    setlocal omnifunc=lamp#complete
     nnoremap <buffer> gf<CR>       :<C-u>LampDefinition edit<CR>
     nnoremap <buffer> gfs          :<C-u>LampDefinition split<CR>
     nnoremap <buffer> gfv          :<C-u>LampDefinition vsplit<CR>
@@ -694,7 +802,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 
     nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
     vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
-    setlocal omnifunc=lamp#complete
   endfunction
 endif
 
@@ -749,7 +856,7 @@ if dein#tap('defx.nvim')
 
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session defx/history<CR>
-    nnoremap <silent><buffer><F5>            :<C-u>call vimrc#detect_cwd()<CR>
+    nnoremap <silent><buffer><F5>         :<C-u>call vimrc#detect_cwd()<CR>
     nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
     nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
@@ -765,7 +872,7 @@ if dein#tap('defx.nvim')
           \ 'path': a:path,
           \ 'line': -1,
           \ 'col': -1
-          \ })
+    \ })
     setlocal nowinfixwidth
     setlocal nowinfixheight
   endfunction
