@@ -34,10 +34,6 @@ export NVIM_PYTHON_LOG_FILE="/tmp/.log"
 export NVIM_PYTHON_LOG_LEVEL=DEBUG
 export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 
-# pyenv.
-export PATH=$HOME/.pyenv/bin:$PATH
-eval "$(pyenv init -)"
-
 # nvm.
 . "$HOME/.nvm/nvm.sh" --no-use
 nvm use default > /dev/null

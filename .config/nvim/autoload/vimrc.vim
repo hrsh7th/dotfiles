@@ -1,6 +1,6 @@
 let g:vimrc#project_root_markers = ['.git', 'tsconfig.json']
 
-let s:special_filetypes = ['defx', 'denite', 'deol']
+let s:special_filetypes = ['fern', 'denite', 'deol']
 
 "
 " vimrc#ignore_runtime
@@ -34,8 +34,8 @@ endfunction
 " vimrc#get_buffer_path
 "
 function! vimrc#get_buffer_path()
-  if exists('b:defx')
-    return b:defx.paths[0]
+  if exists('b:fern') && &filetype ==# 'fern'
+    return b:fern.root._path
   endif
   if exists('t:deol') && &filetype ==# 'deol'
     return t:deol.cwd
@@ -56,7 +56,7 @@ endfunction
 function! vimrc#findup(markers, modifier) abort
   let path = get(a:000, 0, vimrc#get_buffer_path())
   let path = fnamemodify(path, ':p')
-  while path !=# ''
+  while path !=# '' && path !=# '/'
     for marker in (type(a:markers) == type([]) ? a:markers : [a:markers])
       let candidate = resolve(path . '/' . marker)
       if filereadable(candidate) || isdirectory(candidate)
@@ -75,10 +75,6 @@ function! vimrc#detect_cwd()
   let path = vimrc#get_buffer_path()
   let root = vimrc#get_project_root()
   let cwd = isdirectory(path) ? path : root
-
-  if exists('b:defx') && !empty(root)
-    call defx#call_action('add_session', [root])
-  endif
 
   call vimrc#set_cwd(cwd)
   redraw!
@@ -106,7 +102,13 @@ function! vimrc#get_cwd()
   if strlen(get(t:, 'cwd', '')) > 0
     return t:cwd
   endif
-  return vimrc#get_project_root()
+
+  let l:root = vimrc#get_project_root()
+  if strlen(l:root) > 0
+    return l:root
+  endif
+
+  return vimrc#get_buffer_path()
 endfunction
 
 "
@@ -142,10 +144,16 @@ endfunction
 "
 " vimrc#open
 "
-function! vimrc#open(cmd, location)
-  let winnrs = vimrc#filter_winnrs(s:special_filetypes)
-  if len(winnrs) > 0
-    execute printf('%swincmd w', winnrs[0])
+function! vimrc#open(cmd, location, ...)
+  let l:winnrs = vimrc#filter_winnrs(s:special_filetypes)
+
+  " prefer previous win
+  if len(a:000) == 1 && index(l:winnrs, a:000[0]) >= 0
+    let l:winnrs = [a:000[0]]
+  endif
+
+  if len(l:winnrs) > 0
+    execute printf('%swincmd w', l:winnrs[0])
     call s:open(a:cmd, a:location)
     return
   endif
@@ -158,14 +166,14 @@ endfunction
 "
 function! s:open(cmd, location)
   try
-    execute printf('%s %s', a:cmd, fnameescape(a:location['path']))
+    execute printf('%s %s', a:cmd, fnameescape(a:location['filename']))
   catch /.*/
   endtry
-  if a:location['line'] != -1
-    if a:location['col'] != -1
-      call cursor([a:location['line'], a:location['col']])
+  if get(a:location, 'lnum', -1) != -1
+    if get(a:location, 'col', -1) != -1
+      call cursor([a:location.lnum, a:location.col])
     else
-      call cursor([a:location['line'], 1])
+      call cursor([a:location.lnum, 1])
     endif
   endif
 endfunction

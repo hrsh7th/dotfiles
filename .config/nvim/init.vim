@@ -9,6 +9,8 @@ if &compatible
   set nocompatible
 endif
 
+let g:python3_host_prog = 'python3'
+
 let $MYVIMRC = resolve($MYVIMRC)
 
 let s:config = {
@@ -28,7 +30,6 @@ let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.co
 let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
-  call dein#add('Shougo/defx.nvim')
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
@@ -39,6 +40,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('haya14busa/vim-asterisk')
   call dein#add('hrsh7th/asyncomplete-lamp')
   call dein#add('hrsh7th/denite-converter-prioritize-basename')
+  call dein#add('hrsh7th/vim-candle')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
@@ -48,8 +50,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
-  call dein#add('kristijanhusak/defx-icons')
   call dein#add('lambdalisue/suda.vim')
+  call dein#add('lambdalisue/fern.vim')
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/asyncomplete-ezfilter.vim')
@@ -73,9 +75,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
 
-  call dein#local('~/Development/workspace/LocalVimPlugins')
+  call dein#local('~/.go/src/github.com/hrsh7th/')
   call dein#local('~/Develop/LocalVimPlugins')
-  call dein#local('~/.go/src/github.com/hrsh7th')
 
   call dein#end()
   call dein#save_state()
@@ -247,76 +248,126 @@ if dein#tap('vim-quickrun')
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
 endif
 
-if dein#tap('defx.nvim')
-  nnoremap <F2> :<C-u>call DefxOpen()<CR>
-  function! DefxOpen()
-    let path = expand('%:p:h')
-    let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') ==# 'defx' })
-    if len(winnrs) > 0
-      let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
-      if len(choise) > 0
-        execute printf('%swincmd w', choise[1])
-        call defx#call_action('cd', [path])
-      endif
-    else
-      Defx -split=vertical -direction=topleft -winwidth=40 -session-file=`expand('~/.defx_session')` `expand('%:p:h')`
-    endif
-  endfunction
-endif
-
 if dein#tap('vim-effort-gf')
   nnoremap gf<CR> :<C-u>EffortGF<CR>
   nnoremap gfv    :<C-u>vertical EffortGF<CR>
   nnoremap gfs    :<C-u>belowright EffortGF<CR>
 endif
 
-if dein#tap('denite.nvim') && dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
-  nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
-endif
-
 if dein#tap('open-browser.vim')
   nmap <Leader><Leader><CR> <Plug>(openbrowser-smart-search)
 endif
 
-if dein#tap('denite.nvim')
-  nnoremap <Leader>0 :<C-u>Denite menu<CR>
-  vnoremap <Leader>0 :<C-u>Denite menu<CR>
-  nnoremap <Leader>m :<C-u>Denite -resume<CR>
-  nnoremap <Leader>n :<C-u>Denite -resume -immediately -cursor-pos=+1 -no-empty<CR>
-  nnoremap <Leader>p :<C-u>Denite -resume -immediately -cursor-pos=-1 -no-empty<CR>
-endif
-
 if dein#tap('vim-candle')
+
+  " project files
   nnoremap <silent><F3> :<C-u>call candle#start({
-  \   'source': 'files',
-  \   'layout': 'split',
-  \   'params': {
+  \   'file': {
   \     'root_path': vimrc#get_cwd(),
   \     'ignore_patterns': locon#get('ignore_globs'),
   \   }
   \ })<CR>
+
+  " mru files
   nnoremap <silent><BS> :<C-u>call candle#start({
-  \   'source': 'mru_file',
-  \   'layout': 'split',
-  \   'params': {
-  \     'filepath': g:candle#source#mru_file#filepath,
+  \   'mru_file': {
   \     'ignore_patterns': map(
   \       range(1, tabpagewinnr(tabpagenr(), '$')),
   \       { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
   \     )
-  \   }
+  \   },
   \ })<CR>
+
+  " grep
   nnoremap <silent>gr :<C-u>call candle#start({
-  \   'source': 'grep',
-  \   'layout': 'split',
-  \   'params': {
+  \   'grep': {
   \     'root_path': vimrc#get_cwd(),
   \     'pattern': input('PATTERN: '),
   \   }
   \ })<CR>
 
+  " menu
+  nnoremap <silent><Leader>0 :<C-u>call candle#start({
+  \   'item': [{
+  \     'id': 1,
+  \     'title': 'dein#update',
+  \     'command': 'call dein#update()'
+  \   }],
+  \ }, {
+  \   'action': {
+  \     'default': { candle -> [
+  \       execute('quit'),
+  \       win_gotoid(candle.prev_winid),
+  \       execute(candle.get_action_items()[0].command)
+  \     ] }
+  \   },
+  \ })<CR>
+
   autocmd! vimrc User candle#initialize call s:on_candle_initialize()
   function! s:on_candle_initialize() abort
+    let g:candle.debug = '/tmp/candle.log'
+
+    function! s:open_accept(candle) abort
+      let l:first = v:true
+      for l:item in a:candle.get_action_items()
+        if !has_key(l:item, 'path') || !l:first
+          return v:false
+        endif
+        let l:first = v:false
+      endfor
+      return v:true
+    endfunction
+
+    function! s:open_invoke(command, candle) abort
+      quit
+      let l:item = a:candle.get_action_items()[0]
+      call vimrc#open(a:command, {
+      \   'filename': l:item.path,
+      \   'lnum': get(l:item, 'lnum', -1),
+      \   'col': get(l:item, 'col', -1),
+      \ }, win_id2win(a:candle.prev_winid))
+    endfunction
+
+    call candle#action#register({
+    \   'name': 'edit',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['edit']),
+    \ })
+    call candle#action#register({
+    \   'name': 'split',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['split']),
+    \ })
+    call candle#action#register({
+    \   'name': 'vsplit',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['vsplit']),
+    \ })
+
+
+    function! s:qfreplace_accept(candle) abort
+      for l:item in a:candle.get_action_items()
+        if !has_key(l:item, 'path') || !has_key(l:item, 'lnum') || !has_key(l:item, 'text')
+          return v:false
+        endif
+      endfor
+      return v:true
+    endfunction
+
+    function! s:qfreplace_invoke(candle) abort
+      call setqflist(map(a:candle.get_action_items(), { _, item -> {
+      \   'filename': item.path,
+      \   'lnum': item.lnum,
+      \   'text': item.text,
+      \ } }))
+      call qfreplace#start('')
+    endfunction
+
+    call candle#action#register({
+    \   'name': 'qfreplace',
+    \   'accept': function('s:qfreplace_accept'),
+    \   'invoke': function('s:qfreplace_invoke'),
+    \ })
   endfunction
 
   autocmd! vimrc User candle#start call s:on_candle_start()
@@ -329,7 +380,7 @@ if dein#tap('vim-candle')
     nnoremap <silent><buffer> G     :<C-u>call candle#mapping#cursor_bottom()<CR>
     nnoremap <silent><buffer> i     :<C-u>call candle#mapping#input_open()<CR>
     nnoremap <silent><buffer> a     :<C-u>call candle#mapping#input_open()<CR>
-    nnoremap <silent><buffer> -     :<C-u>call candle#mapping#toggle_select()<CR>
+    nnoremap <silent><buffer> @     :<C-u>call candle#mapping#toggle_select()<CR>
     nnoremap <silent><buffer> *     :<C-u>call candle#mapping#toggle_select_all()<CR>
     nnoremap <silent><buffer> <Tab> :<C-u>call candle#mapping#choose_action()<CR>
 
@@ -343,10 +394,11 @@ if dein#tap('vim-candle')
   function! s:on_candle_input_start()
     let b:lexima_disabled = v:true
     inoremap <silent><buffer> <Tab> <Esc>:<C-u>quit \| call candle#mapping#choose_action()<CR>
-    inoremap <silent><buffer> <CR>  <Esc>:<C-u>quit \| call candle#mapping#action('default')<CR>
+    inoremap <silent><buffer> <CR>  <Esc>:<C-u>quit<CR>
     inoremap <silent><buffer> <Esc> <Esc>:<C-u>call candle#mapping#input_close()<CR>
-    inoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(-1)<CR>a
-    inoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(1)<CR>a
+    inoremap <silent><buffer> <C-y> <Esc>:<C-u>quit \| call candle#mapping#action('default')<CR>
+    inoremap <silent><buffer> <C-k> <C-o>:<C-u>call candle#mapping#cursor_move(-1)<CR>
+    inoremap <silent><buffer> <C-j> <C-o>:<C-u>call candle#mapping#cursor_move(1)<CR>
   endfunction
 endif
 
@@ -415,7 +467,6 @@ endif
 
 if dein#tap('gruvbox')
   let g:gruvbox_contrast_dark = 'medium'
-  let g:gruvbox_italic = v:true
   let g:gruvbox_sign_column = 'bg0'
   let g:gruvbox_vert_split = 'bg1'
   colorscheme gruvbox
@@ -664,8 +715,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#language#html()
     call lamp#language#css()
     call lamp#language#go()
-    call lamp#language#python()
-    call lamp#language#rust()
     call lamp#language#typescript({
           \   'filetypes': ['typescript.dts'],
           \   'capabilities': {
@@ -801,99 +850,96 @@ if dein#tap('deol.nvim')
   endfunction
 endif
 
-if dein#tap('defx.nvim')
-  call defx#custom#option('_', {
-        \   'columns': 'mark:indent:icons:filename:type',
-        \ })
+if dein#tap('fern.vim')
+  let g:fern#disable_default_mappings = 1
+  let g:fern#drawer_width = 40
 
-  autocmd! vimrc FileType defx call s:setup_defx()
-  function! s:setup_defx() abort
-    setlocal nonumber
-    setlocal winfixwidth
-
-    if has('nvim')
-      setlocal winhighlight=Normal:NormalFloat,EndOfBuffer:NormalFloat
-    endif
-
-    " open
-    nnoremap <silent><buffer><expr><Tab>     defx#do_action('call', 'DefxSuitableMoveAction')
-    nnoremap <silent><buffer><expr><CR>      defx#do_action('open', 'DefxEditAction')
-    nnoremap <silent><buffer><expr>v         defx#do_action('open', 'DefxVsplitAction')
-    nnoremap <silent><buffer><expr>s         defx#do_action('open', 'DefxSplitAction')
-    nnoremap <silent><buffer><expr>x         defx#do_action('execute_system')
-
-    " move.
-    nnoremap <silent><buffer><expr>h         defx#get_candidate()['level'] > 0 ? defx#do_action('close_tree') : (defx#is_opened_tree() ? defx#do_action('close_tree') : defx#do_action('cd', ['..']))
-    nnoremap <silent><buffer><expr>j         'j'
-    nnoremap <silent><buffer><expr>k         'k'
-    nnoremap <silent><buffer><expr>l         defx#is_directory() ? defx#do_action('open_tree') . 'j' : 'l'
-    nnoremap <silent><buffer><expr>~         defx#do_action('cd')
-    nnoremap <silent><buffer><expr>\         defx#do_action('cd', ['/'])
-
-    " manimpulates.
-    nnoremap <silent><buffer><expr>K         defx#do_action('new_directory')
-    nnoremap <silent><buffer><expr>N         defx#do_action('new_file')
-    nnoremap <silent><buffer><expr>c         defx#do_action('copy')
-    nnoremap <silent><buffer><expr>m         defx#do_action('move')
-    nnoremap <silent><buffer><expr>D         defx#do_action('remove')
-    nnoremap <silent><buffer><expr>r         defx#do_action('rename')
-    nnoremap <silent><buffer><expr>p         defx#do_action('paste')
-
-    nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><BS>            :<C-u>Denite -default-action=execute defx/session defx/history<CR>
-    nnoremap <silent><buffer><F5>         :<C-u>call vimrc#detect_cwd()<CR>
-    nnoremap <silent><buffer><expr>.         defx#do_action('toggle_ignored_files')
-    nnoremap <silent><buffer><expr>@         defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><expr><C-l>     defx#do_action('redraw')
-    nnoremap <silent><buffer><Leader><CR>    :<C-u>new \| Defx -new -session-file=`expand('~/.defx_session')` `expand('%:p:h')`<CR>
-    nnoremap <silent><buffer>H               :<C-u>call DefxTerminal()<CR>
-  endfunction
-
-  command! -nargs=* -range DefxEditAction call DefxOpenAction('edit', <q-args>)
-  command! -nargs=* -range DefxVsplitAction call DefxOpenAction('vnew', <q-args>)
-  command! -nargs=* -range DefxSplitAction call DefxOpenAction('new', <q-args>)
-  function! DefxOpenAction(cmd, path)
-    call vimrc#open(a:cmd, {
-          \ 'path': a:path,
-          \ 'line': -1,
-          \ 'col': -1
+  function! s:fern_open(command, helper) abort
+    let l:node = a:helper.sync.get_cursor_node()
+    call vimrc#open(a:command, {
+    \   'filename': l:node._path,
     \ })
-    setlocal nowinfixwidth
-    setlocal nowinfixheight
   endfunction
 
-  function! DefxSuitableMoveAction(context)
-    let current = vimrc#path(b:defx.paths[0])
+  call fern#mapping#call_function#add('edit', function('s:fern_open', ['edit']))
+  call fern#mapping#call_function#add('split', function('s:fern_open', ['split']))
+  call fern#mapping#call_function#add('vsplit', function('s:fern_open', ['vsplit']))
+
+  nnoremap <F2> :<C-u>call FernStart()<CR>
+
+  autocmd! vimrc FileType fern call s:setup_fern()
+  function! s:setup_fern() abort
+    nnoremap <silent><buffer>H           :<C-u>call FernTerminal()<CR>
+    nnoremap <silent><buffer><Tab>       :<C-u>call FernSuitableMove()<CR>
+    nnoremap <silent><buffer><F5>        :<C-u>call vimrc#detect_cwd()<CR>
+
+    nmap <silent><buffer>h               <Plug>(fern-action-collapse-or-leave)
+    nmap <silent><buffer>l               <Plug>(fern-action-expand)
+    nmap <silent><buffer>K               <Plug>(fern-action-new-dir)
+    nmap <silent><buffer>N               <Plug>(fern-action-new-file)
+    nmap <silent><buffer>r               <Plug>(fern-action-rename)
+    nmap <silent><buffer>D               <Plug>(fern-action-remove)
+    nmap <silent><buffer>c               <Plug>(fern-action-clipboard-copy)
+    nmap <silent><buffer>m               <Plug>(fern-action-clipboard-move)
+    nmap <silent><buffer>p               <Plug>(fern-action-clipboard-paste)
+    nmap <silent><buffer><expr><CR>      fern#smart#leaf('<Plug>(fern-action-call-function:edit)', '<Plug>(fern-action-enter)')
+    nmap <silent><buffer>s               <Plug>(fern-action-call-function:split)
+    nmap <silent><buffer>v               <Plug>(fern-action-call-function:vsplit)
+    nmap <silent><buffer>@               <Plug>(fern-action-mark-toggle)j
+    nmap <silent><buffer>,               <Plug>(fern-action-hidden-toggle)
+    nmap <silent><buffer><C-l>           <Plug>(fern-action-reload)
+    nmap <silent><buffer>~               :<C-u>Fern ~<CR>
+    nmap <silent><buffer>\               :<C-u>Fern /<CR>
+    nmap <silent><buffer><Leader><CR>    :<C-u>new \| Fern .<CR>
+
+    nnoremap <silent><buffer><BS>        :<C-u>call candle#start({
+    \   'mru_dir': {},
+    \ }, {
+    \   'action': {
+    \     'default': { candle -> [
+    \       execute('quit'),
+    \       win_gotoid(candle.prev_winid),
+    \       execute(printf('Fern %s', candle.get_action_items()[0].path))
+    \     ] }
+    \   }
+    \ })<CR>
+  endfunction
+
+  function! FernStart()
+    let path = expand('%:p:h')
+    let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') ==# 'fern' })
+    if len(winnrs) > 0
+      let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
+      if len(choise) > 0
+        execute printf('%swincmd w', choise[1])
+        execute printf('Fern %s', path)
+      endif
+    else
+      execute printf('Fern %s -drawer', path)
+    endif
+  endfunction
+
+  function! FernSuitableMove()
+    let current = b:fern.root._path
     let cwd = vimrc#path(vimrc#get_cwd())
     let root = vimrc#path(vimrc#get_project_root(current))
 
     if current == cwd || !vimrc#is_parent_path(cwd, current)
-      call defx#call_action('cd', [root])
+      execute printf('Fern %s', root)
       return
     endif
-    call defx#call_action('cd', [cwd])
+    execute printf('Fern %s', cwd)
   endfunction
 
-  function! DefxTerminal()
-    let candidate = defx#get_candidate()
-    if vimrc#path(b:defx['paths'][0]) == vimrc#path(candidate['action__path'])
-      let cwd = candidate['action__path']
-    else
-      if isdirectory(candidate['action__path'])
-        let mods = ':p:h:h'
-      else
-        let mods = ':p:h'
-      endif
-      let cwd = fnamemodify(candidate['action__path'], mods)
-    endif
-
+  function! FernTerminal()
+    let l:cwd = b:fern.root._path
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 12split
       setlocal winfixheight
-      call deol#start(printf('-cwd=%s', cwd))
+      call deol#start(printf('-cwd=%s', l:cwd))
     else
       let t:deol['cwd'] = ''
-      call deol#start(printf('-cwd=%s', cwd))
+      call deol#start(printf('-cwd=%s', l:cwd))
     endif
   endfunction
 endif
@@ -935,7 +981,7 @@ if dein#tap('lightline.vim')
   function! Lamp()
     if dein#tap('vim-lamp')
       try
-        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? "\u26A1" : ''
+        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'v' : ''
       catch /.*/
       endtry
     endif
@@ -1020,18 +1066,13 @@ if dein#tap('denite.nvim')
         \ ]
   call denite#custom#var('menu', 'menus', s:menus)
 
-  " execute action.
-  function! s:denite_execute_action(context)
-    call defx#call_action('cd', [a:context['targets'][0]['action__path']])
-  endfunction
-  call denite#custom#action('directory', 'execute', function('s:denite_execute_action'))
 
   " edit action.
   function! s:denite_edit_action(context)
     for target in a:context['targets']
       call vimrc#open('edit', {
-            \ 'path': target['action__path'],
-            \ 'line': get(target, 'action__line', -1),
+            \ 'filename': target['action__path'],
+            \ 'lnum': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
             \ })
     endfor
@@ -1042,8 +1083,8 @@ if dein#tap('denite.nvim')
   function! s:denite_split_action(context)
     for target in a:context['targets']
       call vimrc#open('new', {
-            \ 'path': target['action__path'],
-            \ 'line': get(target, 'action__line', -1),
+            \ 'filename': target['action__path'],
+            \ 'lnum': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
             \ })
     endfor
@@ -1054,8 +1095,8 @@ if dein#tap('denite.nvim')
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
       call vimrc#open('vnew', {
-            \ 'path': target['action__path'],
-            \ 'line': get(target, 'action__line', -1),
+            \ 'filename': target['action__path'],
+            \ 'lnum': get(target, 'action__line', -1),
             \ 'col': get(target, 'action__col', -1)
             \ })
     endfor
@@ -1091,6 +1132,10 @@ if dein#tap('denite.nvim')
     endfunction
     call denite#custom#action('file', 'qfreplace', function('s:denite_qfreplace_action'))
   endif
+
+  if dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
+    nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
+  endif
 endif
 
 autocmd! vimrc FileType * call s:on_file_type()
@@ -1099,7 +1144,7 @@ function! s:on_file_type()
         \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
         \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
         \   '.*\.tpl$': { 'filetype': 'html' },
-        \   '.*\.vim$': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' }
+        \   '.*\.vim$': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' },
         \ })
     if bufname('%') =~ k
       for [l:name, l:value] in items(v)
@@ -1133,12 +1178,15 @@ endfunction
 
 if has('nvim')
   autocmd! vimrc TermOpen term://* call s:on_term_open()
+  function! s:on_term_open()
+    tnoremap <buffer><silent><Esc> <C-\><C-n>
+  endfunction
 else
-  autocmd! vimrc TerminalOpen term://* call s:on_term_open()
+  autocmd! vimrc TerminalOpen * call s:on_term_open()
+  function! s:on_term_open()
+    tnoremap <buffer><Esc> <C-w>N
+  endfunction
 endif
-function! s:on_term_open()
-  tnoremap <buffer><silent><Esc> <C-\><C-n>
-endfunction
 
 autocmd! vimrc BufWinEnter * call s:on_buf_win_enter()
 function! s:on_buf_win_enter()
