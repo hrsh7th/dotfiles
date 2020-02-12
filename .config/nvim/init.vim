@@ -39,22 +39,23 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('h4kst3r/php-awesome-snippets', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk')
   call dein#add('hrsh7th/asyncomplete-lamp')
-  call dein#add('hrsh7th/denite-converter-prioritize-basename')
+  call dein#add('hrsh7th/fern-mapping-call-function.vim')
+  call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim')
   call dein#add('hrsh7th/vim-candle')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
   call dein#add('hrsh7th/vim-lamp')
   call dein#add('hrsh7th/vim-locon')
+  call dein#add('hrsh7th/vim-vital-vs')
   call dein#add('hrsh7th/vim-vsnip')
   call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
-  call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/fern.vim')
+  call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
-  call dein#add('machakann/asyncomplete-ezfilter.vim')
   call dein#add('machakann/vim-sandwich')
   call dein#add('microsoft/vscode-python', { 'merged': 0 })
   call dein#add('natebosch/vim-lsc')
@@ -65,7 +66,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('prabirshrestha/asyncomplete.vim')
   call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
-  call dein#add('ryanoasis/vim-devicons')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('t9md/vim-choosewin')
   call dein#add('thinca/vim-qfreplace')
@@ -284,6 +284,12 @@ if dein#tap('vim-candle')
   \     'root_path': vimrc#get_cwd(),
   \     'pattern': input('PATTERN: '),
   \   }
+  \ }, {
+  \   'action': {
+  \     'default': 'edit/keep',
+  \     'split': 'split/keep',
+  \     'vsplit': 'vsplit/keep',
+  \   }
   \ })<CR>
 
   " menu
@@ -318,8 +324,10 @@ if dein#tap('vim-candle')
       return v:true
     endfunction
 
-    function! s:open_invoke(command, candle) abort
-      quit
+    function! s:open_invoke(command, keep, candle) abort
+      if !a:keep
+        quit
+      endif
       let l:item = a:candle.get_action_items()[0]
       call vimrc#open(a:command, {
       \   'filename': l:item.path,
@@ -331,17 +339,33 @@ if dein#tap('vim-candle')
     call candle#action#register({
     \   'name': 'edit',
     \   'accept': function('s:open_accept'),
-    \   'invoke': function('s:open_invoke', ['edit']),
+    \   'invoke': function('s:open_invoke', ['edit', v:false]),
     \ })
     call candle#action#register({
     \   'name': 'split',
     \   'accept': function('s:open_accept'),
-    \   'invoke': function('s:open_invoke', ['split']),
+    \   'invoke': function('s:open_invoke', ['split', v:false]),
     \ })
     call candle#action#register({
     \   'name': 'vsplit',
     \   'accept': function('s:open_accept'),
-    \   'invoke': function('s:open_invoke', ['vsplit']),
+    \   'invoke': function('s:open_invoke', ['vsplit', v:false]),
+    \ })
+
+    call candle#action#register({
+    \   'name': 'edit/keep',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['edit', v:true]),
+    \ })
+    call candle#action#register({
+    \   'name': 'split/keep',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['split', v:true]),
+    \ })
+    call candle#action#register({
+    \   'name': 'vsplit/keep',
+    \   'accept': function('s:open_accept'),
+    \   'invoke': function('s:open_invoke', ['vsplit', v:true]),
     \ })
 
 
@@ -383,6 +407,7 @@ if dein#tap('vim-candle')
     nnoremap <silent><buffer> @     :<C-u>call candle#mapping#toggle_select()<CR>
     nnoremap <silent><buffer> *     :<C-u>call candle#mapping#toggle_select_all()<CR>
     nnoremap <silent><buffer> <Tab> :<C-u>call candle#mapping#choose_action()<CR>
+    nnoremap <silent><buffer> <C-l> :<C-u>call candle#mapping#restart()<CR>
 
     nnoremap <silent><buffer> <CR>  :<C-u>call candle#mapping#action('default')<CR>
     nnoremap <silent><buffer> s     :<C-u>call candle#mapping#action('split')<CR>
@@ -427,10 +452,6 @@ if dein#tap('lexima.vim')
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
   call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
-endif
-
-if dein#tap('vim-devicons')
-  let g:webdevicons_enable_denite = v:false
 endif
 
 if dein#tap('vim-themis')
@@ -498,10 +519,6 @@ if dein#tap('vim-vsnip-integ')
   let g:vsnip_integ_config.asyncomplete = v:false
 endif
 
-if dein#tap('ncm2')
-  autocmd! vimrc BufEnter * call ncm2#enable_for_buffer()
-endif
-
 if dein#tap('asyncomplete.vim')
   let g:asyncomplete_auto_popup = 1
 
@@ -514,17 +531,12 @@ if dein#tap('asyncomplete.vim')
           \   'completor': function('asyncomplete#sources#file#completor')
           \ }))
   endfunction
-
-  if dein#tap('asyncomplete-ezfilter.vim')
-    let g:asyncomplete_preprocessor = [function('asyncomplete#preprocessor#ezfilter#filter')]
-    let g:asyncomplete#preprocessor#ezfilter#config = {}
-    let g:asyncomplete#preprocessor#ezfilter#config['*'] = { ctx, items -> (ctx.osa_filter(items, 1)) }
-  endif
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_async_completion = v:true
+  let g:lsp_diagnostics_float_cursor = 1
 
   autocmd! vimrc User lsp_setup call s:lsp_setup()
   function! s:lsp_setup()
@@ -1025,23 +1037,9 @@ if dein#tap('denite.nvim')
     nnoremap <silent><buffer><Esc> :<C-u>p<CR>
   endfunction
 
-  " source var custom
-  if executable('ag')
-    call denite#custom#var('file/rec', 'command', ['ag'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }) + ['--nocolor', '--nogroup', '-g', ''])
-    call denite#custom#var('grep', 'command', ['ag'])
-    call denite#custom#var('grep', 'default_opts', ['-i', '--vimgrep'] + map(deepcopy(locon#get('ignore_globs')), { k, v -> '--ignore=' . v }))
-    call denite#custom#var('grep', 'recursive_opts', [])
-    call denite#custom#var('grep', 'pattern_opt', [])
-    call denite#custom#var('grep', 'separator', ['--'])
-    call denite#custom#var('grep', 'final_opts', [])
-  endif
-
   " filter custom
   call denite#custom#filter('matcher/ignore_globs', 'ignore_globs', locon#get('ignore_globs'))
-
-  " converters
-  call denite#custom#source('grep', 'converters', ['converter/abbr_word'])
-  call denite#custom#source('file/rec,file/old', 'converters', ['converter/prioritize_basename', 'converter/abbr_word'])
+  call denite#custom#source('file/rec,file/old', 'converters', ['converter/abbr_word'])
 
   " sorter
   call denite#custom#source('file/old', 'sorters', [])
@@ -1052,19 +1050,10 @@ if dein#tap('denite.nvim')
   call denite#custom#source('_', 'matchers', ['matcher/substring'])
 
   " option.
-  call denite#custom#option('grep', 'quit', v:false)
   call denite#custom#option('_', 'winheight', 10)
   call denite#custom#option('_', 'filter_updatetime', 500)
   call denite#custom#option('_', 'highlight_matched_char', 'None')
   call denite#custom#option('_', 'highlight_matched_range', 'None')
-
-  " menu.
-  let s:menus = {}
-  let s:menus.vim = {'description': 'vim runtime.'}
-  let s:menus.vim.command_candidates = [
-        \ ['upgrade: dein:deps', 'call dein#update()']
-        \ ]
-  call denite#custom#var('menu', 'menus', s:menus)
 
 
   " edit action.
@@ -1114,25 +1103,6 @@ if dein#tap('denite.nvim')
     endfunction
     call denite#custom#action('gitto/status', 'delete', function('s:denite_delete_action'), { 'is_quit': v:false, 'is_redraw': v:true })
   endif
-
-  " qfreplace action
-  if dein#tap('vim-qfreplace')
-    function! s:denite_qfreplace_action(context)
-      let qflist = a:context['targets']
-      let qflist = filter(qflist, { k, v -> has_key(v, 'action__path') })
-      let qflist = filter(qflist, { k, v -> has_key(v, 'action__line') })
-      let qflist = filter(qflist, { k, v -> has_key(v, 'action__text') })
-      let qflist = map(qflist, { k, v -> {
-            \   'filename': v.action__path,
-            \   'lnum': v.action__line,
-            \   'text': v.action__text,
-            \ } })
-      call setqflist(qflist)
-      call qfreplace#start('')
-    endfunction
-    call denite#custom#action('file', 'qfreplace', function('s:denite_qfreplace_action'))
-  endif
-
   if dein#tap('vim-gitto') && dein#tap('vim-denite-gitto')
     nnoremap <Leader><BS> :<C-u>DeniteGitto gitto<CR>
   endif
