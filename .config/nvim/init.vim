@@ -14,7 +14,7 @@ let g:python3_host_prog = 'python3'
 let $MYVIMRC = resolve($MYVIMRC)
 
 let s:config = {
-      \   'lsp': 'lamp'
+      \   'lsp': 'lamp',
       \ }
 
 let s:dein = {}
@@ -99,7 +99,7 @@ let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
 let $TERM = 'xterm256-color'
 set termguicolors
 set t_Co=256
-set updatetime=500
+set updatetime=200
 set autoread
 set hidden
 set nobackup
@@ -535,7 +535,6 @@ endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
-  let g:lsp_async_completion = v:true
   let g:lsp_diagnostics_float_cursor = 1
 
   autocmd! vimrc User lsp_setup call s:lsp_setup()
@@ -964,7 +963,7 @@ if dein#tap('lightline.vim')
   let g:lightline.enable.tabline = 1
 
   let g:lightline.active = {}
-  let g:lightline.active.left = [['readonly', 'filename', 'modified']]
+  let g:lightline.active.left = [['readonly', 'relativepath', 'modified']]
   let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'lamp']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }

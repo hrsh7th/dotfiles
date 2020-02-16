@@ -15,7 +15,7 @@ export PATH="/usr/local/bin:$PATH"
 export PATH="/usr/local/Cellar/php@7.3/7.3.13/bin:$PATH"
 
 # ruby(from brew)
-export PATH="/usr/local/Cellar/ruby/2.6.3/bin:$PATH"
+export PATH="/usr/local/Cellar/ruby/2.6.5/bin:$PATH"
 
 # rubygems
 export PATH="/usr/local/lib/ruby/gems/2.6.0/bin:$PATH"
