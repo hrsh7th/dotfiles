@@ -30,13 +30,13 @@ let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.co
 let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
+
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('cohama/lexima.vim')
   call dein#add('delphinus/vim-auto-cursorline')
   call dein#add('gruvbox-community/gruvbox')
-  call dein#add('h4kst3r/php-awesome-snippets', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk')
   call dein#add('hrsh7th/asyncomplete-lamp')
   call dein#add('hrsh7th/fern-mapping-call-function.vim')
@@ -57,7 +57,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('microsoft/vscode-python', { 'merged': 0 })
   call dein#add('natebosch/vim-lsc')
   call dein#add('neoclide/denite-extra')
   call dein#add('prabirshrestha/async.vim')
@@ -220,6 +219,8 @@ nnoremap <Leader>H :<C-u>tabprev<CR>
 
 nnoremap G Gzz
 
+nnoremap <expr> 0 getline('.')[0 : col('.') - 2] =~# '^\s\+$' ? '0' : '^'
+
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
 
@@ -316,7 +317,7 @@ if dein#tap('vim-candle')
     function! s:open_accept(candle) abort
       let l:first = v:true
       for l:item in a:candle.get_action_items()
-        if !has_key(l:item, 'path') || !l:first
+        if !has_key(l:item, 'filename') || !l:first
           return v:false
         endif
         let l:first = v:false
@@ -329,11 +330,7 @@ if dein#tap('vim-candle')
         quit
       endif
       let l:item = a:candle.get_action_items()[0]
-      call vimrc#open(a:command, {
-      \   'filename': l:item.path,
-      \   'lnum': get(l:item, 'lnum', -1),
-      \   'col': get(l:item, 'col', -1),
-      \ }, win_id2win(a:candle.prev_winid))
+      call vimrc#open(a:command, l:item, win_id2win(a:candle.prev_winid))
     endfunction
 
     call candle#action#register({
@@ -371,7 +368,7 @@ if dein#tap('vim-candle')
 
     function! s:qfreplace_accept(candle) abort
       for l:item in a:candle.get_action_items()
-        if !has_key(l:item, 'path') || !has_key(l:item, 'lnum') || !has_key(l:item, 'text')
+        if !has_key(l:item, 'filename') || !has_key(l:item, 'lnum') || !has_key(l:item, 'text')
           return v:false
         endif
       endfor
@@ -379,11 +376,7 @@ if dein#tap('vim-candle')
     endfunction
 
     function! s:qfreplace_invoke(candle) abort
-      call setqflist(map(a:candle.get_action_items(), { _, item -> {
-      \   'filename': item.path,
-      \   'lnum': item.lnum,
-      \   'text': item.text,
-      \ } }))
+      call setqflist(a:candle.get_action_items())
       call qfreplace#start('')
     endfunction
 
@@ -417,16 +410,12 @@ if dein#tap('vim-candle')
 
   autocmd! vimrc User candle#input#start call s:on_candle_input_start()
   function! s:on_candle_input_start()
-    let b:lexima_disabled = v:true
-    inoremap <silent><buffer> <Tab> <Esc>:<C-u>quit \| call candle#mapping#choose_action()<CR>
-    inoremap <silent><buffer> <CR>  <Esc>:<C-u>quit<CR>
-    inoremap <silent><buffer> <Esc> <Esc>:<C-u>call candle#mapping#input_close()<CR>
-    inoremap <silent><buffer> <C-y> <Esc>:<C-u>quit \| call candle#mapping#action('default')<CR>
-    inoremap <silent><buffer> <C-k> <C-o>:<C-u>call candle#mapping#cursor_move(-1)<CR>
-    inoremap <silent><buffer> <C-j> <C-o>:<C-u>call candle#mapping#cursor_move(1)<CR>
+    cnoremap <silent><buffer> <Tab> <Esc>:<C-u>call candle#mapping#choose_action()<CR>
+    cnoremap <silent><buffer> <C-y> <Esc>:<C-u>call candle#mapping#action('default')<CR>
+    cnoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(-1) \| call candle#mapping#input_open()<CR>
+    cnoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(+1) \| call candle#mapping#input_open()<CR>
   endfunction
 endif
-
 
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
@@ -549,13 +538,18 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     call lsp#register_server({
           \   'name': 'gopls',
           \   'cmd': { info -> ['gopls'] },
-          \   'root_uri': { info -> lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'go.mod') },
           \   'whitelist': ['go'],
           \   'initialization_options': {
           \     'usePlaceholders': v:true,
           \     'completeUnimported': v:true,
           \     'hoverKind': 'FullDocumentation'
           \   }
+          \ })
+    call lsp#register_server({
+          \   'name': 'rust-analyzer',
+          \   'cmd': { -> ['rust-analyzer'] },
+          \   'whitelist': ['rust'],
+          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup('Cargo.toml')) }
           \ })
     call lsp#register_server({
           \   'name': 'clangd',
@@ -702,10 +696,13 @@ endif
 if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   autocmd! vimrc User lamp#initialized call s:on_lamp_initialized()
   function! s:on_lamp_initialized() abort
-    let s:on_location = { locations -> [
-          \   setqflist(locations, 'r'),
-          \   execute('Denite quickfix')
-          \ ] }
+    let s:on_location = { locations -> candle#start({
+    \   'item': map(locations, { i, location -> extend(location, { 'id': i, 'title': location.filename }) })
+    \ }, {
+    \   'action': {
+    \     'default': 'edit'
+    \   }
+    \ }) }
     let s:on_fallback = { command, position -> [
           \   cursor(position.line + 1, position.character + 1),
           \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
@@ -741,10 +738,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \   'command': ['clangd', '-background-index'],
           \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
           \ })
-
-    call lamp#register('clangd', {
-          \   'command': ['clangd', '--background-index'],
-          \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
+    call lamp#register('rust-analyzer', {
+          \   'command': ['rust-analyzer'],
+          \   'filetypes': ['rust'],
+          \   'root_uri': { -> lamp#findup('Cargo.toml') }
           \ })
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
@@ -910,7 +907,7 @@ if dein#tap('fern.vim')
     \     'default': { candle -> [
     \       execute('quit'),
     \       win_gotoid(candle.prev_winid),
-    \       execute(printf('Fern %s', candle.get_action_items()[0].path))
+    \       execute(printf('Fern %s', candle.get_action_items()[0].filename))
     \     ] }
     \   }
     \ })<CR>

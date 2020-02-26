@@ -11,14 +11,20 @@ export PATH="$HOME/Local/bin:$PATH"
 # brew.
 export PATH="/usr/local/bin:$PATH"
 
+# redis
+export PATH="/usr/local/Cellar/redis/5.0.7/bin:$PATH"
+
 # php (Append path for before of brew to use php7.3 isntead of php7.4)
 export PATH="/usr/local/Cellar/php@7.3/7.3.13/bin:$PATH"
 
-# ruby(from brew)
+# ruby
 export PATH="/usr/local/Cellar/ruby/2.6.5/bin:$PATH"
 
 # rubygems
 export PATH="/usr/local/lib/ruby/gems/2.6.0/bin:$PATH"
+
+# pytohn
+export PATH="/usr/local/opt/python@3.8/bin:$PATH"
 
 # llvm
 export PATH="/usr/local/opt/llvm/bin:$PATH"
