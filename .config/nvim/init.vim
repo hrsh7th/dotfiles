@@ -35,8 +35,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/denite.nvim')
   call dein#add('Shougo/deol.nvim')
   call dein#add('cohama/lexima.vim')
-  call dein#add('delphinus/vim-auto-cursorline')
-  call dein#add('gruvbox-community/gruvbox')
   call dein#add('haya14busa/vim-asterisk')
   call dein#add('hrsh7th/asyncomplete-lamp')
   call dein#add('hrsh7th/fern-mapping-call-function.vim')
@@ -52,6 +50,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
+  call dein#add('joshdick/onedark.vim')
   call dein#add('lambdalisue/fern.vim')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-backslash')
@@ -63,9 +62,9 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('prabirshrestha/asyncomplete-file.vim')
   call dein#add('prabirshrestha/asyncomplete-lsp.vim')
   call dein#add('prabirshrestha/asyncomplete.vim')
-  call dein#add('prabirshrestha/vim-lsp')
   call dein#add('previm/previm')
   call dein#add('sheerun/vim-polyglot')
+  call dein#add('sonph/onehalf', { 'rtp': 'vim/' })
   call dein#add('t9md/vim-choosewin')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
@@ -73,6 +72,10 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
+
+  if has('nvim')
+    call dein#add('neovim/nvim-lsp')
+  endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
   call dein#local('~/Develop/LocalVimPlugins')
@@ -121,8 +124,8 @@ set termguicolors
 set splitright
 set splitbelow
 set nowrap
-set nonumber
 set cursorline
+set number
 set modeline
 set modelines=2
 set wildmenu
@@ -168,8 +171,9 @@ if has('nvim')
   set wildoptions=pum
   set scrollback=2000
   set clipboard=unnamedplus
-  set fillchars+=vert:\ ,eob:\ 
+  set fillchars+=vert:\|,eob:\ 
   set inccommand=split
+  set pumblend=30
 else
   set clipboard=unnamed
   set fillchars+=vert:\ 
@@ -314,17 +318,6 @@ if dein#tap('vim-candle')
   function! s:on_candle_initialize() abort
     let g:candle.debug = '/tmp/candle.log'
 
-    function! s:open_accept(candle) abort
-      let l:first = v:true
-      for l:item in a:candle.get_action_items()
-        if !has_key(l:item, 'filename') || !l:first
-          return v:false
-        endif
-        let l:first = v:false
-      endfor
-      return v:true
-    endfunction
-
     function! s:open_invoke(command, keep, candle) abort
       if !a:keep
         quit
@@ -335,45 +328,35 @@ if dein#tap('vim-candle')
 
     call candle#action#register({
     \   'name': 'edit',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['edit', v:false]),
     \ })
     call candle#action#register({
     \   'name': 'split',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['split', v:false]),
     \ })
     call candle#action#register({
     \   'name': 'vsplit',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['vsplit', v:false]),
     \ })
 
     call candle#action#register({
     \   'name': 'edit/keep',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['edit', v:true]),
     \ })
     call candle#action#register({
     \   'name': 'split/keep',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['split', v:true]),
     \ })
     call candle#action#register({
     \   'name': 'vsplit/keep',
-    \   'accept': function('s:open_accept'),
+    \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['vsplit', v:true]),
     \ })
-
-
-    function! s:qfreplace_accept(candle) abort
-      for l:item in a:candle.get_action_items()
-        if !has_key(l:item, 'filename') || !has_key(l:item, 'lnum') || !has_key(l:item, 'text')
-          return v:false
-        endif
-      endfor
-      return v:true
-    endfunction
 
     function! s:qfreplace_invoke(candle) abort
       call setqflist(a:candle.get_action_items())
@@ -382,7 +365,7 @@ if dein#tap('vim-candle')
 
     call candle#action#register({
     \   'name': 'qfreplace',
-    \   'accept': function('s:qfreplace_accept'),
+    \   'accept': function('candle#action#common#expect_keys_multiple', [['filename', 'lnum', 'text']]),
     \   'invoke': function('s:qfreplace_invoke'),
     \ })
   endfunction
@@ -473,15 +456,6 @@ if dein#tap('vim-locon')
   if filereadable(expand('$HOME/.vimrc.local'))
     execute printf('source %s', expand('$HOME/.vimrc.local'))
   endif
-endif
-
-if dein#tap('gruvbox')
-  let g:gruvbox_contrast_dark = 'medium'
-  let g:gruvbox_sign_column = 'bg0'
-  let g:gruvbox_vert_split = 'bg1'
-  colorscheme gruvbox
-else
-  colorscheme ron
 endif
 
 if dein#tap('vital.vim')
@@ -587,89 +561,10 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \     }
           \   }
           \ })
-
-    call lsp#register_server({
-          \   'name': '1diagnostic-languageserver',
-          \   'cmd': ['diagnostic-languageserver', '--stdio'],
-          \   'whitelist': [
-          \     'typescript',
-          \     'typescript.tsx',
-          \     'typescriptreact',
-          \     'javascript',
-          \     'javascript.jsx',
-          \     'javascriptreact',
-          \     'vim',
-          \     'vimspec'
-          \   ],
-          \   'initialization_options': {
-          \     'linters': {
-          \       'eslint': {
-          \         'sourceName': 'eslint',
-          \         'command': 'eslint_d',
-          \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
-          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-          \         'formatLines': 1,
-          \         'formatPattern': [
-          \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-          \           {
-          \             'line': 1,
-          \             'column': 2,
-          \             'message': [4, ' [', 5, ']' ],
-          \             'security': 3
-          \           }
-          \         ],
-          \         'securities': {
-          \            'error': 'error',
-          \            'warning': 'warning'
-          \         },
-          \       },
-          \       'vint': {
-          \         'sourceName': 'vint',
-          \         'command': 'vint',
-          \         'args': ['--stdin-display-name', '%filename', '-'],
-          \         'formatPattern': [
-          \           '[^:]+:(\d+):(\d+):\s*(.*$)',
-          \           {
-          \             'line': 1,
-          \             'column': 2,
-          \             'message': 3
-          \           }
-          \         ]
-          \       }
-          \     },
-          \     'filetypes': {
-          \       'javascript': 'eslint',
-          \       'javascript.tsx': 'eslint',
-          \       'javascriptreact': 'eslint',
-          \       'typescript': 'eslint',
-          \       'typescript.tsx': 'eslint',
-          \       'typescriptreact': 'eslint',
-          \       'vim': 'vint',
-          \     },
-          \     'formatters': {
-          \       'eslint': {
-          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-          \         'command': 'eslint_d',
-          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
-          \         'isStdout': v:true,
-          \         'isStderr': v:true,
-          \       }
-          \     },
-          \     'formatFiletypes': {
-          \       'javascript': 'eslint',
-          \       'javascript.tsx': 'eslint',
-          \       'javascriptreact': 'eslint',
-          \       'typescript': 'eslint',
-          \       'typescript.tsx': 'eslint',
-          \       'typescriptreact': 'eslint'
-          \     }
-          \   }
-          \ })
   endfunction
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
-    setlocal signcolumn=yes
     setlocal omnifunc=lsp#omni#complete
     nnoremap <Leader><CR>          :<C-u>LspCodeAction<CR>
     vnoremap <Leader><CR>          :LspCodeAction<CR>
@@ -743,6 +638,42 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \   'filetypes': ['rust'],
           \   'root_uri': { -> lamp#findup('Cargo.toml') }
           \ })
+          \ 
+    call lamp#register('vls', {
+    \   'command': ['vls'],
+    \   'filetypes': ['vue'],
+    \   'initialization_options': { -> {
+    \     'embeddedLanguages': {
+    \     },
+    \      'config': {
+    \        'vetur': {
+    \          'useWorkspaceDependencies': v:false,
+    \          'completion': {
+    \             'tagCasing': 'kebab',
+    \             'useScaffoldSnippets': v:false,
+    \             'autoImport': v:false
+    \          },
+    \          'validation': {
+    \             'template': v:true,
+    \             'style': v:true,
+    \             'script': v:true
+    \          },
+    \          'format': {
+    \             'defaultFormatter': { 'js': v:null, 'ts': v:null },
+    \             'defaultFormatterOptions': {},
+    \             'scriptInitialIndent': v:false,
+    \             'styleInitialIndent': v:false
+    \          },
+    \        },
+    \        'css': {},
+    \        'html': { 'suggest': {} },
+    \        'javascript': { 'format': {} },
+    \        'typescript': { 'format': {} },
+    \        'emmet': {},
+    \        'stylusSupremacy': {},
+    \     }
+    \   } }
+    \ })
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
           \   'filetypes': [
@@ -823,17 +754,19 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
-    setlocal signcolumn=yes
     setlocal omnifunc=lamp#complete
     nnoremap <buffer> gf<CR>       :<C-u>LampDefinition edit<CR>
     nnoremap <buffer> gfs          :<C-u>LampDefinition split<CR>
     nnoremap <buffer> gfv          :<C-u>LampDefinition vsplit<CR>
-    nnoremap <buffer> tgf<CR>      :<C-u>LampTypeDefinition edit<CR>
-    nnoremap <buffer> tgfs         :<C-u>LampTypeDefinition split<CR>
-    nnoremap <buffer> tgfv         :<C-u>LampTypeDefinition vsplit<CR>
-    nnoremap <buffer> dgf<CR>      :<C-u>LampDeclaration edit<CR>
-    nnoremap <buffer> dgfs         :<C-u>LampDeclaration split<CR>
-    nnoremap <buffer> dgfv         :<C-u>LampDeclaration vsplit<CR>
+    nnoremap <buffer> gft<CR>      :<C-u>LampTypeDefinition edit<CR>
+    nnoremap <buffer> gfts         :<C-u>LampTypeDefinition split<CR>
+    nnoremap <buffer> gftv         :<C-u>LampTypeDefinition vsplit<CR>
+    nnoremap <buffer> gfd<CR>      :<C-u>LampDeclaration edit<CR>
+    nnoremap <buffer> gfds         :<C-u>LampDeclaration split<CR>
+    nnoremap <buffer> gfdv         :<C-u>LampDeclaration vsplit<CR>
+    nnoremap <buffer> gfi<CR>      :<C-u>LampImplementation edit<CR>
+    nnoremap <buffer> gfis         :<C-u>LampImplementation split<CR>
+    nnoremap <buffer> gfiv         :<C-u>LampImplementation vsplit<CR>
     nnoremap <buffer> <Leader>i    :<C-u>LampHover<CR>
     nnoremap <buffer> <Leader>r    :<C-u>LampRename<CR>
     nnoremap <buffer> <Leader>g    :<C-u>LampReferences<CR>
@@ -952,9 +885,15 @@ if dein#tap('fern.vim')
   endfunction
 endif
 
+try
+  colorscheme onedark
+catch /.*/
+  colorscheme ron
+endtry
+
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'gruvbox'
+  let g:lightline.colorscheme = 'onedark'
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -1166,4 +1105,28 @@ function! s:on_option_set_diff() abort
   nnoremap <buffer> <Leader>n ]czz
   nnoremap <buffer> <Leader>p [czz
 endfunction
+
+" lua require'nvim_lsp'.gopls.setup{
+"       \   capabilities = {
+"       \     textDocument = {
+"       \       completion = {
+"       \         completionItem = {
+"       \           snippetSupport = true
+"       \         }
+"       \       }
+"       \     }
+"       \   },
+"       \   init_options = {
+"       \     usePlaceholders = true,
+"       \     completeUnimported = true
+"       \   }
+"       \ }
+" set omnifunc=v:lua.vim.lsp.omnifunc
+
+" NOTE: Remove `vim-lsp` from runtimepath.
+" let g:LanguageClient_serverCommands = {
+" \ 'go': ['gopls'],
+" \ 'vim': ['vim-language-server', '--stdio']
+" \ }
+" set omnifunc=LanguageClient#complete
 

@@ -55,4 +55,3 @@ fi
 # alias
 alias v=nvim
 
-
