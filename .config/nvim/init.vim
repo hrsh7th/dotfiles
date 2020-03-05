@@ -467,24 +467,24 @@ if dein#tap('lexima.vim')
     call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
     call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
 
-    inoremap <expr><CR> complete_info(['selected']).selected >= 0 ? "\<C-y>" : lexima#expand('<LT>CR>', 'i')
+    inoremap <expr><CR> complete_info(['selected']).selected != -1 ? "\<C-y>" : lexima#expand('<LT>CR>', 'i')
   else
-    inoremap <expr><CR> complete_info(['selected']).selected >= 0 ? "\<C-y>" : "\<CR>"
+    inoremap <expr><CR> complete_info(['selected']).selected != -1 ? "\<C-y>" : "\<CR>"
   endif
 endif
 
 if dein#tap('vim-vsnip')
   let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
   if dein#tap('lexima.vim') && s:config.lexima
-    imap <expr><Tab> complete_info(['selected']).selected < 0 && vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> complete_info(['selected']).selected < 0 && vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    imap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
-    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    imap <expr><Tab> vsnip#available(1)                                             ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#available(1)                                             ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    imap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   endif
 endif
 
@@ -551,11 +551,6 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   'cmd': { -> ['rust-analyzer'] },
           \   'whitelist': ['rust'],
           \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['Cargo.toml'])) }
-          \ })
-    call lsp#register_server({
-          \   'name': 'clangd',
-          \   'cmd': { info -> ['clangd', '--background-index'] },
-          \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
           \ })
     call lsp#register_server({
           \   'name': '0typescript-language-server',
