@@ -15,6 +15,7 @@ let $MYVIMRC = resolve($MYVIMRC)
 
 let s:config = {
       \   'lsp': 'lamp',
+      \   'lexima': v:true,
       \ }
 
 let s:dein = {}
@@ -72,6 +73,10 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim')
   call dein#add('tyru/open-browser.vim')
   call dein#add('vim-jp/vital.vim')
+
+  if s:config.lsp ==# 'coc'
+    call dein#add('neoclide/coc.nvim', { 'merged':0, 'rev': 'release' })
+  endif
 
   if has('nvim')
     call dein#add('neovim/nvim-lsp')
@@ -404,28 +409,6 @@ if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
 endif
 
-if dein#tap('lexima.vim')
-  let g:lexima_nvim_accept_pum_with_enter = v:false
-  let g:lexima_no_default_rules = v:true
-  let g:lexima_map_escape = ''
-  call lexima#set_default_rules()
-
-  call lexima#add_rule({ 'char': '<', 'input_after': '>' })
-  call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
-  call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
-  call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
-  call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
-  call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
-
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
-  call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
-endif
-
 if dein#tap('vim-themis')
   if has('vim_starting')
     let $PATH = $PATH . ':' . dein#get('vim-themis').rtp . '/bin'
@@ -462,11 +445,39 @@ if dein#tap('vital.vim')
   let g:vitalizer#vital_dir = dein#get('vital.vim').rtp
 endif
 
+if dein#tap('lexima.vim')
+  let g:lexima_nvim_accept_pum_with_enter = v:false
+  let g:lexima_no_default_rules = v:true
+  let g:lexima_map_escape = ''
+  if s:config.lexima
+    call lexima#set_default_rules()
+
+    call lexima#add_rule({ 'char': '<', 'input_after': '>' })
+    call lexima#add_rule({ 'char': '>', 'at': '<\%#>', 'leave': 1 })
+    call lexima#add_rule({ 'char': '<BS>', 'at': '<\%#>', 'delete': 1 })
+    call lexima#add_rule({ 'char': '<BS>', 'at': '< \%# >', 'delete': 1 })
+    call lexima#add_rule({ 'char': '<Space>', 'at': '<\%#>', 'input_after': '<Space>' })
+    call lexima#add_rule({ 'char': '<CR>', 'at': '>\%#<', 'input': '<CR><Up><End><CR>' })
+
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*)',   'input': '<Left><C-o>f)<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\}',  'input': '<Left><C-o>f}<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*\]',  'input': '<Left><C-o>f]<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*>',   'input': '<Left><C-o>f><Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*`',   'input': '<Left><C-o>f`<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
+    call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
+
+    inoremap <expr><CR> complete_info(['selected']).selected >= 0 ? "\<C-y>" : lexima#expand('<LT>CR>', 'i')
+  else
+    inoremap <expr><CR> complete_info(['selected']).selected >= 0 ? "\<C-y>" : "\<CR>"
+  endif
+endif
+
 if dein#tap('vim-vsnip')
   let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
-  if dein#tap('lexima.vim')
-    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+  if dein#tap('lexima.vim') && s:config.lexima
+    imap <expr><Tab> complete_info(['selected']).selected < 0 && vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> complete_info(['selected']).selected < 0 && vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
     imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
     smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
@@ -479,11 +490,11 @@ endif
 
 if dein#tap('vim-vsnip-integ')
   let g:vsnip_integ_config = {}
-  let g:vsnip_integ_config.asyncomplete = v:false
+  let g:vsnip_integ_config.auto_expand = v:false
 endif
 
 if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = 1
+  let g:asyncomplete_auto_popup = s:config.lsp ==# 'coc' ? 0 : 1
 
   autocmd! vimrc User asyncomplete_setup call s:asyncomplete_setup()
   function! s:asyncomplete_setup() abort
@@ -510,6 +521,22 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   }
           \ })
     call lsp#register_server({
+          \   'name': 'json-languageserver',
+          \   'cmd': { info -> ['json-languageserver', '--stdio'] },
+          \   'whitelist': ['json'],
+          \   'config': {
+          \     'refresh_pattern': '\("\k*\|\[\|\k\+\)$'
+          \   },
+          \   'workspace_config': {
+          \     'json': {
+          \       'schemas': json_decode(join(readfile(lamp#config('global.root') . '/misc/json/catalog.json'), "\n")).schemas,
+          \       'format': {
+          \         'enable': v:true
+          \       }
+          \     }
+          \   },
+          \ })
+    call lsp#register_server({
           \   'name': 'gopls',
           \   'cmd': { info -> ['gopls'] },
           \   'whitelist': ['go'],
@@ -523,7 +550,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
           \   'name': 'rust-analyzer',
           \   'cmd': { -> ['rust-analyzer'] },
           \   'whitelist': ['rust'],
-          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup('Cargo.toml')) }
+          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['Cargo.toml'])) }
           \ })
     call lsp#register_server({
           \   'name': 'clangd',
@@ -533,6 +560,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     call lsp#register_server({
           \   'name': '0typescript-language-server',
           \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
+          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['tsconfig.json'])) },
           \   'whitelist': ['typescript', 'typescriptreact'],
           \   'initialization_options': {
           \   }
@@ -607,13 +635,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#config('feature.completion.floating_docs', v:true)
     call lamp#config('view.location.on_location', s:on_location)
     call lamp#config('view.location.on_fallback', s:on_fallback)
-    call lamp#config('view.sign.error.text', "\uf071")
-    call lamp#config('view.sign.warning.text', "\uf071")
-    call lamp#config('view.sign.information.text', "\uf449")
-    call lamp#config('view.sign.hint.text', "\uf400")
 
     call lamp#language#vim()
     call lamp#language#yaml()
+    call lamp#language#json()
     call lamp#language#php()
     call lamp#language#html()
     call lamp#language#css()
@@ -636,7 +661,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#register('rust-analyzer', {
           \   'command': ['rust-analyzer'],
           \   'filetypes': ['rust'],
-          \   'root_uri': { -> lamp#findup('Cargo.toml') }
+          \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
           \ })
           \ 
     call lamp#register('vls', {
@@ -778,6 +803,22 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
     vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
   endfunction
+endif
+
+if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
+  vmap     <Leader><CR>     <Plug>(coc-codeaction-selected)
+  nmap     <Leader><CR>     <Plug>(coc-codeaction)
+  nmap     <Leader>r        <Plug>(coc-rename)
+  nmap     <Leader>g        <Plug>(coc-references)
+  nmap     <Leader>f        <Plug>(coc-format)
+  nmap     gf<CR>           <Plug>(coc-definition)
+  nmap     gfv              :<C-u>vsplit<CR><Plug>(coc-definition)
+  nmap     gfs              :<C-u>split<CR><Plug>(coc-definition)
+  nmap     gi               <Plug>(coc-codelens-action)
+  nnoremap <Leader>i        :<C-u>call CocAction('doHover')<CR>
+  nnoremap <Leader><Leader> :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
+
+  inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 endif
 
 if dein#tap('deol.nvim')
