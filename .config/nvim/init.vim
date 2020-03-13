@@ -16,6 +16,7 @@ let $MYVIMRC = resolve($MYVIMRC)
 let s:config = {
       \   'lsp': 'lamp',
       \   'lexima': v:true,
+      \   'complete': 'compete',
       \ }
 
 let s:dein = {}
@@ -178,7 +179,6 @@ if has('nvim')
   set clipboard=unnamedplus
   set fillchars+=vert:\|,eob:\ 
   set inccommand=split
-  set pumblend=30
 else
   set clipboard=unnamed
   set fillchars+=vert:\ 
@@ -490,11 +490,11 @@ endif
 
 if dein#tap('vim-vsnip-integ')
   let g:vsnip_integ_config = {}
-  let g:vsnip_integ_config.auto_expand = v:false
+  let g:vsnip_integ_config.auto_expand = v:true
 endif
 
 if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = s:config.lsp ==# 'coc' ? 0 : 1
+  let g:asyncomplete_auto_popup = s:config.lsp ==# 'coc' ? 0 : s:config.complete ==# 'asyncomplete'
 
   autocmd! vimrc User asyncomplete_setup call s:asyncomplete_setup()
   function! s:asyncomplete_setup() abort
@@ -505,6 +505,10 @@ if dein#tap('asyncomplete.vim')
           \   'completor': function('asyncomplete#sources#file#completor')
           \ }))
   endfunction
+endif
+
+if dein#tap('vim-compete')
+  let g:compete_enable = s:config.complete ==# 'compete'
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
@@ -539,9 +543,10 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     call lsp#register_server({
           \   'name': 'gopls',
           \   'cmd': { info -> ['gopls'] },
+          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['go.mod'])) },
           \   'whitelist': ['go'],
           \   'initialization_options': {
-          \     'usePlaceholders': v:true,
+          \     'usePlaceholders': v:false,
           \     'completeUnimported': v:true,
           \     'hoverKind': 'FullDocumentation'
           \   }
@@ -1107,6 +1112,7 @@ endfunction
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
   highlight! CursorLine gui=underline guibg=NONE guifg=NONE
+  highlight! Pmenu guibg=#1a1a1a
 endfunction
 call s:on_color_scheme()
 
@@ -1165,4 +1171,8 @@ endfunction
 " \ 'vim': ['vim-language-server', '--stdio']
 " \ }
 " set omnifunc=LanguageClient#complete
-
+" 
+" let g:LanguageClient_rootMarkers = {
+" \ 'go': ['go.mod'],
+" \ 'rust': ['Cargo.toml'],
+" \ }
