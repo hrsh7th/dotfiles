@@ -38,10 +38,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/deol.nvim')
   call dein#add('cohama/lexima.vim')
   call dein#add('haya14busa/vim-asterisk')
-  call dein#add('hrsh7th/asyncomplete-lamp')
   call dein#add('hrsh7th/fern-mapping-call-function.vim')
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim')
   call dein#add('hrsh7th/vim-candle')
+  call dein#add('hrsh7th/vim-compete')
+  call dein#add('hrsh7th/vim-compete-lamp')
   call dein#add('hrsh7th/vim-denite-gitto')
   call dein#add('hrsh7th/vim-effort-gf')
   call dein#add('hrsh7th/vim-gitto')
@@ -58,12 +59,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-backslash')
   call dein#add('lambdalisue/vim-findent')
   call dein#add('machakann/vim-sandwich')
-  call dein#add('natebosch/vim-lsc')
-  call dein#add('neoclide/denite-extra')
-  call dein#add('prabirshrestha/async.vim')
-  call dein#add('prabirshrestha/asyncomplete-file.vim')
-  call dein#add('prabirshrestha/asyncomplete-lsp.vim')
-  call dein#add('prabirshrestha/asyncomplete.vim')
   call dein#add('previm/previm')
   call dein#add('sheerun/vim-polyglot')
   call dein#add('sonph/onehalf', { 'rtp': 'vim/' })
@@ -77,6 +72,10 @@ if dein#load_state(s:dein.dir.install)
 
   if s:config.lsp ==# 'coc'
     call dein#add('neoclide/coc.nvim', { 'merged':0, 'rev': 'release' })
+  elseif s:config.lsp ==# 'lsp'
+    call dein#add('prabirshrestha/async.vim', { 'merged': 0 })
+    call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
+    call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
   endif
 
   if has('nvim')
@@ -476,35 +475,26 @@ endif
 if dein#tap('vim-vsnip')
   let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
   if dein#tap('lexima.vim') && s:config.lexima
-    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    imap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : (pumvisible() ? '<C-y>' : '') . lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : (pumvisible() ? '<C-y>' : '') . lexima#expand('<LT>Tab>', 'i')
+    imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
-    imap <expr><Tab> vsnip#available(1)                                             ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> vsnip#available(1)                                             ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    imap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1)                                          ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : (pumvisible() ? '<C-y>' : '') . '<Tab>'
+    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : (pumvisible() ? '<C-y>' : '') . '<Tab>'
+    imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S_Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   endif
+endif
+
+if dein#tap('asyncomplete.vim')
+  let g:asyncomplete_auto_popup = s:config.complete ==# 'asyncomplete' ? 1 : 0
 endif
 
 if dein#tap('vim-vsnip-integ')
   let g:vsnip_integ_config = {}
   let g:vsnip_integ_config.auto_expand = v:true
-endif
-
-if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = s:config.lsp ==# 'coc' ? 0 : s:config.complete ==# 'asyncomplete'
-
-  autocmd! vimrc User asyncomplete_setup call s:asyncomplete_setup()
-  function! s:asyncomplete_setup() abort
-    call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
-          \   'name': 'file',
-          \   'whitelist': ['*'],
-          \   'priority': 10,
-          \   'completor': function('asyncomplete#sources#file#completor')
-          \ }))
-  endfunction
+  let g:vsnip_integ_config.asyncomplete = s:config.complete ==# 'asyncomplete'
 endif
 
 if dein#tap('vim-compete')
@@ -643,6 +633,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#language#html()
     call lamp#language#css()
     call lamp#language#go()
+
     call lamp#language#typescript({
           \   'filetypes': ['typescript.dts'],
           \   'capabilities': {
@@ -654,51 +645,18 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
           \     }
           \   }
           \ })
+
     call lamp#register('clangd', {
           \   'command': ['clangd', '-background-index'],
           \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
           \ })
+
     call lamp#register('rust-analyzer', {
           \   'command': ['rust-analyzer'],
           \   'filetypes': ['rust'],
           \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
           \ })
-          \ 
-    call lamp#register('vls', {
-    \   'command': ['vls'],
-    \   'filetypes': ['vue'],
-    \   'initialization_options': { -> {
-    \     'embeddedLanguages': {
-    \     },
-    \      'config': {
-    \        'vetur': {
-    \          'useWorkspaceDependencies': v:false,
-    \          'completion': {
-    \             'tagCasing': 'kebab',
-    \             'useScaffoldSnippets': v:false,
-    \             'autoImport': v:false
-    \          },
-    \          'validation': {
-    \             'template': v:true,
-    \             'style': v:true,
-    \             'script': v:true
-    \          },
-    \          'format': {
-    \             'defaultFormatter': { 'js': v:null, 'ts': v:null },
-    \             'defaultFormatterOptions': {},
-    \             'scriptInitialIndent': v:false,
-    \             'styleInitialIndent': v:false
-    \          },
-    \        },
-    \        'css': {},
-    \        'html': { 'suggest': {} },
-    \        'javascript': { 'format': {} },
-    \        'typescript': { 'format': {} },
-    \        'emmet': {},
-    \        'stylusSupremacy': {},
-    \     }
-    \   } }
-    \ })
+
     call lamp#register('diagnostic-languageserver', {
           \   'command': ['diagnostic-languageserver', '--stdio'],
           \   'filetypes': [
