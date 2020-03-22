@@ -61,7 +61,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('machakann/vim-sandwich')
   call dein#add('previm/previm')
   call dein#add('sheerun/vim-polyglot')
-  call dein#add('sonph/onehalf', { 'rtp': 'vim/' })
   call dein#add('t9md/vim-choosewin')
   call dein#add('thinca/vim-qfreplace')
   call dein#add('thinca/vim-quickrun')
@@ -71,15 +70,17 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('vim-jp/vital.vim')
 
   if s:config.lsp ==# 'coc'
-    call dein#add('neoclide/coc.nvim', { 'merged':0, 'rev': 'release' })
-  elseif s:config.lsp ==# 'lsp'
+    call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'release' })
+  endif
+
+  if s:config.lsp ==# 'lsp'
     call dein#add('prabirshrestha/async.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
   endif
 
   if has('nvim')
-    call dein#add('neovim/nvim-lsp')
+    call dein#add('neovim/nvim-lsp', { 'merged': 0 })
   endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
@@ -447,7 +448,6 @@ endif
 if dein#tap('lexima.vim')
   let g:lexima_nvim_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
-  let g:lexima_map_escape = ''
   if s:config.lexima
     call lexima#set_default_rules()
 
