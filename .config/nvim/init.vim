@@ -14,10 +14,11 @@ let g:python3_host_prog = 'python3'
 let $MYVIMRC = resolve($MYVIMRC)
 
 let s:config = {
-      \   'lsp': 'lamp',
-      \   'lexima': v:true,
-      \   'complete': 'compete',
-      \ }
+\   'lsp': 'lamp',
+\   'lexima': v:true,
+\   'complete': 'compete',
+\ }
+
 
 let s:dein = {}
 let s:dein.dir = {}
@@ -70,11 +71,12 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('vim-jp/vital.vim')
 
   if s:config.lsp ==# 'coc'
-    call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'release' })
+    call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'master', 'build': 'npm install' })
   endif
 
   if s:config.lsp ==# 'lsp'
     call dein#add('prabirshrestha/async.vim', { 'merged': 0 })
+    call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
   endif
@@ -143,7 +145,7 @@ set cmdheight=2
 set laststatus=2
 set list
 set noshowmode
-set ambiwidth=double
+set ambiwidth=single
 set title
 set shortmess+=I
 set shortmess+=c
@@ -177,11 +179,11 @@ if has('nvim')
   set wildoptions=pum
   set scrollback=2000
   set clipboard=unnamedplus
-  set fillchars+=vert:\|,eob:\ 
+  set fillchars+=vert:\│,eob:\ 
   set inccommand=split
 else
   set clipboard=unnamed
-  set fillchars+=vert:\ 
+  set fillchars+=vert:\│
 endif
 
 let mapleader="\<Space>"
@@ -205,9 +207,10 @@ nnoremap > >><Esc>
 vnoremap < <<<Esc>
 vnoremap > >><Esc>
 nnoremap <expr><Leader><Esc> printf(":\<C-u>%s\<CR>:\<C-u>%s\<CR>:\<C-u>%s\<CR>",
-      \ 'nohlsearch',
-      \ dein#tap('vim-lamp') ? 'call lamp#feature#document_highlight#clear()' : 'nohlsearch',
-      \ 'redraw!')
+\   'nohlsearch',
+\   dein#tap('vim-lamp') ? 'call lamp#feature#document_highlight#clear()' : 'nohlsearch',
+\   'redraw!'
+\ )
 
 nnoremap H 20h
 nnoremap J 10j
@@ -508,77 +511,77 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   autocmd! vimrc User lsp_setup call s:lsp_setup()
   function! s:lsp_setup()
     call lsp#register_server({
-          \   'name': 'vim',
-          \   'cmd': { info -> ['vim-language-server', '--stdio'] },
-          \   'whitelist': ['vim', 'vimspec'],
-          \   'initialization_options': {
-          \   }
-          \ })
+    \   'name': 'vim',
+    \   'cmd': { info -> ['vim-language-server', '--stdio'] },
+    \   'whitelist': ['vim', 'vimspec'],
+    \   'initialization_options': {
+    \   }
+    \ })
     call lsp#register_server({
-          \   'name': 'json-languageserver',
-          \   'cmd': { info -> ['json-languageserver', '--stdio'] },
-          \   'whitelist': ['json'],
-          \   'config': {
-          \     'refresh_pattern': '\("\k*\|\[\|\k\+\)$'
-          \   },
-          \   'workspace_config': {
-          \     'json': {
-          \       'schemas': json_decode(join(readfile(lamp#config('global.root') . '/misc/json/catalog.json'), "\n")).schemas,
-          \       'format': {
-          \         'enable': v:true
-          \       }
-          \     }
-          \   },
-          \ })
+    \   'name': 'json-languageserver',
+    \   'cmd': { info -> ['json-languageserver', '--stdio'] },
+    \   'whitelist': ['json'],
+    \   'config': {
+    \     'refresh_pattern': '\("\k*\|\[\|\k\+\)$'
+    \   },
+    \   'workspace_config': {
+    \     'json': {
+    \       'schemas': json_decode(join(readfile(lamp#config('global.root') . '/misc/json/catalog.json'), "\n")).schemas,
+    \       'format': {
+    \         'enable': v:true
+    \       }
+    \     }
+    \   },
+    \ })
     call lsp#register_server({
-          \   'name': 'gopls',
-          \   'cmd': { info -> ['gopls'] },
-          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['go.mod'])) },
-          \   'whitelist': ['go'],
-          \   'initialization_options': {
-          \     'usePlaceholders': v:false,
-          \     'completeUnimported': v:true,
-          \     'hoverKind': 'FullDocumentation'
-          \   }
-          \ })
+    \   'name': 'gopls',
+    \   'cmd': { info -> ['gopls'] },
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['go.mod'])) },
+    \   'whitelist': ['go'],
+    \   'initialization_options': {
+    \     'usePlaceholders': v:false,
+    \     'completeUnimported': v:true,
+    \     'hoverKind': 'FullDocumentation'
+    \   }
+    \ })
     call lsp#register_server({
-          \   'name': 'rust-analyzer',
-          \   'cmd': { -> ['rust-analyzer'] },
-          \   'whitelist': ['rust'],
-          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['Cargo.toml'])) }
-          \ })
+    \   'name': 'rust-analyzer',
+    \   'cmd': { -> ['rust-analyzer'] },
+    \   'whitelist': ['rust'],
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['Cargo.toml'])) }
+    \ })
     call lsp#register_server({
-          \   'name': '0typescript-language-server',
-          \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
-          \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['tsconfig.json'])) },
-          \   'whitelist': ['typescript', 'typescriptreact'],
-          \   'initialization_options': {
-          \   }
-          \ })
+    \   'name': '0typescript-language-server',
+    \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['tsconfig.json'])) },
+    \   'whitelist': ['typescript', 'typescriptreact'],
+    \   'initialization_options': {
+    \   }
+    \ })
     call lsp#register_server({
-          \   'name': 'clangd',
-          \   'cmd': { info -> ['clangd', '-background-index'] },
-          \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
-          \ })
+    \   'name': 'clangd',
+    \   'cmd': { info -> ['clangd', '-background-index'] },
+    \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
+    \ })
     call lsp#register_server({
-          \   'name': 'intelephense',
-          \   'cmd': { info -> ['intelephense', '--stdio'] },
-          \   'whitelist': ['php'],
-          \   'initialization_options': {
-          \     'storagePath': expand('~/.cache/intelephense')
-          \   }
-          \ })
+    \   'name': 'intelephense',
+    \   'cmd': { info -> ['intelephense', '--stdio'] },
+    \   'whitelist': ['php'],
+    \   'initialization_options': {
+    \     'storagePath': expand('~/.cache/intelephense')
+    \   }
+    \ })
     call lsp#register_server({
-          \   'name': 'html',
-          \   'cmd': { info -> ['html-languageserver', '--stdio'] },
-          \   'whitelist': ['html'],
-          \   'initialization_options': {
-          \     'embeddedLanguages': {
-          \       'css': v:true,
-          \       'html': v:true
-          \     }
-          \   }
-          \ })
+    \   'name': 'html',
+    \   'cmd': { info -> ['html-languageserver', '--stdio'] },
+    \   'whitelist': ['html'],
+    \   'initialization_options': {
+    \     'embeddedLanguages': {
+    \       'css': v:true,
+    \       'html': v:true
+    \     }
+    \   }
+    \ })
   endfunction
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
@@ -601,9 +604,9 @@ endif
 
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
   let g:lsc_server_commands = {
-        \   'go': ['gopls'],
-        \   'vim': ['vim-language-server', '--stdio']
-        \ }
+  \   'go': ['gopls'],
+  \   'vim': ['vim-language-server', '--stdio']
+  \ }
 endif
 
 if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
@@ -617,122 +620,122 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   }
     \ }) }
     let s:on_fallback = { command, position -> [
-          \   cursor(position.line + 1, position.character + 1),
-          \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
-          \ ] }
+    \   cursor(position.line + 1, position.character + 1),
+    \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
+    \ ] }
 
     call lamp#config('global.debug', '/tmp/lamp.log')
     call lamp#config('feature.completion.floating_docs', v:true)
     call lamp#config('view.location.on_location', s:on_location)
     call lamp#config('view.location.on_fallback', s:on_fallback)
 
-    call lamp#language#vim()
-    call lamp#language#yaml()
-    call lamp#language#json()
-    call lamp#language#php()
-    call lamp#language#html()
-    call lamp#language#css()
-    call lamp#language#go()
+    call lamp#builtin#gopls()
+    call lamp#builtin#vim_language_server()
+    call lamp#builtin#yaml_language_server()
+    call lamp#builtin#html_languageserver()
+    call lamp#builtin#css_languageserver()
+    call lamp#builtin#json_languageserver()
+    call lamp#builtin#intelephense()
 
-    call lamp#language#typescript({
-          \   'filetypes': ['typescript.dts'],
-          \   'capabilities': {
-          \     'documentFormattingProvider': v:null,
-          \     'documentRangeFormattingProvider': v:null,
-          \     'documentOnTypeFormattingProvider': v:null,
-          \     'completionProvider': {
-          \       'triggerCharacters': [',']
-          \     }
-          \   }
-          \ })
+    call lamp#builtin#typescript_language_server({
+    \   'filetypes': ['typescript.dts'],
+    \   'capabilities': {
+    \     'documentFormattingProvider': v:null,
+    \     'documentRangeFormattingProvider': v:null,
+    \     'documentOnTypeFormattingProvider': v:null,
+    \     'completionProvider': {
+    \       'triggerCharacters': [',']
+    \     }
+    \   }
+    \ })
 
     call lamp#register('clangd', {
-          \   'command': ['clangd', '-background-index'],
-          \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
-          \ })
+    \   'command': ['clangd', '-background-index'],
+    \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
+    \ })
 
     call lamp#register('rust-analyzer', {
-          \   'command': ['rust-analyzer'],
-          \   'filetypes': ['rust'],
-          \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
-          \ })
+    \   'command': ['rust-analyzer'],
+    \   'filetypes': ['rust'],
+    \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
+    \ })
 
     call lamp#register('diagnostic-languageserver', {
-          \   'command': ['diagnostic-languageserver', '--stdio'],
-          \   'filetypes': [
-          \     'typescript',
-          \     'typescript.tsx',
-          \     'typescriptreact',
-          \     'javascript',
-          \     'javascript.jsx',
-          \     'javascriptreact',
-          \     'vim',
-          \     'vimspec'
-          \   ],
-          \   'initialization_options': { -> {
-          \     'linters': {
-          \       'eslint': {
-          \         'sourceName': 'eslint',
-          \         'command': 'eslint_d',
-          \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
-          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-          \         'formatLines': 1,
-          \         'formatPattern': [
-          \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
-          \           {
-          \             'line': 1,
-          \             'column': 2,
-          \             'message': [4, ' [', 5, ']' ],
-          \             'security': 3
-          \           }
-          \         ],
-          \         'securities': {
-          \            'error': 'error',
-          \            'warning': 'warning'
-          \         },
-          \       },
-          \       'vint': {
-          \         'sourceName': 'vint',
-          \         'command': 'vint',
-          \         'args': ['--stdin-display-name', '%filename', '-'],
-          \         'formatPattern': [
-          \           '[^:]+:(\d+):(\d+):\s*(.*$)',
-          \           {
-          \             'line': 1,
-          \             'column': 2,
-          \             'message': 3
-          \           }
-          \         ]
-          \       }
-          \     },
-          \     'filetypes': {
-          \       'javascript': 'eslint',
-          \       'javascript.tsx': 'eslint',
-          \       'javascriptreact': 'eslint',
-          \       'typescript': 'eslint',
-          \       'typescript.tsx': 'eslint',
-          \       'typescriptreact': 'eslint',
-          \       'vim': 'vint',
-          \     },
-          \     'formatters': {
-          \       'eslint': {
-          \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
-          \         'command': 'eslint_d',
-          \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
-          \         'isStdout': v:true,
-          \         'isStderr': v:true,
-          \       }
-          \     },
-          \     'formatFiletypes': {
-          \       'javascript': 'eslint',
-          \       'javascript.tsx': 'eslint',
-          \       'javascriptreact': 'eslint',
-          \       'typescript': 'eslint',
-          \       'typescript.tsx': 'eslint',
-          \       'typescriptreact': 'eslint'
-          \     }
-          \   } }
-          \ })
+    \   'command': ['diagnostic-languageserver', '--stdio'],
+    \   'filetypes': [
+    \     'typescript',
+    \     'typescript.tsx',
+    \     'typescriptreact',
+    \     'javascript',
+    \     'javascript.jsx',
+    \     'javascriptreact',
+    \     'vim',
+    \     'vimspec'
+    \   ],
+    \   'initialization_options': { -> {
+    \     'linters': {
+    \       'eslint': {
+    \         'sourceName': 'eslint',
+    \         'command': 'eslint_d',
+    \         'args': ['--stdin', '--stdin-filename=%filename', '--no-color'],
+    \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+    \         'formatLines': 1,
+    \         'formatPattern': [
+    \           '^\s*(\d+):(\d+)\s+([^ ]+)\s+(.*?)\s+([^ ]+)$',
+    \           {
+    \             'line': 1,
+    \             'column': 2,
+    \             'message': [4, ' [', 5, ']' ],
+    \             'security': 3
+    \           }
+    \         ],
+    \         'securities': {
+    \            'error': 'error',
+    \            'warning': 'warning'
+    \         },
+    \       },
+    \       'vint': {
+    \         'sourceName': 'vint',
+    \         'command': 'vint',
+    \         'args': ['--stdin-display-name', '%filename', '-'],
+    \         'formatPattern': [
+    \           '[^:]+:(\d+):(\d+):\s*(.*$)',
+    \           {
+    \             'line': 1,
+    \             'column': 2,
+    \             'message': 3
+    \           }
+    \         ]
+    \       }
+    \     },
+    \     'filetypes': {
+    \       'javascript': 'eslint',
+    \       'javascript.tsx': 'eslint',
+    \       'javascriptreact': 'eslint',
+    \       'typescript': 'eslint',
+    \       'typescript.tsx': 'eslint',
+    \       'typescriptreact': 'eslint',
+    \       'vim': 'vint',
+    \     },
+    \     'formatters': {
+    \       'eslint': {
+    \         'rootPatterns': ['.eslintrc', '.eslintrc.js'],
+    \         'command': 'eslint_d',
+    \         'args': ['--fix', '--fix-to-stdout', '--stdin', '--stdin-filename=%filename'],
+    \         'isStdout': v:true,
+    \         'isStderr': v:true,
+    \       }
+    \     },
+    \     'formatFiletypes': {
+    \       'javascript': 'eslint',
+    \       'javascript.tsx': 'eslint',
+    \       'javascriptreact': 'eslint',
+    \       'typescript': 'eslint',
+    \       'typescript.tsx': 'eslint',
+    \       'typescriptreact': 'eslint'
+    \     }
+    \   } }
+    \ })
   endfunction
 
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
@@ -760,6 +763,11 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 
     nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
     vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
+
+    nnoremap <buffer> <C-n>        :<C-u>LampSelectionRangeExpand<CR>
+    nnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
+    vnoremap <buffer> <C-n>        :<C-u>LampSelectionRangeExpand<CR>
+    vnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
   endfunction
 endif
 
@@ -994,10 +1002,10 @@ if dein#tap('denite.nvim')
   function! s:denite_edit_action(context)
     for target in a:context['targets']
       call vimrc#open('edit', {
-            \ 'filename': target['action__path'],
-            \ 'lnum': get(target, 'action__line', -1),
-            \ 'col': get(target, 'action__col', -1)
-            \ })
+      \   'filename': target['action__path'],
+      \   'lnum': get(target, 'action__line', -1),
+      \   'col': get(target, 'action__col', -1)
+      \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer,gitto/status', 'edit', function('s:denite_edit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -1006,10 +1014,10 @@ if dein#tap('denite.nvim')
   function! s:denite_split_action(context)
     for target in a:context['targets']
       call vimrc#open('new', {
-            \ 'filename': target['action__path'],
-            \ 'lnum': get(target, 'action__line', -1),
-            \ 'col': get(target, 'action__col', -1)
-            \ })
+      \   'filename': target['action__path'],
+      \   'lnum': get(target, 'action__line', -1),
+      \   'col': get(target, 'action__col', -1)
+      \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer,gitto/status', 'split', function('s:denite_split_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -1018,10 +1026,10 @@ if dein#tap('denite.nvim')
   function! s:denite_vsplit_action(context)
     for target in a:context['targets']
       call vimrc#open('vnew', {
-            \ 'filename': target['action__path'],
-            \ 'lnum': get(target, 'action__line', -1),
-            \ 'col': get(target, 'action__col', -1)
-            \ })
+      \   'filename': target['action__path'],
+      \   'lnum': get(target, 'action__line', -1),
+      \   'col': get(target, 'action__col', -1)
+      \ })
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer,gitto/status', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
@@ -1045,11 +1053,11 @@ endif
 autocmd! vimrc FileType * call s:on_file_type()
 function! s:on_file_type()
   for [k, v] in items({
-        \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
-        \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
-        \   '.*\.tpl$': { 'filetype': 'html' },
-        \   '.*\.vim$': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' },
-        \ })
+  \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
+  \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
+  \   '.*\.tpl$': { 'filetype': 'html' },
+  \   '.*\.vim$': { 'filetype': 'vim', 'iskeyword': &iskeyword . ',:' },
+  \ })
     if bufname('%') =~ k
       for [l:name, l:value] in items(v)
         try
@@ -1070,7 +1078,6 @@ endfunction
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
   highlight! CursorLine gui=underline guibg=NONE guifg=NONE
-  highlight! Pmenu guibg=#1a1a1a
 endfunction
 call s:on_color_scheme()
 
