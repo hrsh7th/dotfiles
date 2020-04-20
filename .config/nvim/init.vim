@@ -316,12 +316,13 @@ if dein#tap('vim-candle')
   \     'root_path': vimrc#get_cwd(),
   \     'pattern': input('PATTERN: '),
   \     'command': [
-  \       'ag',
+  \       'rg',
   \       '-i',
-  \       '--nocolor',
-  \       '--noheading',
-  \       '--nobreak',
-  \     ] + map(copy(locon#get('ignore_globs')), '"--ignore=" . v:val') + [
+  \       '--vimgrep',
+  \       '--no-heading',
+  \       '--no-column',
+  \     ] + map(copy(locon#get('ignore_globs')), { _, v -> printf("--glob=!%s", v) }) + [
+  \       '-e',
   \       '%PATTERN%',
   \       '%ROOT_PATH%',
   \     ]
