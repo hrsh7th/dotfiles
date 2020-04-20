@@ -19,7 +19,6 @@ let s:config = {
 \   'complete': 'compete',
 \ }
 
-
 let s:dein = {}
 let s:dein.dir = {}
 let s:dein.dir.install = expand('~/.config/dein/repos/github.com/Shougo/dein.vim')
@@ -33,6 +32,8 @@ let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.co
 let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
+
+  call dein#add('joshdick/onedark.vim')
 
   call dein#add('Shougo/dein.vim')
   call dein#add('Shougo/denite.nvim')
@@ -54,7 +55,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-vsnip-integ')
   call dein#add('itchyny/lightline.vim')
   call dein#add('itchyny/vim-parenmatch')
-  call dein#add('joshdick/onedark.vim')
+  call dein#add('junegunn/fzf', { 'build': './install --all' })
   call dein#add('lambdalisue/fern.vim')
   call dein#add('lambdalisue/suda.vim')
   call dein#add('lambdalisue/vim-backslash')
@@ -71,6 +72,9 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('vim-jp/vital.vim')
 
   if s:config.lsp ==# 'coc'
+    let g:coc_force_debug = 1
+    let g:node_client_debug = v:true
+    let $NVIM_COC_LOG_LEVEL = 'debug'
     call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'master', 'build': 'npm install' })
   endif
 
@@ -79,6 +83,10 @@ if dein#load_state(s:dein.dir.install)
     call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
+  endif
+
+  if s:config.lsp ==# 'lsc'
+    call dein#add('natebosch/vim-lsc', { 'merged': 0 })
   endif
 
   if has('nvim')
@@ -186,6 +194,13 @@ else
   set fillchars+=vert:\│
 endif
 
+command! Profile call s:command_profile()
+function! s:command_profile() abort
+  profile start ~/profile.txt
+  profile func *
+  profile file *
+endfunction
+
 let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
@@ -231,13 +246,18 @@ nnoremap <Leader>H :<C-u>tabprev<CR>
 
 nnoremap G Gzz
 
-nnoremap <expr> 0 getline('.')[0 : col('.') - 2] =~# '^\s\+$' ? '0' : '^'
+nnoremap o A<CR>
+
+xnoremap <expr> 0 getline('.')[0 : col('.') - 2] =~# '^\s\+$' ? '0' : '^'
 
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
 
 inoremap <C-l> <Right>
 inoremap <C-h> <Left>
+
+inoremap <F9> <Nop>
+inoremap <F10> <Nop>
 
 nmap <Tab> %
 xmap <Tab> %
@@ -272,7 +292,6 @@ if dein#tap('open-browser.vim')
 endif
 
 if dein#tap('vim-candle')
-
   " project files
   nnoremap <silent><F3> :<C-u>call candle#start({
   \   'file': {
@@ -296,6 +315,16 @@ if dein#tap('vim-candle')
   \   'grep': {
   \     'root_path': vimrc#get_cwd(),
   \     'pattern': input('PATTERN: '),
+  \     'command': [
+  \       'ag',
+  \       '-i',
+  \       '--nocolor',
+  \       '--noheading',
+  \       '--nobreak',
+  \     ] + map(copy(locon#get('ignore_globs')), '"--ignore=" . v:val') + [
+  \       '%PATTERN%',
+  \       '%ROOT_PATH%',
+  \     ]
   \   }
   \ }, {
   \   'action': {
@@ -324,8 +353,9 @@ if dein#tap('vim-candle')
 
   autocmd! vimrc User candle#initialize call s:on_candle_initialize()
   function! s:on_candle_initialize() abort
-    let g:candle.debug = '/tmp/candle.log'
-
+    "
+    " edit/split/vsplit
+    "
     function! s:open_invoke(command, keep, candle) abort
       if !a:keep
         quit
@@ -333,7 +363,6 @@ if dein#tap('vim-candle')
       let l:item = a:candle.get_action_items()[0]
       call vimrc#open(a:command, l:item, win_id2win(a:candle.prev_winid))
     endfunction
-
     call candle#action#register({
     \   'name': 'edit',
     \   'accept': function('candle#action#location#accept_single'),
@@ -349,7 +378,6 @@ if dein#tap('vim-candle')
     \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['vsplit', v:false]),
     \ })
-
     call candle#action#register({
     \   'name': 'edit/keep',
     \   'accept': function('candle#action#location#accept_single'),
@@ -366,11 +394,13 @@ if dein#tap('vim-candle')
     \   'invoke': function('s:open_invoke', ['vsplit', v:true]),
     \ })
 
+    "
+    " qfreplace
+    "
     function! s:qfreplace_invoke(candle) abort
       call setqflist(a:candle.get_action_items())
       call qfreplace#start('')
     endfunction
-
     call candle#action#register({
     \   'name': 'qfreplace',
     \   'accept': function('candle#action#common#expect_keys_multiple', [['filename', 'lnum', 'text']]),
@@ -401,10 +431,11 @@ if dein#tap('vim-candle')
 
   autocmd! vimrc User candle#input#start call s:on_candle_input_start()
   function! s:on_candle_input_start()
-    cnoremap <silent><buffer> <Tab> <Esc>:<C-u>call candle#mapping#choose_action()<CR>
-    cnoremap <silent><buffer> <C-y> <Esc>:<C-u>call candle#mapping#action('default')<CR>
-    cnoremap <silent><buffer> <C-p> <Esc>:<C-u>call candle#mapping#cursor_move(-1) \| call candle#mapping#input_open()<CR>
-    cnoremap <silent><buffer> <C-n> <Esc>:<C-u>call candle#mapping#cursor_move(+1) \| call candle#mapping#input_open()<CR>
+    cnoremap <silent><buffer> <Tab>     <Esc>:<C-u>call candle#mapping#choose_action()<CR>
+    cnoremap <silent><buffer> <C-y>     <Esc>:<C-u>call candle#mapping#action('default')<CR>
+    cnoremap <silent><buffer> <C-Space> <Esc>:<C-u>call candle#mapping#action('default')<CR>
+    cnoremap <silent><buffer> <C-p>     <Esc>:<C-u>call candle#mapping#cursor_move(-1) \| call candle#mapping#input_open()<CR>
+    cnoremap <silent><buffer> <C-n>     <Esc>:<C-u>call candle#mapping#cursor_move(+1) \| call candle#mapping#input_open()<CR>
   endfunction
 endif
 
@@ -469,9 +500,9 @@ if dein#tap('lexima.vim')
     call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*"',   'input': '<Left><C-o>f"<Right>' })
     call lexima#add_rule({ 'char': '<Tab>', 'at': '\%#\s*' . "'", 'input': '<Left><C-o>f' . "'" . '<Right>' })
 
-    inoremap <expr><CR> complete_info(['selected']).selected != -1 ? "\<C-y>" : lexima#expand('<LT>CR>', 'i')
+    inoremap <expr><CR>  complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:true }) : lexima#expand('<LT>CR>', 'i')
   else
-    inoremap <expr><CR> complete_info(['selected']).selected != -1 ? "\<C-y>" : "\<CR>"
+    inoremap <expr><CR>  complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:true }) : "\<CR>"
   endif
 endif
 
@@ -502,10 +533,13 @@ endif
 
 if dein#tap('vim-compete')
   let g:compete_enable = s:config.complete ==# 'compete'
+  let g:compete_throttle_time = 0
+  imap <C-Space> <Plug>(compete-force-refresh)
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
+  let g:lsp_fold_enabled = v:true
   let g:lsp_diagnostics_float_cursor = 1
 
   autocmd! vimrc User lsp_setup call s:lsp_setup()
@@ -563,12 +597,17 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   'cmd': { info -> ['clangd', '-background-index'] },
     \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
     \ })
+    let l:storagePath = expand('~/.cache/aiueo')
+    if !isdirectory(l:storagePath)
+      call mkdir(l:storagePath, 'p', '0755')
+    endif
     call lsp#register_server({
     \   'name': 'intelephense',
     \   'cmd': { info -> ['intelephense', '--stdio'] },
     \   'whitelist': ['php'],
     \   'initialization_options': {
-    \     'storagePath': expand('~/.cache/intelephense')
+    \     'storagePath': l:storagePath,
+    \     'globalStoragePath': l:storagePath,
     \   }
     \ })
     call lsp#register_server({
@@ -587,6 +626,9 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
     setlocal omnifunc=lsp#omni#complete
+    setlocal foldmethod=expr
+    setlocal foldexpr=lsp#ui#vim#folding#foldexpr()
+    setlocal foldtext=lsp#ui#vim#folding#foldtext()
     nnoremap <Leader><CR>          :<C-u>LspCodeAction<CR>
     vnoremap <Leader><CR>          :LspCodeAction<CR>
     nnoremap <buffer> gf<CR>       :<C-u>LspDefinition<CR>
@@ -605,6 +647,16 @@ endif
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
   let g:lsc_server_commands = {
   \   'go': ['gopls'],
+  \   'php': {
+  \     'command': expand('~/lsc_debug.sh'),
+  \     'message_hooks': {
+  \       'initialize': {
+  \         'initializationOptions': {
+  \           'stragePath': expand('~/.cache/aiueo')
+  \         }
+  \       }
+  \     }
+  \   },
   \   'vim': ['vim-language-server', '--stdio']
   \ }
 endif
@@ -616,7 +668,9 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'item': map(locations, { i, location -> extend(location, { 'id': i, 'title': location.filename }) })
     \ }, {
     \   'action': {
-    \     'default': 'edit'
+    \     'default': 'edit/keep',
+    \     'vsplit': 'vsplit/keep',
+    \     'split': 'split/keep',
     \   }
     \ }) }
     let s:on_fallback = { command, position -> [
@@ -655,7 +709,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \ })
 
     call lamp#register('rust-analyzer', {
-    \   'command': ['rust-analyzer'],
+    \   'command': [expand('~/Develop/Repos/rust-analyzer/target/release/rust-analyzer')],
     \   'filetypes': ['rust'],
     \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
     \ })
@@ -740,6 +794,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 
   autocmd! vimrc User lamp#text_document_did_open call s:on_lamp_text_document_did_open()
   function! s:on_lamp_text_document_did_open() abort
+    setlocal signcolumn=yes
     setlocal omnifunc=lamp#complete
     nnoremap <buffer> gf<CR>       :<C-u>LampDefinition edit<CR>
     nnoremap <buffer> gfs          :<C-u>LampDefinition split<CR>
@@ -892,15 +947,16 @@ if dein#tap('fern.vim')
   endfunction
 endif
 
+let g:colorscheme = 'onedark'
 try
-  colorscheme onedark
+  execute printf('colorscheme %s', g:colorscheme)
 catch /.*/
   colorscheme ron
 endtry
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = 'onedark'
+  let g:lightline.colorscheme = g:colorscheme
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -935,7 +991,7 @@ if dein#tap('lightline.vim')
   function! Lamp()
     if dein#tap('vim-lamp')
       try
-        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'v' : ''
+"        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'v' : ''
       catch /.*/
       endtry
     endif
@@ -1141,3 +1197,4 @@ endfunction
 " \ 'go': ['go.mod'],
 " \ 'rust': ['Cargo.toml'],
 " \ }
+

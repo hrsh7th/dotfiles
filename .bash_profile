@@ -3,6 +3,7 @@ SCRIPT_DIR=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
 
 # common.
 export XDG_CONFIG_HOME="$HOME/.config"
+export EDITOR=nvim
 export GIT_EDITOR=$EDITOR
 
 # Local bin
@@ -33,6 +34,10 @@ export PATH="/usr/local/opt/llvm/bin:$PATH"
 export GO111MODULE=on
 export GOPATH="$HOME/.go"
 export PATH="$GOPATH/bin:$PATH"
+
+# llvm
+export LDFLAGS="-L/usr/local/opt/llvm/lib"
+export CPPFLAGS="-I/usr/local/opt/llvm/include"
 
 # nvim.
 export NVIM_TUI_ENABLE_TRUE_COLOR=1
