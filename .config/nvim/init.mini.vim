@@ -16,9 +16,8 @@ endif
 let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
-  call dein#add('Shougo/dein.vim')
-  call dein#add('Shougo/denite.nvim')
-  call dein#add('Shougo/defx.nvim', { 'rev': 'session' })
+  call dein#add('hrsh7th/vim-compete')
+  call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
 endif
 
@@ -33,45 +32,5 @@ augroup vimrc
   autocmd!
 augroup END
 
-autocmd vimrc FileType denite call s:denite_setting()
-function! s:denite_setting() abort
-  nnoremap <silent><buffer><expr>i       denite#do_map('open_filter_buffer')
-  nnoremap <silent><buffer><expr>a       denite#do_map('open_filter_buffer')
-  nnoremap <silent><buffer><expr>q       denite#do_map('quit')
-  nnoremap <silent><buffer><expr><Esc>   denite#do_map('quit')
-  nnoremap <silent><buffer><expr><Tab>   denite#do_map('choose_action')
-  nnoremap <silent><buffer><expr><C-l>   denite#do_map('redraw')
-  nnoremap <silent><buffer><expr><C-h>   denite#do_map('restore_sources')
-  nnoremap <silent><buffer><expr><CR>    denite#do_map('do_action')
-  nnoremap <silent><buffer><expr>v       denite#do_map('do_action', 'vsplitswitch')
-  nnoremap <silent><buffer><expr>s       denite#do_map('do_action', 'splitswitch')
-  nnoremap <silent><buffer><expr>@       denite#do_map('toggle_select')
-endfunction
-
-if executable('ag')
-  call denite#custom#var('file/rec', 'command', [
-        \   'ag',
-        \   '--follow',
-        \   '--nocolor',
-        \   '--nogroup',
-        \   '-g',
-        \   ''
-        \ ])
-endif
-
-call denite#custom#option('_', 'winheight', 12)
-call denite#custom#option('_', 'winminheight', 6)
-call denite#custom#option('_', 'vertical_preview', v:true)
-call denite#custom#option('_', 'mode', 'normal')
-call denite#custom#option('_', 'updatetime', 500)
-call denite#custom#option('_', 'skiptime', 500)
-call denite#custom#option('_', 'auto_resize', v:true)
-call denite#custom#option('_', 'unique', v:true)
-
-let s:menus = {}
-let s:menus.vim = {'description': 'vim runtime.'}
-let s:menus.vim.command_candidates = [
-      \ ['upgrade: dein:deps', 'call dein#update()']
-      \ ]
-call denite#custom#var('menu', 'menus', s:menus)
-
+imap <expr><CR>  complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:true })  : "\<CR>"
+imap <expr><Esc> complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:false }) : "\<Esc>"

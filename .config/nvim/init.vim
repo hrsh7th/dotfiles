@@ -30,46 +30,55 @@ endif
 
 let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.config/nvim')
 let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
+
+call vimrc#ignore_runtime()
+
 if dein#load_state(s:dein.dir.install)
+  let g:dein#types#git#clone_depth = 1
   call dein#begin(s:dein.dir.plugins)
 
-  call dein#add('joshdick/onedark.vim')
+  call dein#add('Shougo/dein.vim', { 'merged': 0 })
+  call dein#add('Shougo/denite.nvim', { 'merged': 0 })
+  call dein#add('Shougo/deol.nvim', { 'merged': 0 })
+  call dein#add('cohama/lexima.vim', { 'merged': 0 })
+  call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
+  call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
+  call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-candle', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-compete', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-compete-lamp', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-denite-gitto', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-effort-gf', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-gitto', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-lamp', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-locon', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
+  call dein#add('itchyny/lightline.vim', { 'merged': 0 })
+  call dein#add('itchyny/vim-parenmatch', { 'merged': 0 })
+  call dein#add('lambdalisue/fern.vim', { 'merged': 0 })
+  call dein#add('lambdalisue/suda.vim', { 'merged': 0 })
+  call dein#add('lambdalisue/vim-backslash', { 'merged': 0 })
+  call dein#add('lambdalisue/vim-findent', { 'merged': 0 })
+  call dein#add('machakann/vim-sandwich', { 'merged': 0 })
+  call dein#add('sheerun/vim-polyglot', { 'merged': 0 })
+  call dein#add('t9md/vim-choosewin', { 'merged': 0 })
+  call dein#add('thinca/vim-qfreplace', { 'merged': 0 })
+  call dein#add('thinca/vim-quickrun', { 'merged': 0 })
+  call dein#add('thinca/vim-themis', { 'merged': 0 })
+  call dein#add('tweekmonster/helpful.vim', { 'merged': 0 })
+  call dein#add('tyru/open-browser.vim', { 'merged': 0 })
+  call dein#add('microsoft/vscode-go', { 'merged': 0 })
 
-  call dein#add('Shougo/dein.vim')
-  call dein#add('Shougo/denite.nvim')
-  call dein#add('Shougo/deol.nvim')
-  call dein#add('cohama/lexima.vim')
-  call dein#add('haya14busa/vim-asterisk')
-  call dein#add('hrsh7th/fern-mapping-call-function.vim')
-  call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim')
-  call dein#add('hrsh7th/vim-candle')
-  call dein#add('hrsh7th/vim-compete')
-  call dein#add('hrsh7th/vim-compete-lamp')
-  call dein#add('hrsh7th/vim-denite-gitto')
-  call dein#add('hrsh7th/vim-effort-gf')
-  call dein#add('hrsh7th/vim-gitto')
-  call dein#add('hrsh7th/vim-lamp')
-  call dein#add('hrsh7th/vim-locon')
-  call dein#add('hrsh7th/vim-vital-vs')
-  call dein#add('hrsh7th/vim-vsnip')
-  call dein#add('hrsh7th/vim-vsnip-integ')
-  call dein#add('itchyny/lightline.vim')
-  call dein#add('itchyny/vim-parenmatch')
-  call dein#add('junegunn/fzf', { 'build': './install --all' })
-  call dein#add('lambdalisue/fern.vim')
-  call dein#add('lambdalisue/suda.vim')
-  call dein#add('lambdalisue/vim-backslash')
-  call dein#add('lambdalisue/vim-findent')
-  call dein#add('machakann/vim-sandwich')
-  call dein#add('previm/previm')
-  call dein#add('sheerun/vim-polyglot')
-  call dein#add('t9md/vim-choosewin')
-  call dein#add('thinca/vim-qfreplace')
-  call dein#add('thinca/vim-quickrun')
-  call dein#add('thinca/vim-themis')
-  call dein#add('tweekmonster/helpful.vim')
-  call dein#add('tyru/open-browser.vim')
-  call dein#add('vim-jp/vital.vim')
+  call dein#add('rakr/vim-one', { 'merged': 0 })
+  call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
+  call dein#add('haishanh/night-owl.vim', { 'merged': 0 })
+  call dein#add('drewtempelmeyer/palenight.vim', { 'merged': 0 })
+  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
+  call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
+
+  let g:colorscheme = { 'name': 'one', 'lightline': 'one' }
 
   if s:config.lsp ==# 'coc'
     let g:coc_force_debug = 1
@@ -83,6 +92,10 @@ if dein#load_state(s:dein.dir.install)
     call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
+  endif
+
+  if s:config.lsp ==# 'lcn'
+    call dein#add('autozimu/LanguageClient-neovim', { 'rev': 'next', 'build': 'bash install.sh', 'merged': 0 })
   endif
 
   if s:config.lsp ==# 'lsc'
@@ -99,8 +112,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#end()
   call dein#save_state()
 endif
-
-call vimrc#ignore_runtime()
 
 if dein#check_install()
   call dein#install()
@@ -273,6 +284,7 @@ nnoremap gj gJ
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
 if dein#tap('vim-asterisk')
+  let g:asterisk#keeppos = 1
   map * <Plug>(asterisk-gz*)
 endif
 
@@ -306,7 +318,7 @@ if dein#tap('vim-candle')
   \     'ignore_patterns': map(
   \       range(1, tabpagewinnr(tabpagenr(), '$')),
   \       { i, winnr -> fnamemodify(bufname(winbufnr(winnr)), ':p') }
-  \     )
+  \     ) + ['COMMIT_EDITMSG']
   \   },
   \ })<CR>
 
@@ -321,7 +333,7 @@ if dein#tap('vim-candle')
   \       '--vimgrep',
   \       '--no-heading',
   \       '--no-column',
-  \     ] + map(copy(locon#get('ignore_globs')), { _, v -> printf("--glob=!%s", v) }) + [
+  \     ] + map(copy(locon#get('ignore_globs')), { _, v -> printf('--glob=!%s', v) }) + [
   \       '-e',
   \       '%PATTERN%',
   \       '%ROOT_PATH%',
@@ -400,7 +412,8 @@ if dein#tap('vim-candle')
     "
     function! s:qfreplace_invoke(candle) abort
       call setqflist(a:candle.get_action_items())
-      call qfreplace#start('')
+      Qfreplace split
+      resize 12
     endfunction
     call candle#action#register({
     \   'name': 'qfreplace',
@@ -535,6 +548,22 @@ endif
 if dein#tap('vim-compete')
   let g:compete_enable = s:config.complete ==# 'compete'
   let g:compete_throttle_time = 0
+  let g:compete_source_wait_time = 100
+  if s:config.lsp ==# 'lamp'
+    call compete#source#lamp#register()
+  endif
+  if s:config.lsp ==# 'lsp'
+    call compete#source#lsp#register()
+  endif
+  if s:config.lsp ==# 'lcn'
+    call compete#source#omnifunc#register()
+  endif
+  if s:config.lsp ==# ''
+    call compete#source#omnifunc#register()
+  endif
+  if s:config.lsp ==# 'nvim'
+    call compete#source#nvimlsp#register()
+  endif
   imap <C-Space> <Plug>(compete-force-refresh)
 endif
 
@@ -595,7 +624,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \ })
     call lsp#register_server({
     \   'name': 'clangd',
-    \   'cmd': { info -> ['clangd', '-background-index'] },
+    \   'cmd': { info -> ['clangd', '--background-index'] },
     \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
     \ })
     let l:storagePath = expand('~/.cache/aiueo')
@@ -626,6 +655,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
+    setlocal signcolumn=yes
     setlocal omnifunc=lsp#omni#complete
     setlocal foldmethod=expr
     setlocal foldexpr=lsp#ui#vim#folding#foldexpr()
@@ -648,6 +678,7 @@ endif
 if dein#tap('vim-lsc') && s:config.lsp ==# 'lsc'
   let g:lsc_server_commands = {
   \   'go': ['gopls'],
+  \   'cpp': ['clangd', '--background-index', '--clang-tidy'],
   \   'php': {
   \     'command': expand('~/lsc_debug.sh'),
   \     'message_hooks': {
@@ -679,8 +710,18 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
     \ ] }
 
-    call lamp#config('global.debug', '/tmp/lamp.log')
-    call lamp#config('feature.completion.floating_docs', v:true)
+    call lamp#feature#workspace#configure({
+    \   'Lua': {
+    \     'completion': {
+    \       'callSnippet': 'Replace',
+    \     },
+    \     'diagnostics': {
+    \       'globals': ['vim']
+    \     }
+    \   }
+    \ })
+
+"    call lamp#config('global.debug', '/tmp/lamp.log')
     call lamp#config('view.location.on_location', s:on_location)
     call lamp#config('view.location.on_fallback', s:on_fallback)
 
@@ -697,7 +738,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'capabilities': {
     \     'documentFormattingProvider': v:null,
     \     'documentRangeFormattingProvider': v:null,
-    \     'documentOnTypeFormattingProvider': v:null,
     \     'completionProvider': {
     \       'triggerCharacters': [',']
     \     }
@@ -705,8 +745,27 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \ })
 
     call lamp#register('clangd', {
-    \   'command': ['clangd', '-background-index'],
-    \   'filetypes': ['c', 'cpp', 'objc', 'objcpp'],
+    \   'command': ['clangd', '--background-index', '--clang-tidy'],
+    \   'filetypes': ['cpp', 'c'],
+    \   'root_uri': { -> lamp#findup(['compile_commands.json', '.git']) },
+    \   'capabilitis': {
+    \     'completionProvider': {
+    \       'triggerCharacters': ['.', ',', ':']
+    \     }
+    \   }
+    \ })
+
+    call lamp#register('cmake-language-server', {
+    \   'command': ['cmake-language-server'],
+    \   'filetypes': ['cmake'],
+    \   'root_uri': { -> lamp#findup(['.git', 'compile_commands.json']) },
+    \   'initialization_options': { -> {'buildDirectory': 'build'} },
+    \ })
+
+    call lamp#register('lua-language-server', {
+    \   'command': [expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'), '-E', expand('~/Develop/Repos/lua-language-server/main.lua')],
+    \   'filetypes': ['lua'],
+    \   'root_uri': { -> lamp#findup(['.git']) },
     \ })
 
     call lamp#register('rust-analyzer', {
@@ -824,6 +883,9 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     nnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
     vnoremap <buffer> <C-n>        :<C-u>LampSelectionRangeExpand<CR>
     vnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
+
+    nnoremap <buffer> <C-k>        :<C-u>LampDiagnosticsPrev<CR>
+    nnoremap <buffer> <C-j>        :<C-u>LampDiagnosticsNext<CR>
   endfunction
 endif
 
@@ -948,16 +1010,15 @@ if dein#tap('fern.vim')
   endfunction
 endif
 
-let g:colorscheme = 'onedark'
 try
-  execute printf('colorscheme %s', g:colorscheme)
+  execute printf('colorscheme %s', g:colorscheme.name)
 catch /.*/
   colorscheme ron
 endtry
 
 if dein#tap('lightline.vim')
   let g:lightline = {}
-  let g:lightline.colorscheme = g:colorscheme
+  let g:lightline.colorscheme = empty(get(g:colorscheme, 'lightline', '')) ? g:colorscheme.name : g:colorscheme.lightline
   let g:lightline.enable = {}
   let g:lightline.enable.statusline = 1
   let g:lightline.enable.tabline = 1
@@ -1134,7 +1195,6 @@ endfunction
 
 autocmd! vimrc ColorScheme * call s:on_color_scheme()
 function! s:on_color_scheme()
-  highlight! CursorLine gui=underline guibg=NONE guifg=NONE
 endfunction
 call s:on_color_scheme()
 
@@ -1170,32 +1230,77 @@ function! s:on_option_set_diff() abort
   nnoremap <buffer> <Leader>p [czz
 endfunction
 
-" lua require'nvim_lsp'.gopls.setup{
-"       \   capabilities = {
-"       \     textDocument = {
-"       \       completion = {
-"       \         completionItem = {
-"       \           snippetSupport = true
-"       \         }
-"       \       }
-"       \     }
-"       \   },
-"       \   init_options = {
-"       \     usePlaceholders = true,
-"       \     completeUnimported = true
-"       \   }
-"       \ }
-" set omnifunc=v:lua.vim.lsp.omnifunc
+if s:config.lsp ==# 'nvim'
+  lua require'nvim_lsp'.gopls.setup{
+  \   capabilities = {
+  \     textDocument = {
+  \       completion = {
+  \         completionItem = {
+  \           snippetSupport = true
+  \         }
+  \       }
+  \     }
+  \   },
+  \   init_options = {
+  \     usePlaceholders = true,
+  \     completeUnimported = true
+  \   }
+  \ }
+  lua require'nvim_lsp'.clangd.setup{
+  \   capabilities = {
+  \     textDocument = {
+  \       completion = {
+  \         completionItem = {
+  \           snippetSupport = true
+  \         }
+  \       }
+  \     }
+  \   }
+  \ }
+  lua require'nvim_lsp'.vimls.setup{
+  \   capabilities = {
+  \     textDocument = {
+  \       completion = {
+  \         completionItem = {
+  \           snippetSupport = true
+  \         }
+  \       }
+  \     }
+  \   },
+  \ }
+  lua require'nvim_lsp'.tsserver.setup{
+  \   capabilities = {
+  \     textDocument = {
+  \       completion = {
+  \         completionItem = {
+  \           snippetSupport = true
+  \         }
+  \       }
+  \     }
+  \   },
+  \ }
+
+  if s:config.complete ==# 'completion-nvim'
+    let g:completion_enable_snippet = 'vim-vsnip'
+    let g:completion_trigger_character = ['*']
+    let g:completion_chain_complete_list = {
+    \ 'go' : {
+    \   'default': [
+    \       {'complete_items': ['lsp', 'snippet']},
+    \       {'mode': '<c-p>'},
+    \       {'mode': '<c-n>'}],
+    \   }
+    \  }
+    autocmd vimrc BufEnter * lua require'completion'.on_attach()
+  endif
+endif
 
 " NOTE: Remove `vim-lsp` from runtimepath.
-" let g:LanguageClient_serverCommands = {
-" \ 'go': ['gopls'],
-" \ 'vim': ['vim-language-server', '--stdio']
-" \ }
-" set omnifunc=LanguageClient#complete
-" 
-" let g:LanguageClient_rootMarkers = {
-" \ 'go': ['go.mod'],
-" \ 'rust': ['Cargo.toml'],
-" \ }
+if s:config.lsp ==# 'lcn'
+  let g:LanguageClient_serverCommands = {
+  \ 'go': ['gopls'],
+  \ 'vim': ['vim-language-server', '--stdio']
+  \ }
+  set omnifunc=LanguageClient#complete
+endif
 
