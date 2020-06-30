@@ -16,7 +16,6 @@ endif
 let &runtimepath = &runtimepath . ',' . dein.dir.install
 if dein#load_state(dein.dir.install)
   call dein#begin(dein.dir.plugins)
-  call dein#add('hrsh7th/vim-compete')
   call dein#local('~/Develop/LocalVimPlugins')
   call dein#end()
 endif
@@ -28,9 +27,3 @@ endif
 filetype plugin indent on
 syntax enable
 
-augroup vimrc
-  autocmd!
-augroup END
-
-imap <expr><CR>  complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:true })  : "\<CR>"
-imap <expr><Esc> complete_info(['selected']).selected != -1 ? compete#close({ 'confirm': v:false }) : "\<Esc>"

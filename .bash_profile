@@ -9,9 +9,6 @@ export GIT_EDITOR=$EDITOR
 # Local bin
 export PATH="$HOME/Local/bin:$PATH"
 
-# brew.
-export PATH="/usr/local/bin:$PATH"
-
 # redis
 export PATH="/usr/local/Cellar/redis/5.0.7/bin:$PATH"
 
@@ -52,6 +49,9 @@ nvm use default > /dev/null
 
 # cargo
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# brew.
+export PATH="$PATH:/usr/local/bin"
 
 # local settings.
 if [ -f $SCRIPT_DIR/.bash_profile.local ]; then

@@ -146,11 +146,12 @@ endfunction
 " vimrc#open
 "
 function! vimrc#open(cmd, location, ...)
+  let l:prev_winnr = get(a:000, 0, -1)
   let l:winnrs = vimrc#filter_winnrs(s:special_filetypes)
 
   " prefer previous win
-  if len(a:000) == 1 && index(l:winnrs, a:000[0]) >= 0
-    let l:winnrs = [a:000[0]]
+  if index(l:winnrs, l:prev_winnr) >= 0
+    let l:winnrs = [l:prev_winnr]
   endif
 
   if len(l:winnrs) > 0
