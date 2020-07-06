@@ -61,6 +61,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-findent', { 'merged': 0 })
   call dein#add('machakann/vim-sandwich', { 'merged': 0 })
   call dein#add('microsoft/vscode-go', { 'merged': 0 })
+  call dein#add('nvim-lua/completion-nvim', { 'merged': 0 })
+  call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
   call dein#add('ryanoasis/vim-devicons', { 'merged': 0 })
   call dein#add('sheerun/vim-polyglot', { 'merged': 0 })
   call dein#add('t9md/vim-choosewin', { 'merged': 0 })
@@ -89,7 +91,6 @@ if dein#load_state(s:dein.dir.install)
   endif
 
   if s:config.lsp ==# 'lsp'
-    call dein#add('prabirshrestha/async.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
@@ -377,17 +378,17 @@ if dein#tap('vim-candle')
     call candle#action#register({
     \   'name': 'edit',
     \   'accept': function('candle#action#location#accept_single'),
-    \   'invoke': function('s:open_invoke', ['edit', v:false]),
+    \   'invoke': function('s:open_invoke', ['edit']),
     \ })
     call candle#action#register({
     \   'name': 'split',
     \   'accept': function('candle#action#location#accept_single'),
-    \   'invoke': function('s:open_invoke', ['split', v:false]),
+    \   'invoke': function('s:open_invoke', ['split']),
     \ })
     call candle#action#register({
     \   'name': 'vsplit',
     \   'accept': function('candle#action#location#accept_single'),
-    \   'invoke': function('s:open_invoke', ['vsplit', v:false]),
+    \   'invoke': function('s:open_invoke', ['vsplit']),
     \ })
     "
     " qfreplace
@@ -558,6 +559,10 @@ if s:config.complete ==# 'compe'
   inoremap <expr><C-y> compe#close('<C-y>')
 endif
 
+if s:config.complete ==# 'completion-nvim'
+  autocmd vimrc BufEnter * lua require'completion'.on_attach()
+endif
+
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_fold_enabled = v:true
@@ -576,6 +581,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   'name': 'json-languageserver',
     \   'cmd': { info -> ['json-languageserver', '--stdio'] },
     \   'whitelist': ['json'],
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git'])) },
     \   'config': {
     \     'refresh_pattern': '\("\k*\|\[\|\k\+\)$'
     \   },
@@ -625,6 +631,7 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     call lsp#register_server({
     \   'name': 'intelephense',
     \   'cmd': { info -> ['intelephense', '--stdio'] },
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git', 'composer.json'])) },
     \   'whitelist': ['php'],
     \   'initialization_options': {
     \     'storagePath': l:storagePath,
@@ -648,9 +655,9 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   function! s:lsp_buffer_enabled() abort
     setlocal signcolumn=yes
     setlocal omnifunc=lsp#omni#complete
-    setlocal foldmethod=expr
-    setlocal foldexpr=lsp#ui#vim#folding#foldexpr()
-    setlocal foldtext=lsp#ui#vim#folding#foldtext()
+"    setlocal foldmethod=expr
+"    setlocal foldexpr=lsp#ui#vim#folding#foldexpr()
+"    setlocal foldtext=lsp#ui#vim#folding#foldtext()
     nnoremap <Leader><CR>          :<C-u>LspCodeAction<CR>
     vnoremap <Leader><CR>          :LspCodeAction<CR>
     nnoremap <buffer> gf<CR>       :<C-u>LspDefinition<CR>
@@ -743,6 +750,12 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'triggerCharacters': ['.', ',', ':']
     \     }
     \   }
+    \ })
+
+    call lamp#register('texlab', {
+    \   'command': ['texlab'],
+    \   'filetypes': ['tex'],
+    \   'root_uri': { -> lamp#findup(['.git']) },
     \ })
 
     call lamp#register('cmake-language-server', {
@@ -1302,6 +1315,29 @@ if s:config.lsp ==# 'nvim'
   \     }
   \   },
   \ }
+  lua require'nvim_lsp'.rust_analyzer.setup{
+  \   capabilities = {
+  \     workspace = {
+  \       applyEdit = true;
+  \       workspaceEdit = {
+  \         documentChanges = true;
+  \       }
+  \     };
+  \     textDocument = {
+  \       completion = {
+  \         completionItem = {
+  \           snippetSupport = true
+  \         }
+  \       }
+  \     }
+  \   },
+  \ }
+  nnoremap <silent> gf<CR>       <cmd>lua vim.lsp.buf.definition()<CR>
+  nnoremap <silent> <Leader>i    <cmd>lua vim.lsp.buf.hover()<CR>
+  nnoremap <silent> <Leader>g    <cmd>lua vim.lsp.buf.references()<CR>
+  nnoremap <silent> <Leader>f    <cmd>lua vim.lsp.buf.formatting()<CR>
+  nnoremap <silent> <Leader>r    <cmd>lua vim.lsp.buf.rename()<CR>
+  nnoremap <silent> <Leader><CR> <cmd>lua vim.lsp.buf.code_action()<CR>
 endif
 
 " NOTE: Remove `vim-lsp` from runtimepath.
