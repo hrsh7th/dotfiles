@@ -1,29 +1,16 @@
-if has('vim_starting')
-  set encoding=utf-8
-endif
-scriptencoding utf-8
+set completeopt=menuone,noinsert,noselect
+set shortmess+=c
 
-let dein = {}
-let dein.dir = {}
-let dein.dir.install = $XDG_CONFIG_HOME . '/dein.mini/repos/github.com/Shougo/dein.vim'
-let dein.dir.plugins = $XDG_CONFIG_HOME . '/dein.mini'
+command! Profile call s:command_profile()
+function! s:command_profile() abort
+  profile start ~/profile.txt
+  profile func *
+  profile file *
+endfunction
 
-if !isdirectory(dein.dir.install)
-  call mkdir(dein.dir.install, 'p')
-  call system(printf('git clone https://github.com/Shougo/dein.vim %s', shellescape(dein.dir.install)))
-endif
+execute printf('set packpath+=%s', expand('~/.config/nvim/pack'))
+packadd! vim-vsnip
 
-let &runtimepath = &runtimepath . ',' . dein.dir.install
-if dein#load_state(dein.dir.install)
-  call dein#begin(dein.dir.plugins)
-  call dein#local('~/Develop/LocalVimPlugins')
-  call dein#end()
-endif
-
-if dein#check_install()
-  call dein#install()
-endif
-
-filetype plugin indent on
-syntax enable
+imap <expr> <Tab>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+smap <expr> <Tab>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
 
