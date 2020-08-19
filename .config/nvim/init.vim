@@ -33,8 +33,8 @@ let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 
 call vimrc#ignore_runtime()
 
+let g:dein#types#git#clone_depth = 1
 if dein#load_state(s:dein.dir.install)
-  let g:dein#types#git#clone_depth = 1
   call dein#begin(s:dein.dir.plugins)
 
   call dein#add('Shougo/dein.vim', { 'merged': 0 })
@@ -43,6 +43,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
+  call dein#add('hrsh7th/nvim-compe', { 'merged': 0 })
   call dein#add('hrsh7th/vim-candle', { 'merged': 0 })
   call dein#add('hrsh7th/vim-denite-gitto', { 'merged': 0 })
   call dein#add('hrsh7th/vim-effort-gf', { 'merged': 0 })
@@ -54,16 +55,14 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
   call dein#add('itchyny/vim-parenmatch', { 'merged': 0 })
-  call dein#add('lambdalisue/fern-renderer-devicons.vim', { 'merged': 0 })
+  call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern.vim', { 'merged': 0 })
   call dein#add('lambdalisue/gina.vim', { 'merged': 0 })
+  call dein#add('lambdalisue/glyph-palette.vim', { 'merged': 0 })
+  call dein#add('lambdalisue/nerdfont.vim', { 'merged': 0 })
   call dein#add('lambdalisue/suda.vim', { 'merged': 0 })
   call dein#add('lambdalisue/vim-findent', { 'merged': 0 })
   call dein#add('machakann/vim-sandwich', { 'merged': 0 })
-  call dein#add('microsoft/vscode-go', { 'merged': 0 })
-  call dein#add('nvim-lua/completion-nvim', { 'merged': 0 })
-  call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
-  call dein#add('ryanoasis/vim-devicons', { 'merged': 0 })
   call dein#add('sheerun/vim-polyglot', { 'merged': 0 })
   call dein#add('t9md/vim-choosewin', { 'merged': 0 })
   call dein#add('thinca/vim-qfreplace', { 'merged': 0 })
@@ -73,24 +72,40 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
 
-  call dein#add('rakr/vim-one', { 'merged': 0 })
-  call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
-  call dein#add('haishanh/night-owl.vim', { 'merged': 0 })
+"  call dein#add('rakr/vim-one', { 'merged': 0 })
+"  call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
   call dein#add('drewtempelmeyer/palenight.vim', { 'merged': 0 })
-  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
-  call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
-  call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
+"  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
+"  call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
+"  call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
+"  call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
 
-  let g:colorscheme = { 'name': 'one', 'lightline': 'one' }
+  let g:colorscheme = { 'name': 'palenight', 'lightline': 'palenight' }
 
   if s:config.lsp ==# 'coc'
     let g:coc_force_debug = 1
     let g:node_client_debug = v:true
     let $NVIM_COC_LOG_LEVEL = 'debug'
     call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'master', 'build': 'npm install' })
+
+    " Use <C-l> for trigger snippet expand.
+    imap <C-l> <Plug>(coc-snippets-expand)
+
+    " Use <C-j> for select text for visual placeholder of snippet.
+    vmap <C-j> <Plug>(coc-snippets-select)
+
+    " Use <C-j> for jump to next placeholder, it's default of coc.nvim
+    let g:coc_snippet_next = '<c-j>'
+
+    " Use <C-k> for jump to previous placeholder, it's default of coc.nvim
+    let g:coc_snippet_prev = '<c-k>'
+
+    " Use <C-j> for both expand and jump (make expand higher priority.)
+    imap <C-j> <Plug>(coc-snippets-expand-jump)
   endif
 
   if s:config.lsp ==# 'lsp'
+    call dein#add('mattn/vim-lsp-settings', { 'merged': 0 })
     call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
     call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
@@ -105,6 +120,7 @@ if dein#load_state(s:dein.dir.install)
   endif
 
   if s:config.lsp ==# 'nvim'
+    call dein#add('nvim-lua/completion-nvim', { 'merged': 0 })
     call dein#add('neovim/nvim-lsp', { 'merged': 0 })
   endif
 
@@ -284,7 +300,8 @@ nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 xnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 xnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 
-nnoremap riw ciw<C-r>0<Esc>:<C-u>let@/=@1<CR>:noh<CR>
+nnoremap riw "_ciw<C-r>=@0<CR><Esc>
+xnoremap riw "_c<C-r>=@0<CR><Esc>
 
 nnoremap gj gJ
 
@@ -371,9 +388,12 @@ if dein#tap('vim-candle')
     " edit/split/vsplit
     "
     function! s:open_invoke(command, candle) abort
+      let l:curr_winid = win_getid()
       call a:candle.close()
+      let l:next_winid = l:curr_winid == a:candle.winid ? a:candle.prev_winid : l:curr_winid
+
       let l:item = a:candle.get_action_items()[0]
-      call vimrc#open(a:command, l:item, win_id2win(a:candle.prev_winid))
+      call vimrc#open(a:command, l:item, win_id2win(l:next_winid))
     endfunction
     call candle#action#register({
     \   'name': 'edit',
@@ -394,10 +414,10 @@ if dein#tap('vim-candle')
     " qfreplace
     "
     function! s:qfreplace_invoke(candle) abort
-      call a:candle.close()
       call setqflist(a:candle.get_action_items())
       Qfreplace split
       resize 12
+      call a:candle.close()
     endfunction
     call candle#action#register({
     \   'name': 'qfreplace',
@@ -482,7 +502,7 @@ if dein#tap('vital.vim')
 endif
 
 if dein#tap('lexima.vim')
-  let g:lexima_nvim_accept_pum_with_enter = v:false
+  let g:lexima_accept_pum_with_enter = v:false
   let g:lexima_no_default_rules = v:true
   if s:config.lexima
     call lexima#set_default_rules()
@@ -505,28 +525,32 @@ if dein#tap('lexima.vim')
 endif
 
 if dein#tap('vim-vsnip')
-  let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
+  let g:vsnip_namespace = 'snip_'
   if dein#tap('lexima.vim') && s:config.lexima
+    imap <expr><C-j> vsnip#expandable()                                               ? '<Plug>(vsnip-expand)'         : '<Nop>'
+    smap <expr><C-j> vsnip#expandable()                                               ? '<Plug>(vsnip-expand)'         : '<Nop>'
     imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#jumpable(1)  ? '<Plug>(vsnip-jump-next)'      : lexima#expand('<LT>Tab>', 'i')
     imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
     smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
+    imap <expr><C-l> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand)'         : '<C-l>'
+    smap <expr><C-l> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand)'         : '<C-l>'
     imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#jumpable(1)  ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
     imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
     smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
   endif
-endif
 
-if dein#tap('asyncomplete.vim')
-  let g:asyncomplete_auto_popup = s:config.complete ==# 'asyncomplete' ? 1 : 0
-endif
+  " select.
+  nmap s <Plug>(vsnip-select-text)
+  xmap s <Plug>(vsnip-select-text)
+  smap s <Plug>(vsnip-select-text)
 
-if dein#tap('vim-vsnip-integ')
-  let g:vsnip_integ_config = {}
-  let g:vsnip_integ_config.auto_expand = v:true
-  let g:vsnip_integ_config.asyncomplete = s:config.complete ==# 'asyncomplete'
+  " cut
+  nmap S <Plug>(vsnip-cut-text)
+  xmap S <Plug>(vsnip-cut-text)
+  smap S <Plug>(vsnip-cut-text)
 endif
 
 if dein#tap('vim-compete') && s:config.complete ==# 'compete'
@@ -567,89 +591,6 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_fold_enabled = v:true
   let g:lsp_diagnostics_float_cursor = 1
-
-  autocmd! vimrc User lsp_setup call s:lsp_setup()
-  function! s:lsp_setup()
-    call lsp#register_server({
-    \   'name': 'vim',
-    \   'cmd': { info -> ['vim-language-server', '--stdio'] },
-    \   'whitelist': ['vim', 'vimspec'],
-    \   'initialization_options': {
-    \   }
-    \ })
-    call lsp#register_server({
-    \   'name': 'json-languageserver',
-    \   'cmd': { info -> ['json-languageserver', '--stdio'] },
-    \   'whitelist': ['json'],
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git'])) },
-    \   'config': {
-    \     'refresh_pattern': '\("\k*\|\[\|\k\+\)$'
-    \   },
-    \   'workspace_config': {
-    \     'json': {
-    \       'schemas': json_decode(join(readfile(lamp#config('global.root') . '/misc/json/catalog.json'), "\n")).schemas,
-    \       'format': {
-    \         'enable': v:true
-    \       }
-    \     }
-    \   },
-    \ })
-    call lsp#register_server({
-    \   'name': 'gopls',
-    \   'cmd': { info -> ['gopls'] },
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['go.mod'])) },
-    \   'whitelist': ['go'],
-    \   'initialization_options': {
-    \     'usePlaceholders': v:false,
-    \     'completeUnimported': v:true,
-    \     'hoverKind': 'FullDocumentation'
-    \   }
-    \ })
-    call lsp#register_server({
-    \   'name': 'rust-analyzer',
-    \   'cmd': { -> ['rust-analyzer'] },
-    \   'whitelist': ['rust'],
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['Cargo.toml'])) }
-    \ })
-    call lsp#register_server({
-    \   'name': '0typescript-language-server',
-    \   'cmd': { info -> ['typescript-language-server', '--stdio'] },
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['tsconfig.json'])) },
-    \   'whitelist': ['typescript', 'typescriptreact'],
-    \   'initialization_options': {
-    \   }
-    \ })
-    call lsp#register_server({
-    \   'name': 'clangd',
-    \   'cmd': { info -> ['clangd', '--background-index'] },
-    \   'whitelist': ['c', 'cpp', 'objc', 'objcpp']
-    \ })
-    let l:storagePath = expand('~/.cache/aiueo')
-    if !isdirectory(l:storagePath)
-      call mkdir(l:storagePath, 'p', '0755')
-    endif
-    call lsp#register_server({
-    \   'name': 'intelephense',
-    \   'cmd': { info -> ['intelephense', '--stdio'] },
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git', 'composer.json'])) },
-    \   'whitelist': ['php'],
-    \   'initialization_options': {
-    \     'storagePath': l:storagePath,
-    \     'globalStoragePath': l:storagePath,
-    \   }
-    \ })
-    call lsp#register_server({
-    \   'name': 'html',
-    \   'cmd': { info -> ['html-languageserver', '--stdio'] },
-    \   'whitelist': ['html'],
-    \   'initialization_options': {
-    \     'embeddedLanguages': {
-    \       'css': v:true,
-    \       'html': v:true
-    \     }
-    \   }
-    \ })
-  endfunction
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
@@ -708,12 +649,60 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \ ] }
 
     call lamp#feature#workspace#configure({
+    \   'emmet': {},
+    \   'html': {},
+    \   'javascript': {},
+    \   'typescript': {},
+    \   'prettier': {},
+    \   'stylusSupremacy': {},
     \   'Lua': {
     \     'completion': {
     \       'callSnippet': 'Replace',
     \     },
     \     'diagnostics': {
     \       'globals': ['vim']
+    \     }
+    \   },
+    \   'template': {},
+    \   'vetur': {
+    \     'useWorkspaceDependencies': v:true,
+    \     'completion': {
+    \       'autoImport': v:true,
+    \       'useScaffoldSnippets': v:true,
+    \       'tagCasing': 'kebab',
+    \     },
+    \     'validation': {
+    \       'template': v:false,
+    \       'style': v:false,
+    \       'script': v:false,
+    \     },
+    \     'format': {
+    \       'enable': v:true,
+    \       'options': {},
+    \       'defaultFormatter': {
+    \         'html': 'prettier',
+    \         'css': 'prettier',
+    \         'postcss': 'prettier',
+    \         'scss': 'prettier',
+    \         'less': 'prettier',
+    \         'stylus': 'prettier',
+    \         'js': 'prettier',
+    \         'ts': 'prettier',
+    \       },
+    \       'defaultFormatterOptions': {
+    \         'prettier': {},
+    \         'prettyhtml': {},
+    \         'js-beautify-html': {}
+    \       },
+    \       'styleInitialIndent': v:false,
+    \       'scriptInitialIndent': v:false,
+    \     },
+    \     'dev': {
+    \       'vlsPath': 'ABCDEFGHIJKLMNOPQRSTUVWX',
+    \       'logLevel': 'info',
+    \     },
+    \     'experimental': {
+    \       'templateInterpolationService': v:false
     \     }
     \   }
     \ })
@@ -752,6 +741,17 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   }
     \ })
 
+    call lamp#register('svelte-language-server', {
+    \   'command': ['svelteserver', '--stdio'],
+    \   'filetypes': ['svelte'],
+    \   'root_uri': { -> lamp#findup(['.git']) },
+    \   'capabilitis': {
+    \     'completionProvider': {
+    \       'triggerCharacters': ['.', ',', ':']
+    \     }
+    \   }
+    \ })
+
     call lamp#register('texlab', {
     \   'command': ['texlab'],
     \   'filetypes': ['tex'],
@@ -775,6 +775,36 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'command': [expand('~/Develop/Repos/rust-analyzer/target/release/rust-analyzer')],
     \   'filetypes': ['rust'],
     \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
+    \ })
+
+    call lamp#register('vls', {
+    \   'command': ['vls'],
+    \   'filetypes': ['vue'],
+    \   'initialization_options': { -> {
+    \     'completion': {
+    \       'autoImport': v:true,
+    \       'useScaffoldSnippets': v:true,
+    \       'tagCasing': v:true,
+    \     },
+    \     'template': {},
+    \     'format': {
+    \       'enable': v:true,
+    \       'defaultFormatter': {
+    \         'ts': 'prettier',
+    \         'js': 'prettier',
+    \         'css': 'prettier',
+    \         'postcss': 'prettier',
+    \         'stylus': 'prettier',
+    \         'html': 'prettier',
+    \         'less': 'prettier',
+    \         'sass': 'prettier',
+    \       },
+    \       'defaultFormatterOptions': {
+    \         'prettier': {},
+    \       }
+    \     }
+    \   } },
+    \   'root_uri': { bufnr -> lamp#findup(['.git'], bufname(bufnr)) }
     \ })
 
     call lamp#register('diagnostic-languageserver', {
@@ -882,11 +912,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     nnoremap <buffer> <Leader><CR> :<C-u>LampCodeAction<CR>
     vnoremap <buffer> <Leader><CR> :LampCodeAction<CR>
 
-    nnoremap <buffer> <C-n>        :<C-u>LampSelectionRangeExpand<CR>
-    nnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
-    vnoremap <buffer> <C-n>        :<C-u>LampSelectionRangeExpand<CR>
-    vnoremap <buffer> <C-p>        :<C-u>LampSelectionRangeCollapse<CR>
-
     nnoremap <buffer> <C-k>        :<C-u>LampDiagnosticsPrev<CR>
     nnoremap <buffer> <C-j>        :<C-u>LampDiagnosticsNext<CR>
   endfunction
@@ -939,7 +964,7 @@ if dein#tap('deol.nvim')
 endif
 
 if dein#tap('fern.vim')
-  let g:fern#renderer = 'devicons'
+  let g:fern#renderer = 'nerdfont'
   let g:fern#disable_default_mappings = 1
   let g:fern#drawer_width = 40
 
@@ -949,7 +974,6 @@ if dein#tap('fern.vim')
     \   'filename': l:node._path,
     \ })
   endfunction
-
   call fern#mapping#call_function#add('edit', function('s:fern_open', ['edit']))
   call fern#mapping#call_function#add('split', function('s:fern_open', ['split']))
   call fern#mapping#call_function#add('vsplit', function('s:fern_open', ['vsplit']))
@@ -958,6 +982,8 @@ if dein#tap('fern.vim')
 
   autocmd! vimrc FileType fern call s:setup_fern()
   function! s:setup_fern() abort
+    call glyph_palette#apply()
+
     nnoremap <silent><buffer>H           :<C-u>call FernTerminal()<CR>
     nnoremap <silent><buffer><Tab>       :<C-u>call FernSuitableMove()<CR>
     nnoremap <silent><buffer><F5>        :<C-u>call vimrc#detect_cwd()<CR>
@@ -988,6 +1014,7 @@ if dein#tap('fern.vim')
     \     'default': { candle -> [
     \       execute('quit'),
     \       win_gotoid(candle.prev_winid),
+    \       candle#source#mru_dir#source#touch(candle.get_action_items()[0].filename),
     \       execute(printf('Fern %s', candle.get_action_items()[0].filename))
     \     ] }
     \   }

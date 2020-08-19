@@ -13,7 +13,7 @@ export PATH="$HOME/Local/bin:$PATH"
 export PATH="/usr/local/Cellar/redis/5.0.7/bin:$PATH"
 
 # php (Append path for before of brew to use php7.3 isntead of php7.4)
-export PATH="/usr/local/Cellar/php@7.3/7.3.13/bin:$PATH"
+export PATH="/usr/local/Cellar/php@7.2/7.2.32/bin:$PATH"
 
 # ruby
 export PATH="/usr/local/Cellar/ruby/2.6.5/bin:$PATH"
