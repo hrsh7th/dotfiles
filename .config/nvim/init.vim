@@ -17,6 +17,7 @@ let s:config = {
 \   'lsp': 'lamp',
 \   'lexima': v:true,
 \   'complete': 'compe',
+\   'snippet': 'vsnip',
 \ }
 
 let s:dein = {}
@@ -31,15 +32,20 @@ endif
 let &runtimepath = &runtimepath . ',' . s:dein.dir.install . ',' . expand('~/.config/nvim')
 let &runtimepath = &runtimepath . ',' . fnamemodify($MYVIMRC, ':p:h')
 
+if filereadable(expand('~/.dein.github_access_token'))
+  let g:dein#install_github_api_token = readfile(expand('~/.dein.github_access_token'))
+  let g:dein#install_github_api_token = type(g:dein#install_github_api_token) == type([]) ? join(g:dein#install_github_api_token, '') : g:dein#install_github_api_token
+endif
+
 call vimrc#ignore_runtime()
 
-let g:dein#types#git#clone_depth = 1
 if dein#load_state(s:dein.dir.install)
   call dein#begin(s:dein.dir.plugins)
 
   call dein#add('Shougo/dein.vim', { 'merged': 0 })
   call dein#add('Shougo/denite.nvim', { 'merged': 0 })
   call dein#add('Shougo/deol.nvim', { 'merged': 0 })
+  call dein#add('haya14busa/is.vim', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
@@ -72,13 +78,13 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
 
-"  call dein#add('rakr/vim-one', { 'merged': 0 })
-"  call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
+  call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
+  call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
   call dein#add('drewtempelmeyer/palenight.vim', { 'merged': 0 })
-"  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
-"  call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
-"  call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
-"  call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
+  call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
+  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
+  call dein#add('rakr/vim-one', { 'merged': 0 })
+  call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
 
   let g:colorscheme = { 'name': 'palenight', 'lightline': 'palenight' }
 
@@ -124,6 +130,10 @@ if dein#load_state(s:dein.dir.install)
     call dein#add('neovim/nvim-lsp', { 'merged': 0 })
   endif
 
+  if s:config.snippet ==# 'ultisnips'
+    call dein#add('SirVer/ultisnips', { 'meregd': 0 })
+  endif
+
   if s:config.lexima
     call dein#add('cohama/lexima.vim', { 'merged': 0 })
   endif
@@ -146,9 +156,40 @@ augroup vimrc
   autocmd!
 augroup END
 
+nnoremap <silent> A :<C-u>lua
+\ require'lank':run({
+\   source = require'lank.source.file'.new({
+\     path = vim.fn.expand('~');
+\     ignore_patterns = {
+\       '.vim/',
+\       '.npm/',
+\       '.nvm/',
+\       '.git/',
+\       '.svn/',
+\       '.clangd/',
+\       '.rustup/',
+\       'logs/',
+\       'Logs/',
+\       'log/',
+\       'Log/',
+\       '.vimundo/',
+\       'caches/',
+\       'Caches/',
+\       'cache/',
+\       'Cache/',
+\       'vendor/',
+\       'node_modules/',
+\       '.cache/',
+\       '.cargo/',
+\       '.sass-cache/',
+\     };
+\   });
+\   layout = require'lank.layout.modal'({})
+\ })<CR>
+
 let $NVIM_TUI_ENABLE_TRUE_COLOR = 1
-let $TERM = 'xterm-256color'
 set termguicolors
+let $TERM = 'xterm-256color'
 set t_Co=256
 set t_ut=
 set updatetime=200
@@ -214,6 +255,7 @@ set backspace=2
 set whichwrap=b,s,h,l,<,>,[,]
 set completeopt=menu,menuone,noselect
 set nostartofline
+set signcolumn=yes
 
 let g:vim_indent_cont = 0
 
@@ -265,10 +307,35 @@ nnoremap H 20h
 nnoremap J 10j
 nnoremap K 10k
 nnoremap L 20l
+nnoremap zk 5H
+nnoremap zj 5L
 xnoremap H 20h
 xnoremap J 10j
 xnoremap K 10k
 xnoremap L 20l
+xnoremap zk 5H
+xnoremap zj 5L
+
+nmap f <Plug>(eft-f-repeatable)
+xmap f <Plug>(eft-f-repeatable)
+omap f <Plug>(eft-f-repeatable)
+nmap F <Plug>(eft-F-repeatable)
+xmap F <Plug>(eft-F-repeatable)
+omap F <Plug>(eft-F-repeatable)
+
+nmap t <Plug>(eft-t-repeatable)
+xmap t <Plug>(eft-t-repeatable)
+omap t <Plug>(eft-t-repeatable)
+nmap T <Plug>(eft-T-repeatable)
+xmap T <Plug>(eft-T-repeatable)
+omap T <Plug>(eft-T-repeatable)
+
+let g:eft_index_function = get(g:, 'eft_index_function', {
+\   'head': function('eft#index#head'),
+\   'camel': function('eft#index#camel'),
+\   'space': function('eft#index#space'),
+\   'symbol': function('eft#index#symbol'),
+\ })
 
 nnoremap <Leader>h <C-w>h
 nnoremap <Leader>j <C-w>j
@@ -282,7 +349,7 @@ nnoremap G Gzz
 
 nnoremap o A<CR>
 
-xnoremap <expr> 0 getline('.')[0 : col('.') - 2] =~# '^\s\+$' ? '0' : '^'
+noremap <expr> 0 getline('.')[0 : col('.') - 2] =~# '^\s\+$' ? '0' : '^'
 
 nnoremap <C-h> <C-o>
 nnoremap <C-l> <C-i>
@@ -290,8 +357,12 @@ nnoremap <C-l> <C-i>
 inoremap <C-l> <Right>
 inoremap <C-h> <Left>
 
+inoremap <F8> <Nop>
+nnoremap <F8> <Nop>
 inoremap <F9> <Nop>
+nnoremap <F9> <Nop>
 inoremap <F10> <Nop>
+nnoremap <F10> <Nop>
 
 nmap <Tab> %
 xmap <Tab> %
@@ -303,7 +374,7 @@ xnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 nnoremap riw "_ciw<C-r>=@0<CR><Esc>
 xnoremap riw "_c<C-r>=@0<CR><Esc>
 
-nnoremap gj gJ
+nnoremap gj J
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
@@ -317,11 +388,17 @@ if dein#tap('vim-quickrun')
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
 endif
 
+if dein#tap('is.vim')
+  map n <Plug>(is-n)
+  map N <Plug>(is-N)
+endif
+
 if dein#tap('vim-effort-gf')
   nnoremap gf<CR> :<C-u>EffortGF<CR>
   nnoremap gfv    :<C-u>vertical EffortGF<CR>
   nnoremap gfs    :<C-u>belowright EffortGF<CR>
 endif
+
 
 if dein#tap('open-browser.vim')
   nmap <Leader><Leader><CR> <Plug>(openbrowser-smart-search)
@@ -369,8 +446,8 @@ if dein#tap('vim-candle')
   nnoremap <silent><Leader>0 :<C-u>call candle#start({
   \   'item': [{
   \     'id': 1,
-  \     'title': 'dein#update',
-  \     'command': 'call dein#update()'
+  \     'title': 'dein#check_update',
+  \     'command': 'call dein#check_update(v:true)'
   \   }],
   \ }, {
   \   'action': {
@@ -524,73 +601,122 @@ if dein#tap('lexima.vim')
   endif
 endif
 
-if dein#tap('vim-vsnip')
+if dein#tap('ultisnips') && s:config.snippet ==# 'ultisnips'
+   let g:UltiSnipsExpandTrigger       = '<Tab>'
+   let g:UltiSnipsJumpForwardTrigger  = '<Tab>'
+   let g:UltiSnipsJumpBackwardTrigger = '<S-Tab>'
+endif
+
+if dein#tap('vim-vsnip') && s:config.snippet ==# 'vsnip'
   let g:vsnip_namespace = 'snip_'
+  let g:vsnip_snippet_dirs = [dein#get('vim-vsnip').rtp . '/misc']
   if dein#tap('lexima.vim') && s:config.lexima
-    imap <expr><C-j> vsnip#expandable()                                               ? '<Plug>(vsnip-expand)'         : '<Nop>'
-    smap <expr><C-j> vsnip#expandable()                                               ? '<Plug>(vsnip-expand)'         : '<Nop>'
-    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
-    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#jumpable(1)  ? '<Plug>(vsnip-jump-next)'      : lexima#expand('<LT>Tab>', 'i')
-    imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
-    smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    imap <expr><C-j> vsnip#expandable()    ? '<Plug>(vsnip-expand)'         : '<Nop>'
+    smap <expr><C-j> vsnip#expandable()    ? '<Plug>(vsnip-expand)'         : '<Nop>'
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : lexima#expand('<LT>Tab>', 'i')
+    smap <expr><Tab> vsnip#jumpable(1)     ? '<Plug>(vsnip-jump-next)'      : lexima#expand('<LT>Tab>', 'i')
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : lexima#expand('<LT>S-Tab>', 'i')
   else
-    imap <expr><C-l> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand)'         : '<C-l>'
-    smap <expr><C-l> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand)'         : '<C-l>'
-    imap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
-    smap <expr><Tab> complete_info(['selected']).selected == -1 && vsnip#jumpable(1)  ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
-    imap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-    smap <expr><S-Tab> vsnip#available(-1)                                            ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+    imap <expr><C-l> vsnip#available(1)    ? '<Plug>(vsnip-expand)'         : '<C-l>'
+    smap <expr><C-l> vsnip#available(1)    ? '<Plug>(vsnip-expand)'         : '<C-l>'
+    imap <expr><Tab> vsnip#available(1)    ? '<Plug>(vsnip-expand-or-jump)' : '<Tab>'
+    smap <expr><Tab> vsnip#jumpable(1)     ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+    imap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+    smap <expr><S-Tab> vsnip#available(-1) ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
   endif
 
   " select.
   nmap s <Plug>(vsnip-select-text)
   xmap s <Plug>(vsnip-select-text)
-  smap s <Plug>(vsnip-select-text)
 
   " cut
   nmap S <Plug>(vsnip-cut-text)
   xmap S <Plug>(vsnip-cut-text)
-  smap S <Plug>(vsnip-cut-text)
-endif
-
-if dein#tap('vim-compete') && s:config.complete ==# 'compete'
-  let g:compete_enable = s:config.complete ==# 'compete'
-  let g:compete_throttle_time = 0
-  let g:compete_source_wait_time = 100
-  if s:config.lsp ==# 'lamp'
-    call compete#source#lamp#register()
-  endif
-  if s:config.lsp ==# 'lsp'
-    call compete#source#lsp#register()
-  endif
-  if s:config.lsp ==# 'lcn'
-    call compete#source#omnifunc#register()
-  endif
-  if s:config.lsp ==# ''
-    call compete#source#omnifunc#register()
-  endif
-  imap <C-Space> <Plug>(compete-force-refresh)
 endif
 
 if s:config.complete ==# 'compe'
   let g:compe_enabled = v:true
+  let g:compe_auto_preselect = v:true
+
   inoremap <silent><C-Space> <C-r>=compe#complete()<CR>
+  inoremap <silent><expr><C-e> compe#close('<C-e>')
   if s:config.lexima
-    inoremap <expr><CR> compe#confirm(lexima#expand('<LT>CR>', 'i'))
+    inoremap <silent><expr><CR> compe#confirm(lexima#expand('<LT>CR>', 'i'))
   else
-    inoremap <expr><CR> compe#confirm('<CR>')
+    inoremap <silent><expr><CR> compe#confirm('<CR>')
   endif
-  inoremap <expr><C-y> compe#close('<C-y>')
+
+  lua require'compe':register_lua_source('buffer', require'compe_buffer')
+  call compe#source#vim_bridge#register('path', compe_path#source#create())
+  call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())
+
+  if s:config.lsp ==# 'lamp'
+    call compe_lamp#source#attach()
+  endif
+  if s:config.lsp ==# 'nvim'
+    lua require'compe_nvim_lsp'.attach()
+  endif
 endif
 
 if s:config.complete ==# 'completion-nvim'
   autocmd vimrc BufEnter * lua require'completion'.on_attach()
+  let g:completion_enable_snippet = 'vim-vsnip'
+  let g:completion_confirm_key = "\<CR>"
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_log_file = '/tmp/lsp.log'
   let g:lsp_fold_enabled = v:true
   let g:lsp_diagnostics_float_cursor = 1
+
+  function s:setup_vim_lsp() abort
+    call lsp#register_server({
+    \   'name': 'intelephense',
+    \   'cmd': { -> ['intelephense', '--stdio'] },
+    \   'allowlist': ['php'],
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git', 'composer.json'])) },
+    \ })
+    call lsp#register_server({
+    \   'name': 'lua-language-server',
+    \   'cmd': { server_info -> [
+    \     expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
+    \     '-E',
+    \     expand('~/Develop/Repos/lua-language-server/main.lua')
+    \   ] },
+    \   'allowlist': ['lua'],
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git'])) },
+    \   'workspace_config': {
+    \     'Lua': {
+    \       'completion': {
+    \         'callSnippet': 'Replace',
+    \       },
+    \       'diagnostics': {
+    \         'enable': v:true,
+    \         'globals': [
+    \           'vim', 'describe', 'it', 'before_each', 'after_each'
+    \         ],
+    \       },
+    \       'workspace': {
+    \         'library': s:lua_library,
+    \       },
+    \     },
+    \   }
+    \ })   
+    call lsp#register_server({
+    \   'name': 'html-languageserver',
+    \   'cmd': { -> ['html-languageserver', '--stdio'] },
+    \   'allowlist': ['html'],
+    \   'initialization_options': { -> {
+    \     'embeddedLanguages': {
+    \       'css': v:true,
+    \       'html': v:true,
+    \       'javascript': v:true,
+    \     }
+    \   } }
+    \ })
+  endfunction
+  autocmd User lsp_setup call s:setup_vim_lsp()
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
@@ -660,8 +786,14 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'callSnippet': 'Replace',
     \     },
     \     'diagnostics': {
-    \       'globals': ['vim']
-    \     }
+    \       'enable': v:true,
+    \       'globals': [
+    \         'vim', 'describe', 'it', 'before_each', 'after_each'
+    \       ],
+    \     },
+    \     'workspace': {
+    \       'library': s:lua_library,
+    \     },
     \   },
     \   'template': {},
     \   'vetur': {
@@ -724,9 +856,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'capabilities': {
     \     'documentFormattingProvider': v:null,
     \     'documentRangeFormattingProvider': v:null,
-    \     'completionProvider': {
-    \       'triggerCharacters': [',']
-    \     }
     \   }
     \ })
 
@@ -772,7 +901,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \ })
 
     call lamp#register('rust-analyzer', {
-    \   'command': [expand('~/Develop/Repos/rust-analyzer/target/release/rust-analyzer')],
+    \   'command': ['rust-analyzer'],
     \   'filetypes': ['rust'],
     \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
     \ })
@@ -917,6 +1046,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
   endfunction
 endif
 
+let s:lua_library = {}
+let s:lua_library[expand('$VIMRUNTIsE/lua')] = v:true
+let s:lua_library[expand('~/build/neovim/src/nvim/lua')] = v:true
+
 if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   vmap     <Leader><CR>     <Plug>(coc-codeaction-selected)
   nmap     <Leader><CR>     <Plug>(coc-codeaction)
@@ -933,6 +1066,12 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
 
+    call lamp#register('lua-language-server', {
+    \   'command': [expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'), '-E', expand('~/Develop/Repos/lua-language-server/main.lua')],
+    \   'filetypes': ['lua'],
+    \   'root_uri': { -> lamp#findup(['.git']) },
+    \ })
+
   call coc#config('languageserver', {
   \   'sumneko_lua': {
   \     'command': expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
@@ -940,13 +1079,22 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   \     'filetypes': ['lua'],
   \     'settings': {
   \       'Lua': {
+  \         'runtime': {
+  \           'version': 'LuaJIT',
+  \         },
   \         'completion': {
   \           'callSnippet': 'Replace',
   \         },
   \         'diagnostics': {
-  \           'globals': ['vim']
-  \         }
-  \       }
+  \           'enable': v:true,
+  \           'globals': [
+  \             'vim', 'describe', 'it', 'before_each', 'after_each'
+  \           ],
+  \         },
+  \         'workspace': {
+  \           'library': s:lua_library,
+  \         },
+  \       },
   \     }
   \   }
   \ })
@@ -965,7 +1113,8 @@ endif
 
 if dein#tap('fern.vim')
   let g:fern#renderer = 'nerdfont'
-  let g:fern#disable_default_mappings = 1
+  let g:fern#disable_default_mappings = v:true
+  let g:fern#disable_auto_buffer_delete = 1
   let g:fern#drawer_width = 40
 
   function! s:fern_open(command, helper) abort
@@ -984,30 +1133,31 @@ if dein#tap('fern.vim')
   function! s:setup_fern() abort
     call glyph_palette#apply()
 
-    nnoremap <silent><buffer>H           :<C-u>call FernTerminal()<CR>
-    nnoremap <silent><buffer><Tab>       :<C-u>call FernSuitableMove()<CR>
-    nnoremap <silent><buffer><F5>        :<C-u>call vimrc#detect_cwd()<CR>
+    nnoremap <silent><nowait><buffer>H           :<C-u>call FernTerminal()<CR>
+    nnoremap <silent><nowait><buffer><Tab>       :<C-u>call FernSuitableMove()<CR>
+    nnoremap <silent><nowait><buffer><F5>        :<C-u>call vimrc#detect_cwd()<CR>
 
-    nmap <silent><buffer>h               <Plug>(fern-action-collapse-or-leave)
-    nmap <silent><buffer>l               <Plug>(fern-action-expand)
-    nmap <silent><buffer>K               <Plug>(fern-action-new-dir)
-    nmap <silent><buffer>N               <Plug>(fern-action-new-file)
-    nmap <silent><buffer>r               <Plug>(fern-action-rename)
-    nmap <silent><buffer>D               <Plug>(fern-action-remove)
-    nmap <silent><buffer>c               <Plug>(fern-action-clipboard-copy)
-    nmap <silent><buffer>m               <Plug>(fern-action-clipboard-move)
-    nmap <silent><buffer>p               <Plug>(fern-action-clipboard-paste)
-    nmap <silent><buffer><expr><CR>      fern#smart#leaf('<Plug>(fern-action-call-function:edit)', '<Plug>(fern-action-enter)')
-    nmap <silent><buffer>s               <Plug>(fern-action-call-function:split)
-    nmap <silent><buffer>v               <Plug>(fern-action-call-function:vsplit)
-    nmap <silent><buffer>@               <Plug>(fern-action-mark-toggle)j
-    nmap <silent><buffer>,               <Plug>(fern-action-hidden-toggle)
-    nmap <silent><buffer><C-l>           <Plug>(fern-action-reload)
-    nmap <silent><buffer>~               :<C-u>Fern ~<CR>
-    nmap <silent><buffer>\               :<C-u>Fern /<CR>
-    nmap <silent><buffer><Leader><CR>    :<C-u>new \| Fern .<CR>
+    nmap <silent><nowait><buffer>h               <Plug>(fern-action-collapse-or-leave)
+    nmap <silent><nowait><buffer>l               <Plug>(fern-action-expand)
+    nmap <silent><nowait><buffer>K               <Plug>(fern-action-new-dir)
+    nmap <silent><nowait><buffer>N               <Plug>(fern-action-new-file)
+    nmap <silent><nowait><buffer>r               <Plug>(fern-action-rename)
+    nmap <silent><nowait><buffer>D               <Plug>(fern-action-remove)
+    nmap <silent><nowait><buffer>c               <Plug>(fern-action-clipboard-copy)
+    nmap <silent><nowait><buffer>m               <Plug>(fern-action-clipboard-move)
+    nmap <silent><nowait><buffer>p               <Plug>(fern-action-clipboard-paste)
+    nmap <silent><nowait><buffer><expr><CR>      fern#smart#leaf('<Plug>(fern-action-call-function:edit)', '<Plug>(fern-action-enter)')
+    nmap <silent><nowait><buffer>s               <Plug>(fern-action-call-function:split)
+    nmap <silent><nowait><buffer>v               <Plug>(fern-action-call-function:vsplit)
+    nmap <silent><nowait><buffer>@               <Plug>(fern-action-mark:toggle)j
+    nmap <silent><nowait><buffer>,               <Plug>(fern-action-hidden-toggle)
+    nmap <silent><nowait><buffer><C-l>           <Plug>(fern-action-reload)
+    nmap <silent><nowait><buffer>~               :<C-u>Fern ~<CR>
+    nmap <silent><nowait><buffer>\               :<C-u>Fern /<CR>
+    nmap <silent><nowait><buffer><Leader><CR>    :<C-u>new \| Fern .<CR>
+    nmap <silent><nowait><buffer>x              <Plug>(fern-action-open:system)
 
-    nnoremap <silent><buffer><BS>        :<C-u>call candle#start({
+    nnoremap <silent><nowait><buffer><BS>        :<C-u>call candle#start({
     \   'mru_dir': {},
     \ }, {
     \   'action': {
@@ -1022,7 +1172,7 @@ if dein#tap('fern.vim')
   endfunction
 
   function! FernStart()
-    let path = expand('%:p:h')
+    let path = fnameescape(expand('%:p:h'))
     let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') ==# 'fern' })
     if len(winnrs) > 0
       let choise = choosewin#start(winnrs, { 'auto_choose': 1, 'blink_on_land': 0, 'noop': 1 })
@@ -1090,7 +1240,6 @@ if dein#tap('lightline.vim')
 
   let g:lightline.component_function = {}
   let g:lightline.component_function.git = 'Git'
-  let g:lightline.component_function.lamp = 'Lamp'
 
   function! Git()
     if dein#tap('vim-gitto')
@@ -1100,16 +1249,6 @@ if dein#tap('lightline.vim')
       endtry
     endif
     return 'no git'
-  endfunction
-
-  function! Lamp()
-    if dein#tap('vim-lamp')
-      try
-"        return len(lamp#server#registry#find_by_filetype(&filetype)) > 0 ? 'v' : ''
-      catch /.*/
-      endtry
-    endif
-    return ''
   endfunction
 endif
 
@@ -1166,7 +1305,6 @@ if dein#tap('denite.nvim')
   call denite#custom#option('_', 'filter_updatetime', 500)
   call denite#custom#option('_', 'highlight_matched_char', 'None')
   call denite#custom#option('_', 'highlight_matched_range', 'None')
-
 
   " edit action.
   function! s:denite_edit_action(context)

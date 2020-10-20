@@ -47,8 +47,9 @@ export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 . "$HOME/.nvm/nvm.sh" --no-use
 nvm use default > /dev/null
 
-# cargo
+# rust
 export PATH="$HOME/.cargo/bin:$PATH"
+export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 
 # brew.
 export PATH="$PATH:/usr/local/bin"
