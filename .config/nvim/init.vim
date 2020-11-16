@@ -18,6 +18,7 @@ let s:config = {
 \   'lexima': v:true,
 \   'complete': 'compe',
 \   'snippet': 'vsnip',
+\   'eft': 'repeatable',
 \ }
 
 let s:dein = {}
@@ -45,7 +46,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim', { 'merged': 0 })
   call dein#add('Shougo/denite.nvim', { 'merged': 0 })
   call dein#add('Shougo/deol.nvim', { 'merged': 0 })
-  call dein#add('haya14busa/is.vim', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
@@ -128,10 +128,6 @@ if dein#load_state(s:dein.dir.install)
   if s:config.lsp ==# 'nvim'
     call dein#add('nvim-lua/completion-nvim', { 'merged': 0 })
     call dein#add('neovim/nvim-lsp', { 'merged': 0 })
-  endif
-
-  if s:config.snippet ==# 'ultisnips'
-    call dein#add('SirVer/ultisnips', { 'meregd': 0 })
   endif
 
   if s:config.lexima
@@ -316,23 +312,57 @@ xnoremap L 20l
 xnoremap zk 5H
 xnoremap zj 5L
 
-nmap f <Plug>(eft-f-repeatable)
-xmap f <Plug>(eft-f-repeatable)
-omap f <Plug>(eft-f-repeatable)
-nmap F <Plug>(eft-F-repeatable)
-xmap F <Plug>(eft-F-repeatable)
-omap F <Plug>(eft-F-repeatable)
+nnoremap <expr> <C-f> <SID>scroll(+4)
+nnoremap <expr> <C-u> <SID>scroll(-4)
 
-nmap t <Plug>(eft-t-repeatable)
-xmap t <Plug>(eft-t-repeatable)
-omap t <Plug>(eft-t-repeatable)
-nmap T <Plug>(eft-T-repeatable)
-xmap T <Plug>(eft-T-repeatable)
-omap T <Plug>(eft-T-repeatable)
+function! s:scroll(count) abort
+  let l:ctx = {}
+  function! l:ctx.callback(count) abort
+    let l:wins = nvim_list_wins()
+    let l:wins = filter(l:wins, '!empty(nvim_win_get_config(v:val).relative)')
+    if !empty(l:wins)
+      call lamp#view#window#do(l:wins[0], { ->
+      \   execute(printf('normal! %s%s%s%s',
+      \     abs(a:count),
+      \     a:count >= 0 ? "\<C-e>" : "\<C-y>",
+      \     abs(a:count),
+      \     a:count >= 0 ? 'j' : 'k',
+      \   ))
+      \ })
+    endif
+  endfunction
+  call timer_start(100, { -> l:ctx.callback(a:count) })
+  return "\<Ignore>"
+endfunction
+
+if s:config.eft !=# 'repeatable'
+  nmap ; <Plug>(eft-repeat)
+  xmap ; <Plug>(eft-repeat)
+  nmap f <Plug>(eft-f)
+  xmap f <Plug>(eft-f)
+  omap f <Plug>(eft-f)
+  nmap F <Plug>(eft-F)
+  xmap F <Plug>(eft-F)
+  omap F <Plug>(eft-F)
+else
+  nmap f <Plug>(eft-f-repeatable)
+  xmap f <Plug>(eft-f-repeatable)
+  omap f <Plug>(eft-f-repeatable)
+  nmap F <Plug>(eft-F-repeatable)
+  xmap F <Plug>(eft-F-repeatable)
+  omap F <Plug>(eft-F-repeatable)
+
+  nmap t <Plug>(eft-t-repeatable)
+  xmap t <Plug>(eft-t-repeatable)
+  omap t <Plug>(eft-t-repeatable)
+  nmap T <Plug>(eft-T-repeatable)
+  xmap T <Plug>(eft-T-repeatable)
+  omap T <Plug>(eft-T-repeatable)
+endif
 
 let g:eft_index_function = get(g:, 'eft_index_function', {
 \   'head': function('eft#index#head'),
-\   'camel': function('eft#index#camel'),
+\   'tail': function('eft#index#tail'),
 \   'space': function('eft#index#space'),
 \   'symbol': function('eft#index#symbol'),
 \ })
@@ -386,11 +416,6 @@ endif
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
   nnoremap <Leader><Leader>r :<C-u>QuickRun<CR>
-endif
-
-if dein#tap('is.vim')
-  map n <Plug>(is-n)
-  map N <Plug>(is-N)
 endif
 
 if dein#tap('vim-effort-gf')
@@ -638,6 +663,7 @@ endif
 if s:config.complete ==# 'compe'
   let g:compe_enabled = v:true
   let g:compe_auto_preselect = v:true
+  let g:compe_prefer_exact_item = v:false
 
   inoremap <silent><C-Space> <C-r>=compe#complete()<CR>
   inoremap <silent><expr><C-e> compe#close('<C-e>')
@@ -663,6 +689,7 @@ if s:config.complete ==# 'completion-nvim'
   autocmd vimrc BufEnter * lua require'completion'.on_attach()
   let g:completion_enable_snippet = 'vim-vsnip'
   let g:completion_confirm_key = "\<CR>"
+  let g:completion_matching_strategy_list = ['fuzzy']
 endif
 
 if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
@@ -670,12 +697,19 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
   let g:lsp_fold_enabled = v:true
   let g:lsp_diagnostics_float_cursor = 1
 
+  autocmd vimrc User lsp_setup call s:setup_vim_lsp()
   function s:setup_vim_lsp() abort
     call lsp#register_server({
     \   'name': 'intelephense',
     \   'cmd': { -> ['intelephense', '--stdio'] },
     \   'allowlist': ['php'],
     \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git', 'composer.json'])) },
+    \ })
+    call lsp#register_server({
+    \   'name': 'clangd',
+    \   'cmd': { -> ['clangd', '--background-index', '--clang-tidy'] },
+    \   'allowlist': ['cpp', 'c'],
+    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['compile_commands.json', '.git'])) },
     \ })
     call lsp#register_server({
     \   'name': 'lua-language-server',
@@ -704,8 +738,8 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   }
     \ })   
     call lsp#register_server({
-    \   'name': 'html-languageserver',
-    \   'cmd': { -> ['html-languageserver', '--stdio'] },
+    \   'name': 'vscode-html-language-server',
+    \   'cmd': { -> ['vscode-html-language-server', '--stdio'] },
     \   'allowlist': ['html'],
     \   'initialization_options': { -> {
     \     'embeddedLanguages': {
@@ -716,7 +750,6 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   } }
     \ })
   endfunction
-  autocmd User lsp_setup call s:setup_vim_lsp()
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
   function! s:lsp_buffer_enabled() abort
@@ -846,10 +879,37 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#builtin#gopls()
     call lamp#builtin#vim_language_server()
     call lamp#builtin#yaml_language_server()
-    call lamp#builtin#html_languageserver()
-    call lamp#builtin#css_languageserver()
-    call lamp#builtin#json_languageserver()
     call lamp#builtin#intelephense()
+
+    call lamp#register('html-language-server', {
+    \   'command': ['vscode-html-language-server', '--stdio'],
+    \   'filetypes': ['html'],
+    \   'initialization_options': { -> {
+    \     'embeddedLanguages': {
+    \       'css': v:true,
+    \       'html': v:true,
+    \       'javascript': v:true,
+    \     }
+    \   } }
+    \ })
+
+    call lamp#register('vscode-css-language-server', {
+    \   'command': ['vscode-css-language-server', '--stdio'],
+    \   'filetypes': ['css', 'scss'],
+    \ })
+
+    call lamp#feature#workspace#configure({
+    \   'json': {
+    \     'schemas': json_decode(join(readfile(lamp#config('global.root') . '/misc/json/catalog.json'), "\n")).schemas,
+    \     'format': {
+    \       'enable': v:true
+    \     }
+    \   }
+    \ })
+    call lamp#register('vscode-json-language-server', {
+    \   'command': ['vscode-json-language-server', '--stdio'],
+    \   'filetypes': ['json'],
+    \ })
 
     call lamp#builtin#typescript_language_server({
     \   'filetypes': ['typescript.dts'],
@@ -1047,8 +1107,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
 endif
 
 let s:lua_library = {}
-let s:lua_library[expand('$VIMRUNTIsE/lua')] = v:true
-let s:lua_library[expand('~/build/neovim/src/nvim/lua')] = v:true
+let s:lua_library[expand('$VIMRUNTIME/lua')] = v:true
 
 if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   vmap     <Leader><CR>     <Plug>(coc-codeaction-selected)
@@ -1065,13 +1124,9 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
 
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-
-    call lamp#register('lua-language-server', {
-    \   'command': [expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'), '-E', expand('~/Develop/Repos/lua-language-server/main.lua')],
-    \   'filetypes': ['lua'],
-    \   'root_uri': { -> lamp#findup(['.git']) },
-    \ })
-
+  call coc#config('suggest', {
+  \   'enablePreselect': v:true
+  \ })
   call coc#config('languageserver', {
   \   'sumneko_lua': {
   \     'command': expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
@@ -1341,6 +1396,26 @@ if dein#tap('denite.nvim')
     endfor
   endfunction
   call denite#custom#action('openable,file,buffer,gitto/status', 'vsplit', function('s:denite_vsplit_action'), { 'is_quit': v:true, 'is_redraw': v:false })
+  
+  if dein#tap('vim-qfreplace')
+    function! s:denite_qfreplace_action(context)
+      let qflist = []
+      for target in a:context['targets']
+        if !has_key(target, 'action__path') | continue | endif
+        if !has_key(target, 'action__line') | continue | endif
+        if !has_key(target, 'action__text') | continue | endif
+
+        call add(qflist, {
+              \ 'filename': target['action__path'],
+              \ 'lnum': target['action__line'],
+              \ 'text': target['action__text']
+              \ })
+      endfor
+      call setqflist(qflist)
+      call qfreplace#start('')
+    endfunction
+    call denite#custom#action('file', 'qfreplace', function('s:denite_qfreplace_action'))
+  endif
 
   " delete action
   if dein#tap('vim-denite-gitto')
@@ -1423,79 +1498,9 @@ endfunction
 if s:config.lsp ==# 'nvim'
   set omnifunc=v:lua.vim.lsp.omnifunc
   lua require'nvim_lsp'.gopls.setup{
-  \   capabilities = {
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true
-  \         }
-  \       }
-  \     }
-  \   },
   \   init_options = {
   \     usePlaceholders = true,
   \   }
-  \ }
-  lua require'nvim_lsp'.clangd.setup{
-  \   capabilities = {
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true;
-  \         }
-  \       }
-  \     }
-  \   }
-  \ }
-  lua require'nvim_lsp'.vimls.setup{
-  \   capabilities = {
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true
-  \         }
-  \       }
-  \     }
-  \   },
-  \ }
-  lua require'nvim_lsp'.tsserver.setup{
-  \   capabilities = {
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true
-  \         }
-  \       }
-  \     }
-  \   },
-  \ }
-  lua require'nvim_lsp'.sumneko_lua.setup{
-  \   capabilities = {
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true
-  \         }
-  \       }
-  \     }
-  \   },
-  \ }
-  lua require'nvim_lsp'.rust_analyzer.setup{
-  \   capabilities = {
-  \     workspace = {
-  \       applyEdit = true;
-  \       workspaceEdit = {
-  \         documentChanges = true;
-  \       }
-  \     };
-  \     textDocument = {
-  \       completion = {
-  \         completionItem = {
-  \           snippetSupport = true
-  \         }
-  \       }
-  \     }
-  \   },
   \ }
   nnoremap <silent> gf<CR>       <cmd>lua vim.lsp.buf.definition()<CR>
   nnoremap <silent> <Leader>i    <cmd>lua vim.lsp.buf.hover()<CR>

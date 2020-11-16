@@ -61,4 +61,5 @@ fi
 
 # alias
 alias v=nvim
+alias rg='rg -i'
 
