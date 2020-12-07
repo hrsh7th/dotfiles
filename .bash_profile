@@ -63,3 +63,5 @@ fi
 alias v=nvim
 alias rg='rg -i'
 
+# opt
+set -o vi
