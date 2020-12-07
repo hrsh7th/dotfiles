@@ -18,7 +18,6 @@ let s:config = {
 \   'lexima': v:true,
 \   'complete': 'compe',
 \   'snippet': 'vsnip',
-\   'eft': 'repeatable',
 \ }
 
 let s:dein = {}
@@ -59,6 +58,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-eft', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
   call dein#add('itchyny/vim-parenmatch', { 'merged': 0 })
   call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
@@ -77,6 +77,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim', { 'merged': 0 })
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
+  call dein#add('nvim-lua/plenary.nvim', { 'merged': 0 })
+
+  if has('nvim')
+    call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
+  endif
 
   call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
   call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
@@ -85,8 +90,9 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
   call dein#add('rakr/vim-one', { 'merged': 0 })
   call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
+  call dein#add('sainnhe/edge', { 'merged': 0 })
 
-  let g:colorscheme = { 'name': 'palenight', 'lightline': 'palenight' }
+  let g:colorscheme = { 'name': 'edge', 'lightline': 'edge' }
 
   if s:config.lsp ==# 'coc'
     let g:coc_force_debug = 1
@@ -135,7 +141,7 @@ if dein#load_state(s:dein.dir.install)
   endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
-  call dein#local('~/Develop/LocalVimPlugins')
+  call dein#local('~/Develop/VimPlugins')
 
   call dein#end()
   call dein#save_state()
@@ -194,7 +200,7 @@ set hidden
 set nobackup
 set noswapfile
 set lazyredraw
-set shell=bash
+set shell=zsh
 set scrolloff=3
 set sidescrolloff=3
 set complete=w
@@ -252,6 +258,7 @@ set whichwrap=b,s,h,l,<,>,[,]
 set completeopt=menu,menuone,noselect
 set nostartofline
 set signcolumn=yes
+set formatoptions=croq
 
 let g:vim_indent_cont = 0
 
@@ -335,37 +342,21 @@ function! s:scroll(count) abort
   return "\<Ignore>"
 endfunction
 
-if s:config.eft !=# 'repeatable'
-  nmap ; <Plug>(eft-repeat)
-  xmap ; <Plug>(eft-repeat)
+if dein#tap('vim-eft')
+  let g:eft_index_function = get(g:, 'eft_index_function', {
+  \   'head': function('eft#index#head'),
+  \   'tail': function('eft#index#tail'),
+  \   'space': function('eft#index#space'),
+  \   'symbol': function('eft#index#symbol'),
+  \ })
+
   nmap f <Plug>(eft-f)
   xmap f <Plug>(eft-f)
   omap f <Plug>(eft-f)
   nmap F <Plug>(eft-F)
   xmap F <Plug>(eft-F)
   omap F <Plug>(eft-F)
-else
-  nmap f <Plug>(eft-f-repeatable)
-  xmap f <Plug>(eft-f-repeatable)
-  omap f <Plug>(eft-f-repeatable)
-  nmap F <Plug>(eft-F-repeatable)
-  xmap F <Plug>(eft-F-repeatable)
-  omap F <Plug>(eft-F-repeatable)
-
-  nmap t <Plug>(eft-t-repeatable)
-  xmap t <Plug>(eft-t-repeatable)
-  omap t <Plug>(eft-t-repeatable)
-  nmap T <Plug>(eft-T-repeatable)
-  xmap T <Plug>(eft-T-repeatable)
-  omap T <Plug>(eft-T-repeatable)
 endif
-
-let g:eft_index_function = get(g:, 'eft_index_function', {
-\   'head': function('eft#index#head'),
-\   'tail': function('eft#index#tail'),
-\   'space': function('eft#index#space'),
-\   'symbol': function('eft#index#symbol'),
-\ })
 
 nnoremap <Leader>h <C-w>h
 nnoremap <Leader>j <C-w>j
@@ -407,6 +398,20 @@ xnoremap riw "_c<C-r>=@0<CR><Esc>
 nnoremap gj J
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
+
+if dein#tap('nvim-treesitter')
+lua <<EOF
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = "maintained",
+  highlight = {
+    enable = false,
+  },
+  indent = {
+    enable = false,
+  }
+}
+EOF
+endif
 
 if dein#tap('vim-asterisk')
   let g:asterisk#keeppos = 1
@@ -660,28 +665,29 @@ if dein#tap('vim-vsnip') && s:config.snippet ==# 'vsnip'
   xmap S <Plug>(vsnip-cut-text)
 endif
 
-if s:config.complete ==# 'compe'
-  let g:compe_enabled = v:true
-  let g:compe_auto_preselect = v:true
-  let g:compe_prefer_exact_item = v:false
+if dein#tap('nvim-compe')
+  let g:compe = {}
+  let g:compe.enabled = s:config.complete ==# 'compe'
+  let g:compe.debug = v:false
+  let g:compe.auto_preselect = v:true
+  let g:compe.allow_prefix_unmatch = v:true
 
-  inoremap <silent><C-Space> <C-r>=compe#complete()<CR>
-  inoremap <silent><expr><C-e> compe#close('<C-e>')
+  let g:compe.source = {}
+  let g:compe.source.path = v:true
+  let g:compe.source.vsnip = v:true
+  let g:compe.source.buffer = v:true
+  let g:compe.source.lamp = s:config.lsp ==# 'lamp'
+  let g:compe.source.nvim_lsp = s:config.lsp ==# 'nvim'
+  let g:compe.source.nvim_lua = { 'filetypes': ['lua', 'lua.pad'] }
+
   if s:config.lexima
-    inoremap <silent><expr><CR> compe#confirm(lexima#expand('<LT>CR>', 'i'))
+    inoremap <silent><expr><C-Space> compe#complete()
+    inoremap <silent><expr><C-e>     compe#close('<C-e>')
+    inoremap <silent><expr><CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
   else
-    inoremap <silent><expr><CR> compe#confirm('<CR>')
-  endif
-
-  lua require'compe':register_lua_source('buffer', require'compe_buffer')
-  call compe#source#vim_bridge#register('path', compe_path#source#create())
-  call compe#source#vim_bridge#register('vsnip', compe_vsnip#source#create())
-
-  if s:config.lsp ==# 'lamp'
-    call compe_lamp#source#attach()
-  endif
-  if s:config.lsp ==# 'nvim'
-    lua require'compe_nvim_lsp'.attach()
+    inoremap <silent><expr><C-Space> compe#complete()
+    inoremap <silent><expr><C-e>     compe#close('<C-e>')
+    inoremap <silent><expr><CR>      compe#confirm('<CR>')
   endif
 endif
 
@@ -1006,7 +1012,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \     'javascript.jsx',
     \     'javascriptreact',
     \     'vim',
-    \     'vimspec'
+    \     'vimspec',
     \   ],
     \   'initialization_options': { -> {
     \     'linters': {
@@ -1042,7 +1048,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \             'message': 3
     \           }
     \         ]
-    \       }
+    \       },
     \     },
     \     'filetypes': {
     \       'javascript': 'eslint',
@@ -1068,7 +1074,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'javascriptreact': 'eslint',
     \       'typescript': 'eslint',
     \       'typescript.tsx': 'eslint',
-    \       'typescriptreact': 'eslint'
+    \       'typescriptreact': 'eslint',
     \     }
     \   } }
     \ })
@@ -1124,9 +1130,6 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
 
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-  call coc#config('suggest', {
-  \   'enablePreselect': v:true
-  \ })
   call coc#config('languageserver', {
   \   'sumneko_lua': {
   \     'command': expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
@@ -1171,6 +1174,7 @@ if dein#tap('fern.vim')
   let g:fern#disable_default_mappings = v:true
   let g:fern#disable_auto_buffer_delete = 1
   let g:fern#drawer_width = 40
+  let g:fern#disable_viewer_spinner = 1
 
   function! s:fern_open(command, helper) abort
     let l:node = a:helper.sync.get_cursor_node()
@@ -1181,8 +1185,6 @@ if dein#tap('fern.vim')
   call fern#mapping#call_function#add('edit', function('s:fern_open', ['edit']))
   call fern#mapping#call_function#add('split', function('s:fern_open', ['split']))
   call fern#mapping#call_function#add('vsplit', function('s:fern_open', ['vsplit']))
-
-  nnoremap <F2> :<C-u>call FernStart()<CR>
 
   autocmd! vimrc FileType fern call s:setup_fern()
   function! s:setup_fern() abort
@@ -1226,7 +1228,12 @@ if dein#tap('fern.vim')
     \ })<CR>
   endfunction
 
+  nnoremap <F2> :<C-u>call FernStart()<CR>
   function! FernStart()
+    if &filetype ==# 'fern'
+      return
+    endif
+
     let path = fnameescape(expand('%:p:h'))
     let winnrs = filter(range(1, tabpagewinnr(tabpagenr(), '$')), { i, wnr -> getbufvar(winbufnr(wnr), '&filetype') ==# 'fern' })
     if len(winnrs) > 0
@@ -1497,11 +1504,15 @@ endfunction
 
 if s:config.lsp ==# 'nvim'
   set omnifunc=v:lua.vim.lsp.omnifunc
-  lua require'nvim_lsp'.gopls.setup{
-  \   init_options = {
-  \     usePlaceholders = true,
-  \   }
-  \ }
+lua <<EOF
+  require'lspconfig'.gopls.setup{
+    init_options = {
+      usePlaceholders = true,
+    }
+  }
+  require'lspconfig'.vimls.setup{}
+  require'lspconfig'.tsserver.setup{}
+EOF
   nnoremap <silent> gf<CR>       <cmd>lua vim.lsp.buf.definition()<CR>
   nnoremap <silent> <Leader>i    <cmd>lua vim.lsp.buf.hover()<CR>
   nnoremap <silent> <Leader>g    <cmd>lua vim.lsp.buf.references()<CR>

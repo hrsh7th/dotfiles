@@ -171,6 +171,25 @@ function! vimrc#open(cmd, location, ...)
 endfunction
 
 "
+" vimrc#get_identifiers
+"
+function! vimrc#get_identifiers(bufnr, pattern) abort
+  let l:identifiers = {}
+
+  let l:text = join(getbufline(a:bufnr, '^', '$'), "\n")
+  let l:pos = 0
+  while 1
+    let l:match = matchstrpos(l:text, a:pattern, l:pos)
+    if l:match[0] ==# ''
+      break
+    endif
+    let l:identifiers[l:match[0]] = v:true
+    let l:pos = l:match[2]
+  endwhile
+  return l:identifiers
+endfunction
+
+"
 " s:open
 "
 function! s:open(cmd, location)

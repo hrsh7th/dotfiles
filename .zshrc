@@ -1,5 +1,5 @@
-# script dir.
-SCRIPT_DIR=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
+[[ ! -f ~/powerlevel10k/powerlevel10k.zsh-theme ]] || source ~/powerlevel10k/powerlevel10k.zsh-theme
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # common.
 export XDG_CONFIG_HOME="$HOME/.config"
@@ -26,22 +26,17 @@ export PATH="/usr/local/opt/python@3.8/bin:$PATH"
 
 # llvm
 export PATH="/usr/local/opt/llvm/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/llvm/lib"
+export CPPFLAGS="-I/usr/local/opt/llvm/include"
 
 # go
 export GO111MODULE=on
 export GOPATH="$HOME/.go"
 export PATH="$GOPATH/bin:$PATH"
 
-# llvm
-export LDFLAGS="-L/usr/local/opt/llvm/lib"
-export CPPFLAGS="-I/usr/local/opt/llvm/include"
-
 # nvim.
 export NVIM_TUI_ENABLE_TRUE_COLOR=1
 export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
-export NVIM_PYTHON_LOG_FILE="/tmp/.log"
-export NVIM_PYTHON_LOG_LEVEL=DEBUG
-export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 
 # nvm.
 . "$HOME/.nvm/nvm.sh" --no-use
@@ -54,12 +49,9 @@ export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 # brew.
 export PATH="$PATH:/usr/local/bin"
 
-# local settings.
-if [ -f $SCRIPT_DIR/.bash_profile.local ]; then
-  source $SCRIPT_DIR/.bash_profile.local
-fi
-
 # alias
 alias v=nvim
 alias rg='rg -i'
+
+bindkey "^?" backward-delete-char
 
