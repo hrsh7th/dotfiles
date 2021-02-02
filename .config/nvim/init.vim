@@ -45,6 +45,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/dein.vim', { 'merged': 0 })
   call dein#add('Shougo/denite.nvim', { 'merged': 0 })
   call dein#add('Shougo/deol.nvim', { 'merged': 0 })
+  call dein#add('andymass/vim-matchup', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
@@ -52,15 +53,14 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-candle', { 'merged': 0 })
   call dein#add('hrsh7th/vim-denite-gitto', { 'merged': 0 })
   call dein#add('hrsh7th/vim-effort-gf', { 'merged': 0 })
+  call dein#add('hrsh7th/vim-eft', { 'merged': 0 })
   call dein#add('hrsh7th/vim-gitto', { 'merged': 0 })
   call dein#add('hrsh7th/vim-lamp', { 'merged': 0 })
   call dein#add('hrsh7th/vim-locon', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
-  call dein#add('hrsh7th/vim-eft', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
-  call dein#add('itchyny/vim-parenmatch', { 'merged': 0 })
   call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern.vim', { 'merged': 0 })
   call dein#add('lambdalisue/gina.vim', { 'merged': 0 })
@@ -69,6 +69,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/suda.vim', { 'merged': 0 })
   call dein#add('lambdalisue/vim-findent', { 'merged': 0 })
   call dein#add('machakann/vim-sandwich', { 'merged': 0 })
+  call dein#add('machakann/vim-swap', { 'merged': 0 })
   call dein#add('sheerun/vim-polyglot', { 'merged': 0 })
   call dein#add('t9md/vim-choosewin', { 'merged': 0 })
   call dein#add('thinca/vim-qfreplace', { 'merged': 0 })
@@ -77,12 +78,12 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tweekmonster/helpful.vim', { 'merged': 0 })
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
-  call dein#add('nvim-lua/plenary.nvim', { 'merged': 0 })
 
   if has('nvim')
     call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
   endif
 
+  " colorscheme
   call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
   call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
   call dein#add('drewtempelmeyer/palenight.vim', { 'merged': 0 })
@@ -91,6 +92,11 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('rakr/vim-one', { 'merged': 0 })
   call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
   call dein#add('sainnhe/edge', { 'merged': 0 })
+
+  " textobj/operator
+  call dein#add('kana/vim-textobj-user', { 'merged': 0 })
+  call dein#add('kana/vim-operator-user', { 'merged': 0 })
+  call dein#add('kana/vim-operator-replace', { 'merged': 0 })
 
   let g:colorscheme = { 'name': 'edge', 'lightline': 'edge' }
 
@@ -392,9 +398,6 @@ nnoremap <Leader>*  *:<C-u>%s/<C-r>///g<C-f><Left><Left>
 xnoremap <Leader>*  y:<C-u>%s/<C-r>"//g<C-f><Left><Left>
 xnoremap <expr><CR> printf(':s/%s//g<C-f><Left><Left>', expand('<cword>'))
 
-nnoremap riw "_ciw<C-r>=@0<CR><Esc>
-xnoremap riw "_c<C-r>=@0<CR><Esc>
-
 nnoremap gj J
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
@@ -411,6 +414,20 @@ require'nvim-treesitter.configs'.setup {
   }
 }
 EOF
+endif
+
+if dein#tap('vim-operator-user')
+  if dein#tap('vim-operator-replace')
+    nmap r <Plug>(operator-replace)
+    xmap r <Plug>(operator-replace)
+  endif
+endif
+
+if dein#tap('vim-swap')
+  omap i, <Plug>(swap-textobject-i)
+  xmap i, <Plug>(swap-textobject-i)
+  omap a, <Plug>(swap-textobject-a)
+  xmap a, <Plug>(swap-textobject-a)
 endif
 
 if dein#tap('vim-asterisk')
@@ -668,9 +685,8 @@ endif
 if dein#tap('nvim-compe')
   let g:compe = {}
   let g:compe.enabled = s:config.complete ==# 'compe'
-  let g:compe.debug = v:false
-  let g:compe.auto_preselect = v:true
-  let g:compe.allow_prefix_unmatch = v:true
+  let g:compe.debug = v:true
+  let g:compe.preselect = 'always'
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
@@ -1503,7 +1519,6 @@ function! s:on_option_set_diff() abort
 endfunction
 
 if s:config.lsp ==# 'nvim'
-  set omnifunc=v:lua.vim.lsp.omnifunc
 lua <<EOF
   require'lspconfig'.gopls.setup{
     init_options = {

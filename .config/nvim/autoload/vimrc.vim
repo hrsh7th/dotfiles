@@ -13,6 +13,7 @@ function! vimrc#ignore_runtime() abort
   let g:loaded_logipat           = 1
   let g:loaded_logiPat           = 1
   let g:loaded_matchparen        = 1
+  let g:loaded_matchit           = 1
   let g:loaded_netrw             = 1
   let g:loaded_netrwFileHandlers = 1
   let g:loaded_netrwPlugin       = 1
@@ -106,8 +107,9 @@ endfunction
 "
 " vimrc#get_cwd
 "
-function! vimrc#get_cwd()
-  if strlen(get(t:, 'cwd', '')) > 0
+function! vimrc#get_cwd(...)
+  let l:t = get(a:000, 0, t:)
+  if strlen(get(l:t, 'cwd', '')) > 0
     return t:cwd
   endif
 
@@ -194,11 +196,12 @@ endfunction
 "
 function! s:open(cmd, location)
   try
-    execute printf('%s %s', a:cmd, fnameescape(a:location['filename']))
+    execute printf('%s %s', a:cmd, a:location.filename)
   catch /.*/
+    echomsg string({ 'exception': v:exception, 'throwpoint': v:throwpoint })
   endtry
-  if get(a:location, 'lnum', -1) != -1
-    if get(a:location, 'col', -1) != -1
+  if has_key(a:location, 'lnum')
+    if has_key(a:location, 'col')
       call cursor([a:location.lnum, a:location.col])
     else
       call cursor([a:location.lnum, 1])

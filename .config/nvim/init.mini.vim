@@ -28,10 +28,12 @@ let g:mapleader = ' '
 set cmdheight=2
 set background=dark
 set laststatus=2
+set autoread
 set ignorecase
+set noautoread
 set smartcase
 set history=50
-"set noexpandtab
+set noexpandtab
 set autoindent
 set display=lastline
 set directory-=.

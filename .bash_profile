@@ -27,6 +27,9 @@ export PATH="/usr/local/opt/python@3.8/bin:$PATH"
 # llvm
 export PATH="/usr/local/opt/llvm/bin:$PATH"
 
+# openjdk
+export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
+
 # go
 export GO111MODULE=on
 export GOPATH="$HOME/.go"
@@ -48,7 +51,6 @@ export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 nvm use default > /dev/null
 
 # rust
-export PATH="$HOME/.cargo/bin:$PATH"
 export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
 
 # brew.
@@ -63,3 +65,4 @@ fi
 alias v=nvim
 alias rg='rg -i'
 
+source "$HOME/.cargo/env"
