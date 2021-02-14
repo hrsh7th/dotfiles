@@ -79,10 +79,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
 
-  if has('nvim')
-    call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
-  endif
-
   " colorscheme
   call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
   call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
@@ -125,8 +121,6 @@ if dein#load_state(s:dein.dir.install)
   if s:config.lsp ==# 'lsp'
     call dein#add('mattn/vim-lsp-settings', { 'merged': 0 })
     call dein#add('prabirshrestha/vim-lsp', { 'merged': 0 })
-    call dein#add('prabirshrestha/asyncomplete-lsp.vim', { 'merged': 0 })
-    call dein#add('prabirshrestha/asyncomplete.vim', { 'merged': 0 })
   endif
 
   if s:config.lsp ==# 'lcn'
@@ -144,6 +138,11 @@ if dein#load_state(s:dein.dir.install)
 
   if s:config.lexima
     call dein#add('cohama/lexima.vim', { 'merged': 0 })
+  endif
+
+  if has('nvim')
+    call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
+    call dein#add('onsails/lspkind-nvim', { 'merged': 0 })
   endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
@@ -206,7 +205,6 @@ set hidden
 set nobackup
 set noswapfile
 set lazyredraw
-set shell=zsh
 set scrolloff=3
 set sidescrolloff=3
 set complete=w
@@ -216,7 +214,7 @@ set undodir=~/.vimundo
 set undofile
 set isfname-==
 set isfname+=\\
-set diffopt=filler,iwhite,algorithm:histogram,indent-heuristic
+set diffopt=filler,algorithm:histogram,indent-heuristic
 
 set mouse=n
 set termguicolors
@@ -286,12 +284,22 @@ function! s:command_profile() abort
   profile file *
 endfunction
 
+command! DeleteFile call s:command_delete_file()
+function! s:command_delete_file() abort
+  let l:bufname = expand('%:p')
+  if filereadable(l:bufname)
+    call delete(l:bufname)
+    e!
+  endif
+endfunction
+
 let mapleader="\<Space>"
 nnoremap q :<C-u>q<CR>
 nnoremap Q :<C-u>qa!<CR>
 nnoremap <Leader>t :<C-u>tabclose<CR>
 nnoremap <Leader>w :<C-u>w<CR>
 nnoremap * *N
+nnoremap <expr> <Leader>: input('key: ')
 nmap ; :
 vmap ; :
 xmap ; :
@@ -324,29 +332,6 @@ xnoremap K 10k
 xnoremap L 20l
 xnoremap zk 5H
 xnoremap zj 5L
-
-nnoremap <expr> <C-f> <SID>scroll(+4)
-nnoremap <expr> <C-u> <SID>scroll(-4)
-
-function! s:scroll(count) abort
-  let l:ctx = {}
-  function! l:ctx.callback(count) abort
-    let l:wins = nvim_list_wins()
-    let l:wins = filter(l:wins, '!empty(nvim_win_get_config(v:val).relative)')
-    if !empty(l:wins)
-      call lamp#view#window#do(l:wins[0], { ->
-      \   execute(printf('normal! %s%s%s%s',
-      \     abs(a:count),
-      \     a:count >= 0 ? "\<C-e>" : "\<C-y>",
-      \     abs(a:count),
-      \     a:count >= 0 ? 'j' : 'k',
-      \   ))
-      \ })
-    endif
-  endfunction
-  call timer_start(100, { -> l:ctx.callback(a:count) })
-  return "\<Ignore>"
-endfunction
 
 if dein#tap('vim-eft')
   let g:eft_index_function = get(g:, 'eft_index_function', {
@@ -690,20 +675,33 @@ if dein#tap('nvim-compe')
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
-  let g:compe.source.vsnip = v:true
+  let g:compe.source.calc = v:true
+  let g:compe.source.tags = v:false
   let g:compe.source.buffer = v:true
+  let g:compe.source.spell = v:false
+
+  let g:compe.source.nvim_lua = v:true
+  let g:compe.source.nvim_lsp = v:true
+
+  let g:compe.source.vim_lsp = s:config.lsp ==# 'lsp'
+  let g:compe.source.vim_lsc = s:config.lsp ==# 'lsc'
   let g:compe.source.lamp = s:config.lsp ==# 'lamp'
-  let g:compe.source.nvim_lsp = s:config.lsp ==# 'nvim'
-  let g:compe.source.nvim_lua = { 'filetypes': ['lua', 'lua.pad'] }
+  let g:compe.source.vsnip = v:true
+  let g:compe.source.ultisnips = s:config.snippet ==# 'ultisnips'
+  let g:compe.source.treesitter = v:false
 
   if s:config.lexima
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
     inoremap <silent><expr><CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
+    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4 })
+    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4 })
   else
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
     inoremap <silent><expr><CR>      compe#confirm('<CR>')
+    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4 })
+    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4 })
   endif
 endif
 
@@ -771,6 +769,23 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \     }
     \   } }
     \ })
+    call lsp#register_server({
+    \   'name': 'vim-language-server',
+    \   'cmd': { -> ['vim-language-server', '--stdio'] },
+    \   'allowlist': ['vim'],
+    \   'initialization_options': {
+    \    'iskeyword': &iskeyword,
+    \    'vimruntime': $VIMRUNTIME,
+    \    'runtimepath': &runtimepath,
+    \    'diagnostic': {
+    \      'enable': v:true,
+    \    },
+    \    'suggest': {
+    \      'fromVimruntime': v:true,
+    \      'fromRuntimepath': v:true,
+    \    }
+    \  }
+    \ })
   endfunction
 
   autocmd! vimrc User lsp_buffer_enabled call s:lsp_buffer_enabled()
@@ -791,6 +806,9 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
 
     nnoremap <buffer> <Leader>f    :<C-u>LspDocumentFormat<CR>
     vnoremap <buffer> <Leader>f    :LspDocumentFormatRange<CR>
+
+    inoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    inoremap <buffer> <expr><c-d> lsp#scroll(-4)
     autocmd! vimrc BufWritePre *.go  call execute('LspDocumentFormatSync') | call execute('LspCodeActionSync source.organizeImports')
   endfunction
 endif
@@ -941,15 +959,26 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   }
     \ })
 
+    " call lamp#register('deno-lsp', {
+    " \   'command': [expand('~/Develop/Repos/deno/target/debug/deno'), 'lsp'],
+    " \   'filetypes': ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
+    " \   'root_uri': { -> lamp#findup(['tsconfig.json', '.git']) },
+    " \   'initialization_options': { -> {
+    " \     'enable': v:true,
+    " \     'code_lens': {
+    " \       'implementations': v:true,
+    " \       'references': v:true,
+    " \       'references_all_functions': v:true,
+    " \     },
+    " \     'lint': v:true,
+    " \     'unstable': v:true,
+    " \   } }
+    " \ })
+
     call lamp#register('clangd', {
     \   'command': ['clangd', '--background-index', '--clang-tidy'],
     \   'filetypes': ['cpp', 'c'],
     \   'root_uri': { -> lamp#findup(['compile_commands.json', '.git']) },
-    \   'capabilitis': {
-    \     'completionProvider': {
-    \       'triggerCharacters': ['.', ',', ':']
-    \     }
-    \   }
     \ })
 
     call lamp#register('svelte-language-server', {
@@ -1145,33 +1174,6 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   nnoremap <Leader><Leader> :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
 
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
-  call coc#config('languageserver', {
-  \   'sumneko_lua': {
-  \     'command': expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
-  \     'args': ['-E', expand('~/Develop/Repos/lua-language-server/main.lua')],
-  \     'filetypes': ['lua'],
-  \     'settings': {
-  \       'Lua': {
-  \         'runtime': {
-  \           'version': 'LuaJIT',
-  \         },
-  \         'completion': {
-  \           'callSnippet': 'Replace',
-  \         },
-  \         'diagnostics': {
-  \           'enable': v:true,
-  \           'globals': [
-  \             'vim', 'describe', 'it', 'before_each', 'after_each'
-  \           ],
-  \         },
-  \         'workspace': {
-  \           'library': s:lua_library,
-  \         },
-  \       },
-  \     }
-  \   }
-  \ })
 endif
 
 if dein#tap('deol.nvim')
@@ -1181,7 +1183,7 @@ if dein#tap('deol.nvim')
   autocmd! vimrc FileType deol call s:setup_deol()
   function! s:setup_deol()
     setlocal nobuflisted
-    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s', vimrc#get_buffer_path()))<CR>
+    nnoremap <buffer><F10> :<C-u>tabnew \| call deol#start(printf('-cwd=%s -no-dir-changed', vimrc#get_buffer_path()))<CR>
   endfunction
 endif
 
@@ -1280,16 +1282,15 @@ if dein#tap('fern.vim')
     if !exists('t:deol') || bufwinnr(get(t:deol, 'bufnr', -1)) == -1
       topleft 12split
       setlocal winfixheight
-      call deol#start(printf('-cwd=%s', l:cwd))
+      call deol#start(printf('-cwd=%s -no-dir-changed', l:cwd))
     else
       let t:deol['cwd'] = ''
-      call deol#start(printf('-cwd=%s', l:cwd))
+      call deol#start(printf('-cwd=%s -no-dir-changed', l:cwd))
     endif
   endfunction
 endif
 
 try
-
   let g:codedark_conservative = 1
   execute printf('colorscheme %s', g:colorscheme.name)
 catch /.*/
@@ -1305,7 +1306,7 @@ if dein#tap('lightline.vim')
 
   let g:lightline.active = {}
   let g:lightline.active.left = [['readonly', 'relativepath', 'modified']]
-  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype', 'lamp']]
+  let g:lightline.active.right = [['lineinfo', 'percent', 'filetype']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }
   let g:lightline.subseparator = { 'left': '', 'right': '' }
@@ -1333,6 +1334,10 @@ endif
 if dein#tap('vim-gitto')
   let g:gitto#config = {}
   let g:gitto#config.get_buffer_path = function('vimrc#get_buffer_path')
+endif
+
+if dein#tap('lspkind-nvim')
+  lua require'lspkind'.init({ with_text = false })
 endif
 
 if dein#tap('denite.nvim')
@@ -1520,13 +1525,28 @@ endfunction
 
 if s:config.lsp ==# 'nvim'
 lua <<EOF
-  require'lspconfig'.gopls.setup{
+  local capabilities = vim.lsp.protocol.make_client_capabilities()
+  capabilities.textDocument.completion.completionItem.snippetSupport = true
+
+  require'lspconfig'.gopls.setup {
+    capabilities = capabilities,
     init_options = {
       usePlaceholders = true,
     }
   }
-  require'lspconfig'.vimls.setup{}
-  require'lspconfig'.tsserver.setup{}
+  require'lspconfig'.vimls.setup {
+    capabilities = capabilities,
+  }
+  require'lspconfig'.tsserver.setup {
+    capabilities = capabilities,
+  }
+  require'lspconfig'.rust_analyzer.setup {
+    capabilities = capabilities,
+  }
+  require'lspconfig'.clangd.setup {
+    capabilities = capabilities,
+  }
+  vim.lsp.set_log_level("debug")
 EOF
   nnoremap <silent> gf<CR>       <cmd>lua vim.lsp.buf.definition()<CR>
   nnoremap <silent> <Leader>i    <cmd>lua vim.lsp.buf.hover()<CR>

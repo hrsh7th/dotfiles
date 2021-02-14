@@ -9,11 +9,14 @@ export GIT_EDITOR=$EDITOR
 # Local bin
 export PATH="$HOME/Local/bin:$PATH"
 
+# .local/bin
+export PATH="$HOME/.local/bin:$PATH"
+
 # redis
 export PATH="/usr/local/Cellar/redis/5.0.7/bin:$PATH"
 
 # php (Append path for before of brew to use php7.3 isntead of php7.4)
-export PATH="/usr/local/Cellar/php@7.2/7.2.32/bin:$PATH"
+export PATH="/usr/local/Cellar/php@7.4/7.4.15/bin:$PATH"
 
 # ruby
 export PATH="/usr/local/Cellar/ruby/2.6.5/bin:$PATH"
@@ -29,6 +32,10 @@ export PATH="/usr/local/opt/llvm/bin:$PATH"
 
 # openjdk
 export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
+
+# Rust
+export CARGO_HOME="$HOME/.cargo"
+export PATH="$CARGO_HOME/bin:$PATH"
 
 # go
 export GO111MODULE=on
@@ -50,11 +57,11 @@ export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 . "$HOME/.nvm/nvm.sh" --no-use
 nvm use default > /dev/null
 
-# rust
-export RUST_SRC_PATH="$(rustc --print sysroot)/lib/rustlib/src/rust/src"
-
 # brew.
 export PATH="$PATH:/usr/local/bin"
+
+# local deno
+export PATH="$PATH:~/Develop/Repos/deno/target/debug"
 
 # local settings.
 if [ -f $SCRIPT_DIR/.bash_profile.local ]; then
