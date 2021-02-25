@@ -46,6 +46,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('Shougo/denite.nvim', { 'merged': 0 })
   call dein#add('Shougo/deol.nvim', { 'merged': 0 })
   call dein#add('andymass/vim-matchup', { 'merged': 0 })
+  call dein#add('delphinus/vim-auto-cursorline', { 'merged': 0 })
   call dein#add('haya14busa/vim-asterisk', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-call-function.vim', { 'merged': 0 })
   call dein#add('hrsh7th/fern-mapping-collapse-or-leave.vim', { 'merged': 0 })
@@ -58,7 +59,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-lamp', { 'merged': 0 })
   call dein#add('hrsh7th/vim-locon', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
-  call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
@@ -77,6 +77,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('thinca/vim-themis', { 'merged': 0 })
   call dein#add('tweekmonster/helpful.vim', { 'merged': 0 })
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
+  call dein#add('vim-denops/denops.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
 
   " colorscheme
@@ -95,6 +96,18 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('kana/vim-operator-replace', { 'merged': 0 })
 
   let g:colorscheme = { 'name': 'edge', 'lightline': 'edge' }
+
+  if s:config.snippet ==# 'vsnip'
+    call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
+  endif
+
+  if s:config.snippet ==# 'snippets_nvim'
+    call dein#add('norcalli/snippets.nvim', { 'merged': 0 })
+  endif
+
+  if s:config.snippet ==# 'ultisnips'
+    call dein#add('SirVer/ultisnips', { 'merged': 0 })
+  endif
 
   if s:config.lsp ==# 'coc'
     let g:coc_force_debug = 1
@@ -143,6 +156,7 @@ if dein#load_state(s:dein.dir.install)
   if has('nvim')
     call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
     call dein#add('onsails/lspkind-nvim', { 'merged': 0 })
+    call dein#add('notomo/vusted', { 'merged': 0 })
   endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
@@ -415,6 +429,11 @@ if dein#tap('vim-swap')
   xmap a, <Plug>(swap-textobject-a)
 endif
 
+if dein#tap('denops')
+  let g:denops#script#deno = 'deno'
+  let g:denops#script#typecheck = 1
+endif
+
 if dein#tap('vim-asterisk')
   let g:asterisk#keeppos = 1
   map * <Plug>(asterisk-gz*)
@@ -672,23 +691,27 @@ if dein#tap('nvim-compe')
   let g:compe.enabled = s:config.complete ==# 'compe'
   let g:compe.debug = v:true
   let g:compe.preselect = 'always'
+  let g:compe.autocomplete = v:true
+  let g:compe.documentation = v:true
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
   let g:compe.source.calc = v:true
-  let g:compe.source.tags = v:false
-  let g:compe.source.buffer = v:true
-  let g:compe.source.spell = v:false
-
   let g:compe.source.nvim_lua = v:true
-  let g:compe.source.nvim_lsp = v:true
+  let g:compe.source.buffer = v:true
 
+  let g:compe.source.tags = v:false
+  let g:compe.source.spell = v:false
+  let g:compe.source.omni = v:false
+  let g:compe.source.treesitter = v:false
+
+  let g:compe.source.nvim_lsp = s:config.lsp ==# 'nvim'
   let g:compe.source.vim_lsp = s:config.lsp ==# 'lsp'
   let g:compe.source.vim_lsc = s:config.lsp ==# 'lsc'
   let g:compe.source.lamp = s:config.lsp ==# 'lamp'
-  let g:compe.source.vsnip = v:true
+  let g:compe.source.vsnip = s:config.snippet ==# 'vsnip'
   let g:compe.source.ultisnips = s:config.snippet ==# 'ultisnips'
-  let g:compe.source.treesitter = v:false
+  let g:compe.source.snippets_nvim = s:config.snippet ==# 'snippets_nvim'
 
   if s:config.lexima
     inoremap <silent><expr><C-Space> compe#complete()
@@ -1014,7 +1037,26 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#register('rust-analyzer', {
     \   'command': ['rust-analyzer'],
     \   'filetypes': ['rust'],
-    \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) }
+    \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) },
+    \   'initialization_options': { -> {
+    \     'assist': {
+    \       'importPrefix': 'plain',
+    \       'importMergeBehavior': 'full'
+    \     },
+    \     'callInfo': {
+    \       'full': v:true,
+    \     },
+    \     'completion': {
+    \       'addCallArgumentSnippets': v:true,
+    \       'addCallParenthesis': v:true,
+    \       'postfix': {
+    \         'enable': v:true,
+    \       },
+    \       'autoimport': {
+    \         'enable': v:true,
+    \       }
+    \     }
+    \   } }
     \ })
 
     call lamp#register('vls', {
@@ -1313,22 +1355,10 @@ if dein#tap('lightline.vim')
 
   let g:lightline.tabline = {}
   let g:lightline.tabline.left = [['tabs']]
-  let g:lightline.tabline.right = [['git']]
   let g:lightline.tabline_separator = { 'left': '', 'right': '' }
   let g:lightline.tabline_subseparator = { 'left': '', 'right': '' }
 
   let g:lightline.component_function = {}
-  let g:lightline.component_function.git = 'Git'
-
-  function! Git()
-    if dein#tap('vim-gitto')
-      try
-        return gitto#run('repo#head')
-      catch /.*/
-      endtry
-    endif
-    return 'no git'
-  endfunction
 endif
 
 if dein#tap('vim-gitto')
@@ -1545,6 +1575,35 @@ lua <<EOF
   }
   require'lspconfig'.clangd.setup {
     capabilities = capabilities,
+  }
+  require'lspconfig'.sumneko_lua.setup {
+    capabilities = capabilities,
+    cmd = {
+      vim.fn.expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
+      "-E",
+      vim.fn.expand('~/Develop/Repos/lua-language-server/main.lua'),
+    };
+    settings = {
+      Lua = {
+        runtime = {
+          -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+          version = 'LuaJIT',
+          -- Setup your lua path
+          path = vim.split(package.path, ';'),
+        },
+        diagnostics = {
+          -- Get the language server to recognize the `vim` global
+          globals = {'vim'},
+        },
+        workspace = {
+          -- Make the server aware of Neovim runtime files
+          library = {
+            [vim.fn.expand('$VIMRUNTIME/lua')] = true,
+            [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true,
+          },
+        },
+      },
+    },
   }
   vim.lsp.set_log_level("debug")
 EOF
