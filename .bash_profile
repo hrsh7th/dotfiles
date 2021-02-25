@@ -46,6 +46,9 @@ export PATH="$GOPATH/bin:$PATH"
 export LDFLAGS="-L/usr/local/opt/llvm/lib"
 export CPPFLAGS="-I/usr/local/opt/llvm/include"
 
+# sumneko
+export PATH="$HOME/Develop/Repos/lua-language-server/bin/macOS:$PATH"
+
 # nvim.
 export NVIM_TUI_ENABLE_TRUE_COLOR=1
 export NVIM_TUI_ENABLE_CURSOR_SHAPE=1
@@ -61,7 +64,7 @@ nvm use default > /dev/null
 export PATH="$PATH:/usr/local/bin"
 
 # local deno
-export PATH="$PATH:~/Develop/Repos/deno/target/debug"
+export PATH="$PATH:$HOME/Develop/Repos/deno/target/debug"
 
 # local settings.
 if [ -f $SCRIPT_DIR/.bash_profile.local ]; then
