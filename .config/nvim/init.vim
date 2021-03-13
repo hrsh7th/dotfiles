@@ -59,7 +59,6 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-lamp', { 'merged': 0 })
   call dein#add('hrsh7th/vim-locon', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
-  call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern.vim', { 'merged': 0 })
@@ -70,35 +69,30 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('lambdalisue/vim-findent', { 'merged': 0 })
   call dein#add('machakann/vim-sandwich', { 'merged': 0 })
   call dein#add('machakann/vim-swap', { 'merged': 0 })
-  call dein#add('sheerun/vim-polyglot', { 'merged': 0 })
   call dein#add('t9md/vim-choosewin', { 'merged': 0 })
   call dein#add('thinca/vim-qfreplace', { 'merged': 0 })
   call dein#add('thinca/vim-quickrun', { 'merged': 0 })
   call dein#add('thinca/vim-themis', { 'merged': 0 })
   call dein#add('tweekmonster/helpful.vim', { 'merged': 0 })
   call dein#add('tyru/open-browser.vim', { 'merged': 0 })
-  call dein#add('vim-denops/denops.vim', { 'merged': 0 })
   call dein#add('vim-jp/vital.vim', { 'merged': 0 })
 
   " colorscheme
   call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
-  call dein#add('chuling/equinusocio-material.vim', { 'merged': 0 })
-  call dein#add('drewtempelmeyer/palenight.vim', { 'merged': 0 })
+  call dein#add('hrsh7th/palenight.vim', { 'merged': 0 })
   call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
-  call dein#add('koirand/tokyo-metro.vim', { 'merged': 0 })
   call dein#add('rakr/vim-one', { 'merged': 0 })
-  call dein#add('tomasiser/vim-code-dark', {  'merged': 0 })
-  call dein#add('sainnhe/edge', { 'merged': 0 })
+  let g:colorscheme = { 'name': 'nightfly', 'lightline': 'nightfly' }
+
 
   " textobj/operator
   call dein#add('kana/vim-textobj-user', { 'merged': 0 })
   call dein#add('kana/vim-operator-user', { 'merged': 0 })
   call dein#add('kana/vim-operator-replace', { 'merged': 0 })
 
-  let g:colorscheme = { 'name': 'edge', 'lightline': 'edge' }
-
   if s:config.snippet ==# 'vsnip'
     call dein#add('hrsh7th/vim-vsnip', { 'merged': 0 })
+    call dein#add('hrsh7th/vim-vsnip-integ', { 'merged': 0 })
   endif
 
   if s:config.snippet ==# 'snippets_nvim'
@@ -113,7 +107,6 @@ if dein#load_state(s:dein.dir.install)
     let g:coc_force_debug = 1
     let g:node_client_debug = v:true
     let $NVIM_COC_LOG_LEVEL = 'debug'
-    call dein#add('neoclide/coc.nvim', { 'merged': 0, 'rev': 'master', 'build': 'npm install' })
 
     " Use <C-l> for trigger snippet expand.
     imap <C-l> <Plug>(coc-snippets-expand)
@@ -157,6 +150,7 @@ if dein#load_state(s:dein.dir.install)
     call dein#add('nvim-treesitter/nvim-treesitter', { 'merged': 0 })
     call dein#add('onsails/lspkind-nvim', { 'merged': 0 })
     call dein#add('notomo/vusted', { 'merged': 0 })
+    call dein#add('norcalli/nvim-colorizer.lua')
   endif
 
   call dein#local('~/.go/src/github.com/hrsh7th/')
@@ -242,7 +236,7 @@ set modelines=2
 set wildmenu
 set wildmode=longest:full
 set wildchar=<Tab>
-set pumheight=50
+set pumheight=15
 set showtabline=2
 set cmdheight=2
 set laststatus=2
@@ -347,6 +341,8 @@ xnoremap L 20l
 xnoremap zk 5H
 xnoremap zj 5L
 
+nnoremap <CR> :<C-u>echomsg synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
+
 if dein#tap('vim-eft')
   let g:eft_index_function = get(g:, 'eft_index_function', {
   \   'head': function('eft#index#head'),
@@ -358,9 +354,15 @@ if dein#tap('vim-eft')
   nmap f <Plug>(eft-f)
   xmap f <Plug>(eft-f)
   omap f <Plug>(eft-f)
+  nmap t <Plug>(eft-t)
+  xmap t <Plug>(eft-t)
+  omap t <Plug>(eft-t)
   nmap F <Plug>(eft-F)
   xmap F <Plug>(eft-F)
   omap F <Plug>(eft-F)
+  nmap T <Plug>(eft-T)
+  xmap T <Plug>(eft-T)
+  omap T <Plug>(eft-T)
 endif
 
 nnoremap <Leader>h <C-w>h
@@ -434,10 +436,10 @@ if dein#tap('denops')
   let g:denops#script#typecheck = 1
 endif
 
-if dein#tap('vim-asterisk')
-  let g:asterisk#keeppos = 1
-  map * <Plug>(asterisk-gz*)
-endif
+" if dein#tap('vim-asterisk')
+"   let g:asterisk#keeppos = 1
+"   map * <Plug>(asterisk-gz*)
+" endif
 
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
@@ -686,7 +688,14 @@ if dein#tap('vim-vsnip') && s:config.snippet ==# 'vsnip'
   xmap S <Plug>(vsnip-cut-text)
 endif
 
+if dein#tap('snippets.nvim')
+  lua require'snippets'.use_suggested_mappings()
+  inoremap <c-k> <cmd>lua return require'snippets'.expand_or_advance(1)<CR>
+  inoremap <c-j> <cmd>lua return require'snippets'.advance_snippet(-1)<CR>
+endif
+
 if dein#tap('nvim-compe')
+
   let g:compe = {}
   let g:compe.enabled = s:config.complete ==# 'compe'
   let g:compe.debug = v:true
@@ -699,6 +708,7 @@ if dein#tap('nvim-compe')
   let g:compe.source.calc = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.buffer = v:true
+  let g:compe.source.emoji = v:false
 
   let g:compe.source.tags = v:false
   let g:compe.source.spell = v:false
@@ -717,8 +727,8 @@ if dein#tap('nvim-compe')
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
     inoremap <silent><expr><CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
-    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4 })
-    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4 })
+    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4, 'fallback': '<C-w>' })
+    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4, 'fallback': '<C-d>' })
   else
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
@@ -726,6 +736,7 @@ if dein#tap('nvim-compe')
     inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4 })
     inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4 })
   endif
+  autocmd! vimrc WinEnter * if getwinvar('%', 'compe_documentation', 0) | set winminheight=NormalFloat:Float | endif
 endif
 
 if s:config.complete ==# 'completion-nvim'
@@ -749,11 +760,18 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['.git', 'composer.json'])) },
     \ })
     call lsp#register_server({
-    \   'name': 'clangd',
-    \   'cmd': { -> ['clangd', '--background-index', '--clang-tidy'] },
-    \   'allowlist': ['cpp', 'c'],
-    \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['compile_commands.json', '.git'])) },
+    \   'name': 'ccls',
+    \   'cmd': { -> [expand('~/Develop/Repos/ccls/Release/ccls')] },
+    \   'root_uri': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
+    \   'initialization_options': {'cache': {'directory': '/tmp/ccls/cache' }},
+    \   'whitelist': ['c', 'cpp', 'objc', 'objcpp', 'cc'],
     \ })
+    " call lsp#register_server({
+    " \   'name': 'clangd',
+    " \   'cmd': { -> ['clangd', '--background-index', '--clang-tidy'] },
+    " \   'allowlist': ['cpp', 'c'],
+    " \   'root_uri': { -> lsp#utils#path_to_uri(lamp#findup(['compile_commands.json', '.git'])) },
+    " \ })
     call lsp#register_server({
     \   'name': 'lua-language-server',
     \   'cmd': { server_info -> [
@@ -784,20 +802,44 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     \   'name': 'vscode-html-language-server',
     \   'cmd': { -> ['vscode-html-language-server', '--stdio'] },
     \   'allowlist': ['html'],
-    \   'initialization_options': { -> {
+    \   'initialization_options': {
     \     'embeddedLanguages': {
     \       'css': v:true,
     \       'html': v:true,
     \       'javascript': v:true,
     \     }
-    \   } }
+    \   }
+    \ })
+    call lsp#register_server({
+    \   'name': 'vscode-css-language-server',
+    \   'cmd': { -> ['vscode-css-language-server', '--stdio'] },
+    \   'allowlist': ['css', 'scss'],
+    \   'initialization_options': {
+    \     'embeddedLanguages': {
+    \       'css': v:true,
+    \       'html': v:true,
+    \       'javascript': v:true,
+    \     }
+    \   }
+    \ })
+    call lsp#register_server({
+    \   'name': 'vscode-json-language-server',
+    \   'cmd': { -> ['vscode-json-language-server', '--stdio'] },
+    \   'allowlist': ['json'],
+    \   'initialization_options': {
+    \     'embeddedLanguages': {
+    \       'css': v:true,
+    \       'html': v:true,
+    \       'javascript': v:true,
+    \     }
+    \   }
     \ })
     call lsp#register_server({
     \   'name': 'vim-language-server',
     \   'cmd': { -> ['vim-language-server', '--stdio'] },
     \   'allowlist': ['vim'],
     \   'initialization_options': {
-    \    'iskeyword': &iskeyword,
+    \    'iskeyword': &iskeyword . ',:',
     \    'vimruntime': $VIMRUNTIME,
     \    'runtimepath': &runtimepath,
     \    'diagnostic': {
@@ -830,8 +872,6 @@ if dein#tap('vim-lsp') && s:config.lsp ==# 'lsp'
     nnoremap <buffer> <Leader>f    :<C-u>LspDocumentFormat<CR>
     vnoremap <buffer> <Leader>f    :LspDocumentFormatRange<CR>
 
-    inoremap <buffer> <expr><c-f> lsp#scroll(+4)
-    inoremap <buffer> <expr><c-d> lsp#scroll(-4)
     autocmd! vimrc BufWritePre *.go  call execute('LspDocumentFormatSync') | call execute('LspCodeActionSync source.organizeImports')
   endfunction
 endif
@@ -878,11 +918,15 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'prettier': {},
     \   'stylusSupremacy': {},
     \   'Lua': {
+    \     'runtime': {
+    \       'version': 'LuaJIT'
+    \     },
     \     'completion': {
     \       'callSnippet': 'Replace',
     \     },
     \     'diagnostics': {
     \       'enable': v:true,
+    \       'disable': ['redefined-local'],
     \       'globals': [
     \         'vim', 'describe', 'it', 'before_each', 'after_each'
     \       ],
@@ -944,7 +988,7 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     call lamp#builtin#yaml_language_server()
     call lamp#builtin#intelephense()
 
-    call lamp#register('html-language-server', {
+    call lamp#register('vscode-html-language-server', {
     \   'command': ['vscode-html-language-server', '--stdio'],
     \   'filetypes': ['html'],
     \   'initialization_options': { -> {
@@ -954,6 +998,16 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'javascript': v:true,
     \     }
     \   } }
+    \ })
+
+    call lamp#register('bash-language-server', {
+    \   'command': ['bash-language-server', 'start'],
+    \   'filetypes': ['sh'],
+    \ })
+
+    call lamp#register('zls', {
+    \   'command': ['zls'],
+    \   'filetypes': ['zig'],
     \ })
 
     call lamp#register('vscode-css-language-server', {
@@ -1038,25 +1092,6 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   'command': ['rust-analyzer'],
     \   'filetypes': ['rust'],
     \   'root_uri': { bufnr -> lamp#findup(['Cargo.toml'], bufname(bufnr)) },
-    \   'initialization_options': { -> {
-    \     'assist': {
-    \       'importPrefix': 'plain',
-    \       'importMergeBehavior': 'full'
-    \     },
-    \     'callInfo': {
-    \       'full': v:true,
-    \     },
-    \     'completion': {
-    \       'addCallArgumentSnippets': v:true,
-    \       'addCallParenthesis': v:true,
-    \       'postfix': {
-    \         'enable': v:true,
-    \       },
-    \       'autoimport': {
-    \         'enable': v:true,
-    \       }
-    \     }
-    \   } }
     \ })
 
     call lamp#register('vls', {
@@ -1216,6 +1251,22 @@ if dein#tap('coc.nvim') && s:config.lsp ==# 'coc'
   nnoremap <Leader><Leader> :<C-u>call CocAction('runCommand', 'editor.action.organizeImport')<CR>
 
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+  call coc#config('languageserver', {
+  \   'golang': {
+  \     'command': 'gopls',
+  \     'rootPatterns': ['go.mod'],
+  \     'disableWorkspaceFolders': v:true,
+  \     'filetypes': ['go']
+  \   },
+  \   'sumneko_lua': {
+  \     'command': expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
+  \     'args': ['-E', expand('~/Develop/Repos/lua-language-server/main.lua')],
+  \     'rootPatterns': ['.git'],
+  \     'filetypes': ['lua']
+  \   }
+  \ })
+  call coc#config('diagnostic.separateRelatedInformationAsDiagnostics', v:true)
 endif
 
 if dein#tap('deol.nvim')
@@ -1233,8 +1284,10 @@ if dein#tap('fern.vim')
   let g:fern#renderer = 'nerdfont'
   let g:fern#disable_default_mappings = v:true
   let g:fern#disable_auto_buffer_delete = 1
+  let g:fern#disable_viewer_smart_cursor = 1
   let g:fern#drawer_width = 40
   let g:fern#disable_viewer_spinner = 1
+  let g:fern#smart_cursor = 'none'
 
   function! s:fern_open(command, helper) abort
     let l:node = a:helper.sync.get_cursor_node()
@@ -1396,6 +1449,9 @@ if dein#tap('denite.nvim')
 
   autocmd! vimrc FileType denite-filter call s:setup_denite_filter()
   function! s:setup_denite_filter()
+    call compe#setup({
+    \   'enabled': v:false
+    \ }, 0)
     let b:lexima_disabled = v:true
     imap <silent><buffer><Esc> <Plug>(denite_filter_quit)
     nnoremap <silent><buffer><Esc> :<C-u>p<CR>
@@ -1498,6 +1554,7 @@ function! s:on_file_type()
   \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
   \   '.*\.tpl$': { 'filetype': 'html' },
   \   '.*\.vim$': { 'filetype': 'vim' },
+  \   '.*\.zig$': { 'filetype': 'zig' },
   \ })
     if bufname('%') =~ k
       for [l:name, l:value] in items(v)
@@ -1558,25 +1615,38 @@ lua <<EOF
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
 
+  local on_init = function(client)
+    client.config.flags = {}
+    if client.config.flags then
+      client.config.flags.allow_incremental_sync = true
+    end
+  end
+
   require'lspconfig'.gopls.setup {
     capabilities = capabilities,
+    on_init = on_init;
     init_options = {
       usePlaceholders = true,
     }
   }
   require'lspconfig'.vimls.setup {
+    on_init = on_init;
     capabilities = capabilities,
   }
   require'lspconfig'.tsserver.setup {
+    on_init = on_init;
     capabilities = capabilities,
   }
   require'lspconfig'.rust_analyzer.setup {
+    on_init = on_init;
     capabilities = capabilities,
   }
   require'lspconfig'.clangd.setup {
+    on_init = on_init;
     capabilities = capabilities,
   }
   require'lspconfig'.sumneko_lua.setup {
+    on_init = on_init;
     capabilities = capabilities,
     cmd = {
       vim.fn.expand('~/Develop/Repos/lua-language-server/bin/macOS/lua-language-server'),
