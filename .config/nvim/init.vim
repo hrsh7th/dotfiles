@@ -82,8 +82,8 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/palenight.vim', { 'merged': 0 })
   call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
   call dein#add('rakr/vim-one', { 'merged': 0 })
-  let g:colorscheme = { 'name': 'nightfly', 'lightline': 'nightfly' }
-
+  call dein#add('glepnir/zephyr-nvim', { 'merged': 0 })
+  let g:colorscheme = { 'name': 'palenight', 'lightline': 'palenight' }
 
   " textobj/operator
   call dein#add('kana/vim-textobj-user', { 'merged': 0 })
@@ -249,6 +249,7 @@ set shortmess+=c
 set listchars=tab:>-,trail:^
 set background=dark
 set virtualedit=all
+" set debug=msg
 
 set incsearch
 set hlsearch
@@ -285,11 +286,11 @@ else
   set fillchars+=vert:\│
 endif
 
-command! Profile call s:command_profile()
-function! s:command_profile() abort
+command! -nargs=* Profile call s:command_profile('<args>')
+function! s:command_profile(section) abort
   profile start ~/profile.txt
   profile func *
-  profile file *
+  execute printf('profile file %s', empty(a:section) ? '*' : a:section)
 endfunction
 
 command! DeleteFile call s:command_delete_file()
@@ -695,7 +696,6 @@ if dein#tap('snippets.nvim')
 endif
 
 if dein#tap('nvim-compe')
-
   let g:compe = {}
   let g:compe.enabled = s:config.complete ==# 'compe'
   let g:compe.debug = v:true
@@ -708,7 +708,7 @@ if dein#tap('nvim-compe')
   let g:compe.source.calc = v:true
   let g:compe.source.nvim_lua = v:true
   let g:compe.source.buffer = v:true
-  let g:compe.source.emoji = v:false
+  let g:compe.source.emoji = v:true
 
   let g:compe.source.tags = v:false
   let g:compe.source.spell = v:false
@@ -727,8 +727,8 @@ if dein#tap('nvim-compe')
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
     inoremap <silent><expr><CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
-    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4, 'fallback': '<C-w>' })
-    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4, 'fallback': '<C-d>' })
+    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4, 'keys': '<C-w>' })
+    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4, 'keys': '<C-d>' })
   else
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
@@ -998,6 +998,11 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'javascript': v:true,
     \     }
     \   } }
+    \ })
+
+    call lamp#register('python-language-server', {
+    \   'command': ['pyls'],
+    \   'filetypes': ['python'],
     \ })
 
     call lamp#register('bash-language-server', {
@@ -1284,10 +1289,8 @@ if dein#tap('fern.vim')
   let g:fern#renderer = 'nerdfont'
   let g:fern#disable_default_mappings = v:true
   let g:fern#disable_auto_buffer_delete = 1
-  let g:fern#disable_viewer_smart_cursor = 1
   let g:fern#drawer_width = 40
   let g:fern#disable_viewer_spinner = 1
-  let g:fern#smart_cursor = 'none'
 
   function! s:fern_open(command, helper) abort
     let l:node = a:helper.sync.get_cursor_node()
@@ -1638,6 +1641,10 @@ lua <<EOF
     capabilities = capabilities,
   }
   require'lspconfig'.rust_analyzer.setup {
+    on_init = on_init;
+    capabilities = capabilities,
+  }
+  require'lspconfig'.pyls.setup {
     on_init = on_init;
     capabilities = capabilities,
   }
