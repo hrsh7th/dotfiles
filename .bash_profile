@@ -16,7 +16,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="/usr/local/Cellar/redis/5.0.7/bin:$PATH"
 
 # php (Append path for before of brew to use php7.3 isntead of php7.4)
-export PATH="/usr/local/Cellar/php@7.4/7.4.15/bin:$PATH"
+export PATH="/usr/local/Cellar/php@7.2/7.2.34_2/bin:$PATH"
 
 # ruby
 export PATH="/usr/local/Cellar/ruby/2.6.5/bin:$PATH"
@@ -45,6 +45,10 @@ export PATH="$GOPATH/bin:$PATH"
 # llvm
 export LDFLAGS="-L/usr/local/opt/llvm/lib"
 export CPPFLAGS="-I/usr/local/opt/llvm/include"
+
+# java
+export JAVA_HOME=/usr/local/opt/openjdk@11
+export JAR="$HOME/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar"
 
 # sumneko
 export PATH="$HOME/Develop/Repos/lua-language-server/bin/macOS:$PATH"

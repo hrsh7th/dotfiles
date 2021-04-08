@@ -60,6 +60,7 @@ if dein#load_state(s:dein.dir.install)
   call dein#add('hrsh7th/vim-locon', { 'merged': 0 })
   call dein#add('hrsh7th/vim-vital-vs', { 'merged': 0 })
   call dein#add('itchyny/lightline.vim', { 'merged': 0 })
+  call dein#add('junegunn/vim-easy-align', { 'merged': 0 })
   call dein#add('lambdalisue/fern-renderer-nerdfont.vim', { 'merged': 0 })
   call dein#add('lambdalisue/fern.vim', { 'merged': 0 })
   call dein#add('lambdalisue/gina.vim', { 'merged': 0 })
@@ -79,10 +80,10 @@ if dein#load_state(s:dein.dir.install)
 
   " colorscheme
   call dein#add('bluz71/vim-nightfly-guicolors', { 'merged': 0 })
-  call dein#add('hrsh7th/palenight.vim', { 'merged': 0 })
   call dein#add('gruvbox-community/gruvbox', { 'merged': 0 })
   call dein#add('rakr/vim-one', { 'merged': 0 })
   call dein#add('glepnir/zephyr-nvim', { 'merged': 0 })
+  call dein#add('hrsh7th/palenight.vim', { 'merged': 0 })
   let g:colorscheme = { 'name': 'palenight', 'lightline': 'palenight' }
 
   " textobj/operator
@@ -139,7 +140,7 @@ if dein#load_state(s:dein.dir.install)
 
   if s:config.lsp ==# 'nvim'
     call dein#add('nvim-lua/completion-nvim', { 'merged': 0 })
-    call dein#add('neovim/nvim-lsp', { 'merged': 0 })
+    call dein#add('neovim/nvim-lspconfig', { 'merged': 0 })
   endif
 
   if s:config.lexima
@@ -215,7 +216,6 @@ set noswapfile
 set lazyredraw
 set scrolloff=3
 set sidescrolloff=3
-set complete=w
 set belloff=all
 set synmaxcol=512
 set undodir=~/.vimundo
@@ -342,7 +342,7 @@ xnoremap L 20l
 xnoremap zk 5H
 xnoremap zj 5L
 
-nnoremap <CR> :<C-u>echomsg synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
+nnoremap <CR> :<C-u>echomsg expand('%:~')<CR>
 
 if dein#tap('vim-eft')
   let g:eft_index_function = get(g:, 'eft_index_function', {
@@ -404,6 +404,10 @@ nnoremap gj J
 
 nnoremap <F5> :<C-u>call vimrc#detect_cwd()<CR>
 
+if dein#tap('vim-easy-align')
+  xnoremap _ :EasyAlign<CR>
+endif
+
 if dein#tap('nvim-treesitter')
 lua <<EOF
 require'nvim-treesitter.configs'.setup {
@@ -416,6 +420,10 @@ require'nvim-treesitter.configs'.setup {
   }
 }
 EOF
+endif
+
+if dein#tap('vim-auto-cursorline')
+  let g:auto_cursorline_wait_ms = 800
 endif
 
 if dein#tap('vim-operator-user')
@@ -437,10 +445,10 @@ if dein#tap('denops')
   let g:denops#script#typecheck = 1
 endif
 
-" if dein#tap('vim-asterisk')
-"   let g:asterisk#keeppos = 1
-"   map * <Plug>(asterisk-gz*)
-" endif
+if dein#tap('vim-asterisk')
+  let g:asterisk#keeppos = 1
+  map * <Plug>(asterisk-gz*)
+endif
 
 if dein#tap('vim-quickrun')
   let g:quickrun_no_default_key_mappings = 1
@@ -592,6 +600,10 @@ if dein#tap('vim-candle')
   endfunction
 endif
 
+if dein#tap('vim-matchup')
+ let g:matchup_matchparen_deferred = 1
+endif
+
 if dein#tap('dein.vim')
   let g:dein#install_log_filename = '~/dein.log'
 endif
@@ -699,14 +711,13 @@ if dein#tap('nvim-compe')
   let g:compe = {}
   let g:compe.enabled = s:config.complete ==# 'compe'
   let g:compe.debug = v:true
-  let g:compe.preselect = 'always'
   let g:compe.autocomplete = v:true
+  let g:compe.preselect = 'always'
   let g:compe.documentation = v:true
 
   let g:compe.source = {}
   let g:compe.source.path = v:true
   let g:compe.source.calc = v:true
-  let g:compe.source.nvim_lua = v:true
   let g:compe.source.buffer = v:true
   let g:compe.source.emoji = v:true
 
@@ -714,6 +725,7 @@ if dein#tap('nvim-compe')
   let g:compe.source.spell = v:false
   let g:compe.source.omni = v:false
   let g:compe.source.treesitter = v:false
+  let g:compe.source.nvim_lua = v:false
 
   let g:compe.source.nvim_lsp = s:config.lsp ==# 'nvim'
   let g:compe.source.vim_lsp = s:config.lsp ==# 'lsp'
@@ -726,9 +738,9 @@ if dein#tap('nvim-compe')
   if s:config.lexima
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
-    inoremap <silent><expr><CR>      compe#confirm(lexima#expand('<LT>CR>', 'i'))
-    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4, 'keys': '<C-w>' })
-    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4, 'keys': '<C-d>' })
+    inoremap <silent><expr><CR>      compe#confirm({ 'keys': lexima#expand('<LT>CR>', 'i'), 'replace': v:true })
+    inoremap <silent><expr><C-f>     compe#scroll({ 'delta': +4 })
+    inoremap <silent><expr><C-d>     compe#scroll({ 'delta': -4 })
   else
     inoremap <silent><expr><C-Space> compe#complete()
     inoremap <silent><expr><C-e>     compe#close('<C-e>')
@@ -910,6 +922,10 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   command ==# 'vsplit' ? execute('vertical EffortGF', '') : execute('EffortGF', '')
     \ ] }
 
+    call lamp#config('global.debug', '/tmp/lamp.log')
+    call lamp#config('view.location.on_location', s:on_location)
+    call lamp#config('view.location.on_fallback', s:on_fallback)
+
     call lamp#feature#workspace#configure({
     \   'emmet': {},
     \   'html': {},
@@ -979,14 +995,29 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \   }
     \ })
 
-    call lamp#config('global.debug', '/tmp/lamp.log')
-    call lamp#config('view.location.on_location', s:on_location)
-    call lamp#config('view.location.on_fallback', s:on_fallback)
-
     call lamp#builtin#gopls()
     call lamp#builtin#vim_language_server()
     call lamp#builtin#yaml_language_server()
     call lamp#builtin#intelephense()
+
+    call lamp#register('eclipse.jdt.ls', {
+    \   'command': [
+    \     'java',
+    \     '-Declipse.application=org.eclipse.jdt.ls.core.id1',
+    \     '-Dosgi.bundles.defaultStartLevel=4',
+    \     '-Declipse.product=org.eclipse.jdt.ls.core.product',
+    \     '-Dlog.level=ALL',
+    \     '-noverify',
+    \     '-Dfile.encoding=UTF-8',
+    \     '-jar',
+    \     expand('~/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar'),
+    \     '-configuration',
+    \     expand('~/eclipse.jdt.ls/config_mac'),
+    \     '-data',
+    \     expand('~/eclipse.jdt.ls/workspace')
+    \   ],
+    \   'filetypes': ['java'],
+    \ })
 
     call lamp#register('vscode-html-language-server', {
     \   'command': ['vscode-html-language-server', '--stdio'],
@@ -998,6 +1029,11 @@ if dein#tap('vim-lamp') && s:config.lsp ==# 'lamp'
     \       'javascript': v:true,
     \     }
     \   } }
+    \ })
+
+    call lamp#register('purescript-language-server', {
+    \   'command': ['purescript-language-server', '--stdio'],
+    \   'filetypes': ['purescript'],
     \ })
 
     call lamp#register('python-language-server', {
@@ -1304,6 +1340,8 @@ if dein#tap('fern.vim')
 
   autocmd! vimrc FileType fern call s:setup_fern()
   function! s:setup_fern() abort
+    let &l:statusline = '%{getline(1)}'
+
     call glyph_palette#apply()
 
     nnoremap <silent><nowait><buffer>H           :<C-u>call FernTerminal()<CR>
@@ -1403,7 +1441,7 @@ if dein#tap('lightline.vim')
   let g:lightline.enable.tabline = 1
 
   let g:lightline.active = {}
-  let g:lightline.active.left = [['readonly', 'relativepath', 'modified']]
+  let g:lightline.active.left = [['mode', 'readonly', 'modified'], ['filename']]
   let g:lightline.active.right = [['lineinfo', 'percent', 'filetype']]
   let g:lightline.inactive = g:lightline.active
   let g:lightline.separator = { 'left': '', 'right': '' }
@@ -1550,14 +1588,16 @@ if dein#tap('denite.nvim')
   endif
 endif
 
-autocmd! vimrc FileType * call s:on_file_type()
-function! s:on_file_type()
+autocmd! vimrc BufRead * call s:on_buf_read()
+function! s:on_buf_read()
+  echomsg 'aiueo'
   for [k, v] in items({
   \   '.*\.d\.ts$': { 'filetype': 'typescript.dts' },
   \   '.*\.log$': { 'filetype': 'text', 'tabstop': 8 },
   \   '.*\.tpl$': { 'filetype': 'html' },
   \   '.*\.vim$': { 'filetype': 'vim' },
   \   '.*\.zig$': { 'filetype': 'zig' },
+  \   '.*\.purs$': { 'filetype': 'purescript' },
   \ })
     if bufname('%') =~ k
       for [l:name, l:value] in items(v)
@@ -1617,6 +1657,13 @@ if s:config.lsp ==# 'nvim'
 lua <<EOF
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
+  capabilities.textDocument.completion.completionItem.resolveSupport = {
+    properties = {
+      'documentation',
+      'detail',
+      'additionalTextEdits',
+    }
+  }
 
   local on_init = function(client)
     client.config.flags = {}
@@ -1651,6 +1698,14 @@ lua <<EOF
   require'lspconfig'.clangd.setup {
     on_init = on_init;
     capabilities = capabilities,
+  }
+  require'lspconfig'.purescriptls.setup {}
+  require'lspconfig'.jdtls.setup {
+    cmd_env = {
+      JAR = vim.fn.expand('~/eclipse.jdt.ls/plugins/org.eclipse.equinox.launcher_1.4.0.v20161219-1356.jar'),
+      GRADLE_HOME = vim.fn.expand('~/gradle'),
+      JDTLS_CONFIG = vim.fn.expand('~/eclipse.jdt.ls/config_mac'),
+    }
   }
   require'lspconfig'.sumneko_lua.setup {
     on_init = on_init;

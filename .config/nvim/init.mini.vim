@@ -15,6 +15,7 @@ end
 execute 'set runtimepath+=' . s:plug_dir
 call plug#begin(s:plug_dir)
 Plug 'hrsh7th/nvim-compe'
+Plug 'neovim/nvim-lspconfig'
 call plug#end()
 PlugInstall | quit
 
@@ -46,3 +47,14 @@ let g:compe.source.tags = v:true
 let g:compe.source.snippets_nvim = v:true
 let g:compe.source.treesitter = v:true
 let g:compe.source.omni = v:true
+
+inoremap <silent><expr><C-Space> compe#complete()
+inoremap <silent><expr><C-e>     compe#close('<C-e>')
+inoremap <silent><expr><CR>      compe#confirm('<CR>')
+
+lua <<EOF
+require'lspconfig'.vimls.setup {}
+
+vim.api.nvim_set_keymap("i", "<C-f>", "compe#scroll({ 'delta': +4 })", { silent = true, expr = true, noremap = true })
+vim.api.nvim_set_keymap("i", "<C-d>", "compe#scroll({ 'delta': -4 })", { silent = true, expr = true, noremap = true })
+EOF
