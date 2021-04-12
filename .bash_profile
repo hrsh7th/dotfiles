@@ -61,8 +61,9 @@ export NVIM_PYTHON_LOG_LEVEL=DEBUG
 export NVIM_LISTEN_ADDRESS=/tmp/nvimsocket
 
 # nvm.
-. "$HOME/.nvm/nvm.sh" --no-use
-nvm use default > /dev/null
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # brew.
 export PATH="$PATH:/usr/local/bin"
@@ -80,3 +81,4 @@ alias v=nvim
 alias rg='rg -i'
 
 source "$HOME/.cargo/env"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

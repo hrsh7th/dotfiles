@@ -154,8 +154,7 @@ if dein#load_state(s:dein.dir.install)
     call dein#add('norcalli/nvim-colorizer.lua')
   endif
 
-  call dein#local('~/.go/src/github.com/hrsh7th/')
-  call dein#local('~/Develop/VimPlugins')
+  call dein#local('~/Develop/Vim')
 
   call dein#end()
   call dein#save_state()
@@ -504,6 +503,27 @@ if dein#tap('vim-candle')
   \   }
   \ })<CR>
 
+  " memo
+  nnoremap <silent><Leader>m :<C-u>call candle#start({
+  \   'file': {
+  \     'root_path': expand('~/.memo'),
+  \   }
+  \ })<CR>
+  function! s:new_invoke(candle) abort
+    let l:item = a:candle.get_action_items()[0]
+    let l:title = input('title: ')
+    call writefile(
+    \   [printf('# %s', l:title), ''],
+    \   printf('%s/%s.md', fnamemodify(l:item.filename, ':p:h'), l:title)
+    \ )
+    call a:candle.start()
+  endfunction
+  call candle#action#register({
+  \   'name': 'new',
+  \   'accept': function('candle#action#location#accept_single'),
+  \   'invoke': function('s:new_invoke'),
+  \ })
+
   " menu
   nnoremap <silent><Leader>0 :<C-u>call candle#start({
   \   'item': [{
@@ -530,7 +550,6 @@ if dein#tap('vim-candle')
       let l:curr_winid = win_getid()
       call a:candle.close()
       let l:next_winid = l:curr_winid == a:candle.winid ? a:candle.prev_winid : l:curr_winid
-
       let l:item = a:candle.get_action_items()[0]
       call vimrc#open(a:command, l:item, win_id2win(l:next_winid))
     endfunction
@@ -549,6 +568,7 @@ if dein#tap('vim-candle')
     \   'accept': function('candle#action#location#accept_single'),
     \   'invoke': function('s:open_invoke', ['vsplit']),
     \ })
+
     "
     " qfreplace
     "
@@ -562,6 +582,24 @@ if dein#tap('vim-candle')
     \   'name': 'qfreplace',
     \   'accept': function('candle#action#common#expect_keys_multiple', [['filename', 'lnum', 'text']]),
     \   'invoke': function('s:qfreplace_invoke'),
+    \ })
+
+    "
+    " new
+    "
+    function! s:new_invoke(candle) abort
+      let l:item = a:candle.get_action_items()[0]
+      let l:title = input('title: ')
+      call writefile(
+      \   [printf('# %s', l:title), ''],
+      \   printf('%s/%s.md', fnamemodify(l:item.filename, ':p:h'), l:title)
+      \ )
+      call a:candle.start()
+    endfunction
+    call candle#action#register({
+    \   'name': 'new',
+    \   'accept': function('candle#action#location#accept_single'),
+    \   'invoke': function('s:new_invoke'),
     \ })
   endfunction
 
@@ -588,6 +626,7 @@ if dein#tap('vim-candle')
     nnoremap <silent><buffer> s     :<C-u>call candle#mapping#action('split')<CR>
     nnoremap <silent><buffer> v     :<C-u>call candle#mapping#action('vsplit')<CR>
     nnoremap <silent><buffer> d     :<C-u>call candle#mapping#action('delete')<CR>
+    nnoremap <silent><buffer> N     :<C-u>call candle#mapping#action('new')<CR>
   endfunction
 
   autocmd! vimrc User candle#input#start call s:on_candle_input_start()
