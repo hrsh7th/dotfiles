@@ -509,20 +509,6 @@ if dein#tap('vim-candle')
   \     'root_path': expand('~/.memo'),
   \   }
   \ })<CR>
-  function! s:new_invoke(candle) abort
-    let l:item = a:candle.get_action_items()[0]
-    let l:title = input('title: ')
-    call writefile(
-    \   [printf('# %s', l:title), ''],
-    \   printf('%s/%s.md', fnamemodify(l:item.filename, ':p:h'), l:title)
-    \ )
-    call a:candle.start()
-  endfunction
-  call candle#action#register({
-  \   'name': 'new',
-  \   'accept': function('candle#action#location#accept_single'),
-  \   'invoke': function('s:new_invoke'),
-  \ })
 
   " menu
   nnoremap <silent><Leader>0 :<C-u>call candle#start({
